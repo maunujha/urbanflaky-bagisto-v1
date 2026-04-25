@@ -565,10 +565,12 @@
                 shippingMethods: [],
                 selectedShipping: null,
                 savingShipping: false,
+                loadingShipping: false,
 
                 paymentMethods: [],
                 selectedPayment: null,
                 savingPayment: false,
+                loadingPayment: false,
 
                 couponCode: '',
                 couponMessage: '',
@@ -660,14 +662,19 @@
                         return;
                     }
 
-                    /* Response is grouped shipping rates */
+                    /* Response: { data: { redirect, data: { shippingMethods: { carrier: { rates: [] } } } } } */
                     const rates = res.data.data;
+                    const shippingData = rates?.data?.shippingMethods || rates?.shippingMethods;
                     this.shippingMethods = [];
-                    if (Array.isArray(rates)) {
-                        rates.forEach(group => {
+                    if (shippingData && typeof shippingData === 'object') {
+                        Object.values(shippingData).forEach(group => {
                             if (group.rates) this.shippingMethods.push(...group.rates);
                             else             this.shippingMethods.push(group);
                         });
+                    }
+                    /* Auto-select first available shipping method */
+                    if (this.shippingMethods.length > 0) {
+                        this.selectedShipping = this.shippingMethods[0].method;
                     }
 
                     this.step = 2;
@@ -693,8 +700,20 @@
                         '{{ route("shop.checkout.onepage.shipping_methods.store") }}',
                         { shipping_method: this.selectedShipping }
                     );
-                    const data = res.data.data;
-                    this.paymentMethods = Array.isArray(data) ? data : (data?.payment_methods || []);
+                    /* storeShippingMethod returns response()->json({payment_methods:[...]}) */
+                    const data = res.data;
+                    if (Array.isArray(data)) {
+                        this.paymentMethods = data;
+                    } else if (data?.payment_methods && Array.isArray(data.payment_methods)) {
+                        this.paymentMethods = data.payment_methods;
+                    } else if (data?.data && Array.isArray(data.data)) {
+                        this.paymentMethods = data.data;
+                    } else {
+                        this.paymentMethods = [];
+                    }
+                    /* Auto-select COD if available, otherwise first method */
+                    const cod = this.paymentMethods.find(m => m.method === 'cashondelivery');
+                    this.selectedPayment = cod ? cod.method : (this.paymentMethods[0]?.method || null);
                     await this.fetchCart();
                     this.step = 3;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
