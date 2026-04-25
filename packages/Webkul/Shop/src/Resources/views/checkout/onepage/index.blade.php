@@ -333,12 +333,12 @@
                         </div>
 
                         <div class="co-ship-opts" v-else>
-                            <div v-for="method in shippingMethods" :key="method.method_code"
+                            <div v-for="method in shippingMethods" :key="method.method"
                                 class="co-ship-opt"
-                                :class="{'is-selected': selectedShipping === method.method_code}"
-                                @click="selectedShipping = method.method_code">
-                                <div class="co-radio" :class="{'is-on': selectedShipping === method.method_code}">
-                                    <div class="co-radio-dot" v-if="selectedShipping === method.method_code"></div>
+                                :class="{'is-selected': selectedShipping === method.method}"
+                                @click="selectedShipping = method.method">
+                                <div class="co-radio" :class="{'is-on': selectedShipping === method.method}">
+                                    <div class="co-radio-dot" v-if="selectedShipping === method.method"></div>
                                 </div>
                                 <div class="co-ship-info">
                                     <div class="co-ship-name">@{{ method.method_title }}</div>
