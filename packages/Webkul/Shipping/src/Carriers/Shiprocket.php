@@ -142,17 +142,20 @@ class Shiprocket extends AbstractShipping
     }
 
     /**
-     * Sum cart item weights (product weight × quantity), minimum 0.5 kg.
+     * Sum cart item weights and return total in kg (Shiprocket expects kg).
+     * Store unit is grams, so divide by 1000. Minimum 0.5 kg.
      */
     protected function getCartWeight($cart): float
     {
-        $weight = 0.0;
+        $weightInGrams = 0.0;
 
         foreach ($cart->items as $item) {
-            $weight += ((float) ($item->product->weight ?? 0.5)) * $item->quantity;
+            $weightInGrams += ((float) ($item->product->weight ?? 500)) * $item->quantity;
         }
 
-        return max(round($weight, 2), 0.5);
+        $weightInKg = $weightInGrams / 1000;
+
+        return max(round($weightInKg, 2), 0.5);
     }
 
     /* Satisfy AbstractShipping interface — not used for Shiprocket */
