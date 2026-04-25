@@ -342,7 +342,7 @@
                                 </div>
                                 <div class="co-ship-info">
                                     <div class="co-ship-name">@{{ method.method_title }}</div>
-                                    <div class="co-ship-eta">@{{ method.carrier_title }}</div>
+                                    <div class="co-ship-eta">@{{ method.method_description || method.carrier_title }}</div>
                                 </div>
                                 <span class="co-ship-price" :class="{'is-free': method.base_price == 0}">
                                     @{{ method.base_price == 0 ? 'Free' : '₹' + method.base_price }}
