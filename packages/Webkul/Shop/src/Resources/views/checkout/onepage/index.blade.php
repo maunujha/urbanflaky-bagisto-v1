@@ -514,7 +514,7 @@
                     <hr class="co-sum-divider">
 
                     <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
-                    <div class="co-sum-row"><span>Shipping</span><span>@{{ cart.formatted_shipping_amount || '—' }}</span></div>
+                    <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
                     <div class="co-sum-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
                     <div class="co-sum-total"><span>Grand total</span><span>@{{ cart.formatted_grand_total }}</span></div>
 
