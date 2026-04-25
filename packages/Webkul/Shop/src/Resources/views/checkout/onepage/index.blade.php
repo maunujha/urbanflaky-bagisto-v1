@@ -206,14 +206,6 @@
                         <div class="co-card-title">Delivery address</div>
                         <div class="co-card-sub">Where should we deliver your order?</div>
 
-                        {{-- API validation errors summary --}}
-                        <div v-if="Object.keys(errors).length > 0" style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#dc2626;">
-                            <strong>Please fix the following:</strong>
-                            <ul style="margin:6px 0 0;padding-left:18px;">
-                                <li v-for="(msgs, field) in errors" :key="field">@{{ msgs[0] }}</li>
-                            </ul>
-                        </div>
-
                         {{-- Mobile: editable if no phone on profile, locked if exists --}}
                         <div class="co-field">
                             <label class="co-label">Mobile number *</label>
@@ -516,7 +508,10 @@
                     <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
                     <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
                     <div class="co-sum-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
-                    <div class="co-sum-total"><span>Grand total</span><span>@{{ cart.formatted_grand_total }}</span></div>
+                    <div class="co-sum-total">
+                        <span>Grand total</span>
+                        <span>@{{ selectedShipping ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
+                    </div>
 
                     <div class="co-sum-secure">
                         <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
