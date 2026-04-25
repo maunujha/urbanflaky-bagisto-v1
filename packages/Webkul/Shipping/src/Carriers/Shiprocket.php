@@ -114,7 +114,7 @@ class Shiprocket extends AbstractShipping
         try {
             $response = Http::withToken($token)
                 ->timeout(10)
-                ->post(self::SERVICEABILITY_URL, [
+                ->get(self::SERVICEABILITY_URL, [
                     'pickup_postcode'   => config('shiprocket.pickup_pincode'),
                     'delivery_postcode' => $deliveryPincode,
                     'weight'            => $weight,
