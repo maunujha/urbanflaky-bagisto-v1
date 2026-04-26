@@ -77,6 +77,8 @@ class CheckoutOtpController extends APIController
             return response()->json(['message' => 'Incorrect OTP. Please try again.'], 422);
         }
 
+        $phone = $request->phone;
+
         session()->forget(['checkout_otp', 'checkout_otp_expires_at']);
         session(['checkout_phone_verified' => true]);
 
