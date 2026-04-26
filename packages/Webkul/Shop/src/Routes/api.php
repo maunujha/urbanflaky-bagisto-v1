@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Webkul\Shop\Http\Controllers\API\AddressController;
 use Webkul\Shop\Http\Controllers\API\CartController;
 use Webkul\Shop\Http\Controllers\API\CategoryController;
+use Webkul\Shop\Http\Controllers\API\CheckoutOtpController;
 use Webkul\Shop\Http\Controllers\API\CompareController;
 use Webkul\Shop\Http\Controllers\API\CoreController;
 use Webkul\Shop\Http\Controllers\API\CustomerController;
@@ -77,6 +78,11 @@ Route::group(['prefix' => 'api'], function () {
         Route::delete('coupon', 'destroyCoupon')->name('shop.api.checkout.cart.coupon.remove');
 
         Route::get('cross-sell', 'crossSellProducts')->name('shop.api.checkout.cart.cross-sell.index');
+    });
+
+    Route::controller(CheckoutOtpController::class)->prefix('checkout/otp')->group(function () {
+        Route::post('send', 'send')->name('shop.api.checkout.otp.send');
+        Route::post('verify', 'verify')->name('shop.api.checkout.otp.verify');
     });
 
     Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {

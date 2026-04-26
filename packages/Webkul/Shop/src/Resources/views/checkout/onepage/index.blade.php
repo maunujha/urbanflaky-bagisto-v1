@@ -206,22 +206,83 @@
                         <div class="co-card-title">Delivery address</div>
                         <div class="co-card-sub">Where should we deliver your order?</div>
 
-                        {{-- Mobile: editable if no phone on profile, locked if exists --}}
+                        {{-- Mobile number with OTP verification --}}
                         <div class="co-field">
                             <label class="co-label">Mobile number *</label>
+
                             @if(auth()->user()?->phone)
+                                {{-- Logged-in user with phone on profile: locked + auto-verified --}}
                                 <div class="co-phone-row">
                                     <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                                         <path d="M2 1.5h3l1.5 3.5-2 1.5C5.5 8.5 6.5 9.5 8.5 10.5l1.5-2 3.5 1.5v3C13.5 13.5 8 14.5 4 10.5S.5 1.5 2 1.5z" fill="#888"/>
                                     </svg>
                                     <span style="font-size:14px;color:#555">{{ auth()->user()->phone }}</span>
-                                    <span class="co-phone-badge">Auto-filled</span>
+                                    <span class="co-phone-badge">Verified</span>
                                 </div>
                             @else
-                                <input class="co-input" :class="{'has-error': errors['billing.phone']}"
-                                    type="tel" v-model="addr.phone" maxlength="10"
-                                    inputmode="numeric" placeholder="Enter 10-digit mobile number">
-                                <div class="co-error-msg" v-if="errors['billing.phone']">@{{ errors['billing.phone'][0] }}</div>
+                                {{-- Guest / logged-in without phone: OTP flow --}}
+
+                                {{-- Phone input row --}}
+                                <div style="display:flex;gap:10px;align-items:flex-start;">
+                                    <div style="flex:1">
+                                        <input class="co-input" :class="{'has-error': errors['billing.phone']}"
+                                            type="tel" v-model="addr.phone" maxlength="10"
+                                            inputmode="numeric" placeholder="Enter 10-digit mobile number"
+                                            @input="onPhoneChanged"
+                                            :disabled="phoneVerified">
+                                        <div class="co-error-msg" v-if="errors['billing.phone']">@{{ errors['billing.phone'][0] }}</div>
+                                    </div>
+
+                                    {{-- Send OTP / Verified badge --}}
+                                    <button v-if="!phoneVerified && !otpSent"
+                                        type="button"
+                                        @click="sendOtp"
+                                        :disabled="addr.phone.length !== 10 || otpSending"
+                                        style="height:44px;padding:0 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                        :style="{opacity: (addr.phone.length !== 10 || otpSending) ? 0.5 : 1}">
+                                        @{{ otpSending ? 'Sending…' : 'Send OTP' }}
+                                    </button>
+
+                                    <div v-if="phoneVerified"
+                                        style="height:44px;padding:0 14px;display:flex;align-items:center;gap:6px;background:#e8f5e9;border-radius:10px;font-size:13px;font-weight:600;color:#2e7d32;white-space:nowrap;flex-shrink:0;">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <circle cx="7" cy="7" r="6" fill="#2e7d32"/>
+                                            <path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                        Verified
+                                        <button type="button" @click="resetPhone"
+                                            style="background:none;border:none;cursor:pointer;color:#888;font-size:11px;padding:0;margin-left:4px;">Edit</button>
+                                    </div>
+                                </div>
+
+                                {{-- OTP input (shown after OTP is sent) --}}
+                                <div v-if="otpSent && !phoneVerified" style="margin-top:12px;">
+                                    <div style="font-size:12px;color:#666;margin-bottom:8px;">
+                                        Enter the 6-digit OTP sent to @{{ addr.phone }}
+                                    </div>
+                                    <div style="display:flex;gap:10px;align-items:flex-start;">
+                                        <input class="co-input" type="text" v-model="otpCode"
+                                            maxlength="6" inputmode="numeric" placeholder="6-digit OTP"
+                                            style="max-width:160px;letter-spacing:6px;font-size:18px;font-weight:600;"
+                                            @keyup.enter="verifyOtp">
+                                        <button type="button" @click="verifyOtp"
+                                            :disabled="otpCode.length !== 6 || otpVerifying"
+                                            style="height:44px;padding:0 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                            :style="{opacity: (otpCode.length !== 6 || otpVerifying) ? 0.5 : 1}">
+                                            @{{ otpVerifying ? 'Verifying…' : 'Verify OTP' }}
+                                        </button>
+                                    </div>
+                                    <div style="margin-top:8px;font-size:12px;color:#999;">
+                                        <span v-if="otpCooldown > 0">Resend OTP in @{{ otpCooldown }}s</span>
+                                        <button v-else type="button" @click="sendOtp"
+                                            style="background:none;border:none;cursor:pointer;color:#1a1a1a;font-size:12px;font-weight:600;padding:0;text-decoration:underline;">
+                                            Resend OTP
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- OTP error message --}}
+                                <div class="co-error-msg" v-if="otpError" style="margin-top:6px;">@{{ otpError }}</div>
                             @endif
                         </div>
 
@@ -557,6 +618,16 @@
                 pincodeLoading: false,
                 pincodeError: '',
 
+                /* OTP verification state */
+                phoneVerified: {{ auth()->user()?->phone ? 'true' : 'false' }},
+                otpSent: false,
+                otpSending: false,
+                otpVerifying: false,
+                otpCode: '',
+                otpError: '',
+                otpCooldown: 0,
+                otpTimer: null,
+
                 shippingMethods: [],
                 selectedShipping: null,
                 savingShipping: false,
@@ -628,6 +699,10 @@
             },
 
             async saveAddress() {
+                if (! this.phoneVerified) {
+                    this.otpError = 'Please verify your mobile number before continuing.';
+                    return;
+                }
                 this.errors      = {};
                 this.savingAddress = true;
                 try {
@@ -750,6 +825,80 @@
                     this.couponMessage = err.response?.data?.message || 'Invalid coupon code.';
                     this.couponValid   = false;
                 }
+            },
+
+            /* ── OTP methods ── */
+            onPhoneChanged() {
+                if (this.phoneVerified || this.otpSent) {
+                    this.phoneVerified = false;
+                    this.otpSent       = false;
+                    this.otpCode       = '';
+                    this.otpError      = '';
+                    clearInterval(this.otpTimer);
+                    this.otpCooldown   = 0;
+                }
+            },
+
+            resetPhone() {
+                this.phoneVerified = false;
+                this.otpSent       = false;
+                this.otpCode       = '';
+                this.otpError      = '';
+            },
+
+            async sendOtp() {
+                if (this.addr.phone.length !== 10) {
+                    this.otpError = 'Please enter a valid 10-digit mobile number.';
+                    return;
+                }
+                this.otpSending = true;
+                this.otpError   = '';
+                try {
+                    const res = await this.$axios.post('{{ route("shop.api.checkout.otp.send") }}', {
+                        phone: this.addr.phone,
+                    });
+                    if (res.data.verified) {
+                        this.phoneVerified = true;
+                    } else {
+                        this.otpSent = true;
+                        this.startOtpCooldown();
+                    }
+                } catch (err) {
+                    this.otpError = err.response?.data?.message || 'Failed to send OTP. Try again.';
+                } finally {
+                    this.otpSending = false;
+                }
+            },
+
+            async verifyOtp() {
+                if (this.otpCode.length !== 6) {
+                    this.otpError = 'Please enter the 6-digit OTP.';
+                    return;
+                }
+                this.otpVerifying = true;
+                this.otpError     = '';
+                try {
+                    await this.$axios.post('{{ route("shop.api.checkout.otp.verify") }}', {
+                        phone: this.addr.phone,
+                        otp:   this.otpCode,
+                    });
+                    this.phoneVerified = true;
+                    this.otpSent       = false;
+                    clearInterval(this.otpTimer);
+                } catch (err) {
+                    this.otpError = err.response?.data?.message || 'Invalid OTP. Please try again.';
+                } finally {
+                    this.otpVerifying = false;
+                }
+            },
+
+            startOtpCooldown() {
+                this.otpCooldown = 30;
+                clearInterval(this.otpTimer);
+                this.otpTimer = setInterval(() => {
+                    this.otpCooldown--;
+                    if (this.otpCooldown <= 0) clearInterval(this.otpTimer);
+                }, 1000);
             },
 
             async placeOrder() {
