@@ -5,6 +5,8 @@ namespace Webkul\Shop\Providers;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use App\Listeners\CreateShiprocketOrder;
 use App\Listeners\SendOrderSms;
+use App\Listeners\SendRefundSms;
+use App\Listeners\SendRegistrationSms;
 use Webkul\Shop\Listeners\Customer;
 use Webkul\Shop\Listeners\GDPR;
 use Webkul\Shop\Listeners\Invoice;
@@ -25,6 +27,7 @@ class EventServiceProvider extends ServiceProvider
          */
         'customer.registration.after' => [
             [Customer::class, 'afterCreated'],
+            [SendRegistrationSms::class, 'handle'],
         ],
 
         'customer.password.update.after' => [
@@ -81,6 +84,7 @@ class EventServiceProvider extends ServiceProvider
 
         'sales.refund.save.after' => [
             [Refund::class, 'afterCreated'],
+            [SendRefundSms::class, 'handle'],
         ],
     ];
 }
