@@ -41,6 +41,8 @@ class Customer extends Authenticatable implements CustomerContract
     protected $casts = [
         'subscribed_to_news_letter' => 'boolean',
         'otp_expires_at'            => 'datetime',
+        'phone_verified_at'         => 'datetime',
+        'password_set'              => 'boolean',
     ];
 
     /**
@@ -60,6 +62,8 @@ class Customer extends Authenticatable implements CustomerContract
         'token',
         'otp',
         'otp_expires_at',
+        'phone_verified_at',
+        'password_set',
         'google_id',
         'customer_group_id',
         'channel_id',

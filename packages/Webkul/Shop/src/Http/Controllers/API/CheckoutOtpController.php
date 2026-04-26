@@ -80,6 +80,18 @@ class CheckoutOtpController extends APIController
         session()->forget(['checkout_otp', 'checkout_otp_expires_at']);
         session(['checkout_phone_verified' => true]);
 
-        return response()->json(['message' => 'Mobile number verified successfully.']);
+        $customer = app(\App\Services\OtpCustomerService::class)
+                        ->handleVerifiedPhone($phone);
+
+        session([
+            'verified_phone'       => $phone,
+            'checkout_customer_id' => $customer->id,
+        ]);
+
+        return response()->json([
+            'message'          => 'Mobile number verified successfully.',
+            'customer_id'      => $customer->id,
+            'is_new_customer'  => $customer->wasRecentlyCreated,
+        ]);
     }
 }
