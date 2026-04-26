@@ -211,13 +211,80 @@
                             <label class="co-label">Mobile number *</label>
 
                             @if(auth()->user()?->phone)
-                                {{-- Logged-in user with phone on profile: locked + auto-verified --}}
-                                <div class="co-phone-row">
-                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                                        <path d="M2 1.5h3l1.5 3.5-2 1.5C5.5 8.5 6.5 9.5 8.5 10.5l1.5-2 3.5 1.5v3C13.5 13.5 8 14.5 4 10.5S.5 1.5 2 1.5z" fill="#888"/>
-                                    </svg>
-                                    <span style="font-size:14px;color:#555">{{ auth()->user()->phone }}</span>
-                                    <span class="co-phone-badge">Verified</span>
+                                {{-- Logged-in user: verified by default, option to change --}}
+
+                                {{-- Locked display --}}
+                                <div v-if="!changingPhone" style="display:flex;align-items:center;gap:10px;">
+                                    <div class="co-phone-row" style="flex:1">
+                                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                            <path d="M2 1.5h3l1.5 3.5-2 1.5C5.5 8.5 6.5 9.5 8.5 10.5l1.5-2 3.5 1.5v3C13.5 13.5 8 14.5 4 10.5S.5 1.5 2 1.5z" fill="#888"/>
+                                        </svg>
+                                        <span style="font-size:14px;color:#555">@{{ addr.phone }}</span>
+                                        <span class="co-phone-badge">Verified</span>
+                                    </div>
+                                    <button type="button" @click="startChangePhone"
+                                        style="height:44px;padding:0 16px;background:#fff;color:#1a1a1a;border:1.5px solid #1a1a1a;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+                                        Change
+                                    </button>
+                                </div>
+
+                                {{-- OTP flow when changing number --}}
+                                <div v-if="changingPhone">
+                                    <div style="display:flex;gap:10px;align-items:flex-start;">
+                                        <div style="flex:1">
+                                            <input class="co-input"
+                                                type="tel" v-model="addr.phone" maxlength="10"
+                                                inputmode="numeric" placeholder="Enter new 10-digit number"
+                                                @input="onPhoneChanged"
+                                                :disabled="phoneVerified">
+                                        </div>
+                                        <button v-if="!phoneVerified && !otpSent"
+                                            type="button" @click="sendOtp"
+                                            :disabled="addr.phone.length !== 10 || otpSending"
+                                            style="height:44px;padding:0 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                            :style="{opacity: (addr.phone.length !== 10 || otpSending) ? 0.5 : 1}">
+                                            @{{ otpSending ? 'Sending…' : 'Send OTP' }}
+                                        </button>
+                                        <div v-if="phoneVerified"
+                                            style="height:44px;padding:0 14px;display:flex;align-items:center;gap:6px;background:#e8f5e9;border-radius:10px;font-size:13px;font-weight:600;color:#2e7d32;white-space:nowrap;flex-shrink:0;">
+                                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                                                <circle cx="7" cy="7" r="6" fill="#2e7d32"/>
+                                                <path d="M4 7l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            Verified
+                                        </div>
+                                    </div>
+                                    <div v-if="otpSent && !phoneVerified" style="margin-top:12px;">
+                                        <div style="font-size:12px;color:#666;margin-bottom:8px;">
+                                            Enter the 6-digit OTP sent to @{{ addr.phone }}
+                                        </div>
+                                        <div style="display:flex;gap:10px;align-items:flex-start;">
+                                            <input class="co-input" type="text" v-model="otpCode"
+                                                maxlength="6" inputmode="numeric" placeholder="6-digit OTP"
+                                                style="max-width:160px;letter-spacing:6px;font-size:18px;font-weight:600;"
+                                                @keyup.enter="verifyOtp">
+                                            <button type="button" @click="verifyOtp"
+                                                :disabled="otpCode.length !== 6 || otpVerifying"
+                                                style="height:44px;padding:0 16px;background:#1a1a1a;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                                :style="{opacity: (otpCode.length !== 6 || otpVerifying) ? 0.5 : 1}">
+                                                @{{ otpVerifying ? 'Verifying…' : 'Verify OTP' }}
+                                            </button>
+                                        </div>
+                                        <div style="margin-top:8px;font-size:12px;color:#999;">
+                                            <span v-if="otpCooldown > 0">Resend OTP in @{{ otpCooldown }}s</span>
+                                            <button v-else type="button" @click="sendOtp"
+                                                style="background:none;border:none;cursor:pointer;color:#1a1a1a;font-size:12px;font-weight:600;padding:0;text-decoration:underline;">
+                                                Resend OTP
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:10px;">
+                                        <button type="button" @click="cancelChangePhone"
+                                            style="background:none;border:none;cursor:pointer;color:#888;font-size:12px;text-decoration:underline;padding:0;">
+                                            Cancel — keep {{ auth()->user()->phone }}
+                                        </button>
+                                    </div>
+                                    <div class="co-error-msg" v-if="otpError" style="margin-top:6px;">@{{ otpError }}</div>
                                 </div>
                             @else
                                 {{-- Guest / logged-in without phone: OTP flow --}}
@@ -619,6 +686,7 @@
                 pincodeError: '',
 
                 /* OTP verification state */
+                changingPhone: false,
                 phoneVerified: {{ auth()->user()?->phone ? 'true' : 'false' }},
                 otpSent: false,
                 otpSending: false,
@@ -828,6 +896,28 @@
             },
 
             /* ── OTP methods ── */
+            startChangePhone() {
+                this.changingPhone  = true;
+                this.phoneVerified  = false;
+                this.addr.phone     = '';
+                this.otpSent        = false;
+                this.otpCode        = '';
+                this.otpError       = '';
+                clearInterval(this.otpTimer);
+                this.otpCooldown    = 0;
+            },
+
+            cancelChangePhone() {
+                this.changingPhone  = false;
+                this.phoneVerified  = true;
+                this.addr.phone     = '{{ auth()->user()?->phone ?? "" }}';
+                this.otpSent        = false;
+                this.otpCode        = '';
+                this.otpError       = '';
+                clearInterval(this.otpTimer);
+                this.otpCooldown    = 0;
+            },
+
             onPhoneChanged() {
                 if (this.phoneVerified || this.otpSent) {
                     this.phoneVerified = false;
@@ -882,8 +972,9 @@
                         phone: this.addr.phone,
                         otp:   this.otpCode,
                     });
-                    this.phoneVerified = true;
+                    this.phoneVerified  = true;
                     this.otpSent       = false;
+                    this.changingPhone = false;
                     clearInterval(this.otpTimer);
                 } catch (err) {
                     this.otpError = err.response?.data?.message || 'Invalid OTP. Please try again.';
