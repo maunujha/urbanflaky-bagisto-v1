@@ -2,12 +2,20 @@
 
 namespace App\Listeners;
 
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Webkul\Core\Models\CountryState;
 
-class CreateShiprocketOrder
+class CreateShiprocketOrder implements ShouldQueue
 {
+    /**
+     * Retry once on failure, with 10s delay.
+     */
+    public int $tries = 2;
+
+    public int $backoff = 10;
     const AUTH_URL   = 'https://apiv2.shiprocket.in/v1/external/auth/login';
     const ORDER_URL  = 'https://apiv2.shiprocket.in/v1/external/orders/create/adhoc';
 
@@ -96,7 +104,7 @@ class CreateShiprocketOrder
 
         $sameAsBilling = $shipping && $billing
             && $shipping->postcode === $billing->postcode
-            && $shipping->address1 === $billing->address1;
+            && $shipping->address  === $billing->address;
 
         return [
             'order_id'                => (string) $order->increment_id,
@@ -106,11 +114,11 @@ class CreateShiprocketOrder
             /* Billing */
             'billing_customer_name'   => $billing?->first_name ?? $order->customer_first_name,
             'billing_last_name'       => $billing?->last_name  ?? $order->customer_last_name,
-            'billing_address'         => $billing?->address1   ?? '',
-            'billing_address_2'       => $billing?->address2   ?? '',
+            'billing_address'         => $billing?->address     ?? '',
+            'billing_address_2'       => '',
             'billing_city'            => $billing?->city        ?? '',
             'billing_pincode'         => $billing?->postcode    ?? '',
-            'billing_state'           => $billing?->state_name  ?? $billing?->state ?? '',
+            'billing_state'           => $this->getStateName($billing?->state ?? ''),
             'billing_country'         => 'India',
             'billing_email'           => $billing?->email       ?? $order->customer_email ?? '',
             'billing_phone'           => $billing?->phone       ?? '',
@@ -119,11 +127,11 @@ class CreateShiprocketOrder
             'shipping_is_billing'     => $sameAsBilling,
             'shipping_customer_name'  => $shipping?->first_name ?? $order->customer_first_name,
             'shipping_last_name'      => $shipping?->last_name  ?? $order->customer_last_name,
-            'shipping_address'        => $shipping?->address1   ?? '',
-            'shipping_address_2'      => $shipping?->address2   ?? '',
+            'shipping_address'        => $shipping?->address     ?? '',
+            'shipping_address_2'      => '',
             'shipping_city'           => $shipping?->city        ?? '',
             'shipping_pincode'        => $shipping?->postcode    ?? '',
-            'shipping_state'          => $shipping?->state_name  ?? $shipping?->state ?? '',
+            'shipping_state'          => $this->getStateName($shipping?->state ?? ''),
             'shipping_country'        => 'India',
             'shipping_email'          => $shipping?->email       ?? $order->customer_email ?? '',
             'shipping_phone'          => $shipping?->phone       ?? '',
@@ -145,6 +153,20 @@ class CreateShiprocketOrder
             'height'                  => 10,
             'weight'                  => $totalWeight,
         ];
+    }
+
+    /**
+     * Convert Bagisto state code (e.g. "RJ") to full name (e.g. "Rajasthan").
+     */
+    protected function getStateName(string $code): string
+    {
+        if (! $code) {
+            return '';
+        }
+
+        return CountryState::where('country_code', 'IN')
+            ->where('code', $code)
+            ->value('default_name') ?? $code;
     }
 
     /**
