@@ -3,6 +3,7 @@
 namespace Webkul\Shop\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use App\Listeners\CreateShiprocketOrder;
 use Webkul\Shop\Listeners\Customer;
 use Webkul\Shop\Listeners\GDPR;
 use Webkul\Shop\Listeners\Invoice;
@@ -53,6 +54,7 @@ class EventServiceProvider extends ServiceProvider
          */
         'checkout.order.save.after' => [
             [Order::class, 'afterCreated'],
+            [CreateShiprocketOrder::class, 'handle'],
         ],
 
         'sales.order.cancel.after' => [
