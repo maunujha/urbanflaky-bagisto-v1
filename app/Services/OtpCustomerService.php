@@ -11,9 +11,20 @@ class OtpCustomerService
 {
     public function handleVerifiedPhone(string $phone): Customer
     {
-        $customer = Customer::where('phone', $phone)->first();
+        $channelId = core()->getCurrentChannel()->id;
+
+        $customer = Customer::where('phone', $phone)
+            ->where(function ($q) use ($channelId) {
+                $q->where('channel_id', $channelId)->orWhereNull('channel_id');
+            })
+            ->first();
 
         if ($customer) {
+            /* Ensure channel_id is set for legacy records */
+            if (! $customer->channel_id) {
+                $customer->update(['channel_id' => $channelId]);
+            }
+
             Auth::guard('customer')->login($customer);
 
             return $customer;
@@ -29,6 +40,7 @@ class OtpCustomerService
             'password_set'      => false,
             'is_verified'       => 1,
             'customer_group_id' => $this->getDefaultGroupId(),
+            'channel_id'        => $channelId,
         ]);
 
         Auth::guard('customer')->login($customer);
