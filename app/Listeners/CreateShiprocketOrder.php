@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\ShiprocketOrder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -42,11 +43,27 @@ class CreateShiprocketOrder implements ShouldQueue
             $response = Http::withToken($token)->timeout(15)->post(self::ORDER_URL, $payload);
 
             if ($response->successful()) {
+                $awb         = $response->json('awb_code') ?? '';
+                $shipmentId  = (string) ($response->json('shipment_id') ?? '');
+                $srOrderId   = (string) ($response->json('order_id') ?? '');
+                $courierName = $response->json('courier_name') ?? '';
+
+                ShiprocketOrder::updateOrCreate(
+                    ['order_id' => $order->id],
+                    [
+                        'shiprocket_order_id' => $srOrderId,
+                        'shipment_id'         => $shipmentId,
+                        'awb_code'            => $awb,
+                        'courier_name'        => $courierName,
+                        'status'              => 'created',
+                    ]
+                );
+
                 Log::info('Shiprocket order created', [
-                    'order'             => $order->increment_id,
-                    'shiprocket_order'  => $response->json('order_id'),
-                    'shipment_id'       => $response->json('shipment_id'),
-                    'awb'               => $response->json('awb_code'),
+                    'order'            => $order->increment_id,
+                    'shiprocket_order' => $srOrderId,
+                    'shipment_id'      => $shipmentId,
+                    'awb'              => $awb,
                 ]);
                 return;
             }

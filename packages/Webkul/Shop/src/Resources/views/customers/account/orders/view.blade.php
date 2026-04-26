@@ -83,6 +83,39 @@
 
         {!! view_render_event('bagisto.shop.customers.account.orders.view.before', ['order' => $order]) !!}
 
+        {{-- ── Shiprocket Tracking Card ── --}}
+        @php $srOrder = App\Models\ShiprocketOrder::where('order_id', $order->id)->first(); @endphp
+        @if($srOrder)
+        <div class="mt-6 rounded-xl border border-zinc-200 bg-white p-5 max-md:mt-4">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-1">Shipment Tracking</p>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        @if($srOrder->courier_name)
+                            <span class="text-sm font-semibold text-zinc-800">{{ $srOrder->courier_name }}</span>
+                            <span class="text-zinc-300">|</span>
+                        @endif
+                        @if($srOrder->awb_code)
+                            <span class="text-sm text-zinc-500">AWB: <span class="font-mono font-semibold text-zinc-800">{{ $srOrder->awb_code }}</span></span>
+                        @else
+                            <span class="text-sm text-zinc-400 italic">AWB not yet assigned</span>
+                        @endif
+                    </div>
+                </div>
+                @if($srOrder->awb_code)
+                <a href="{{ $srOrder->tracking_url }}"
+                   target="_blank"
+                   class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-85 transition-opacity">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                        <path d="M1 7h12M8 3l5 4-5 4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Track Order
+                </a>
+                @endif
+            </div>
+        </div>
+        @endif
+
         <!-- Order view tabs -->
         <div class="mt-8 max-md:mt-5 max-md:grid max-md:gap-4">
             <x-shop::tabs>

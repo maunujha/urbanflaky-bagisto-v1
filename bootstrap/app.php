@@ -48,7 +48,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
     })
     ->withSchedule(function (Schedule $schedule) {
-        //
+        /* Sync AWB from Shiprocket every 30 minutes for orders missing tracking */
+        $schedule->command('shiprocket:sync-awb')->everyThirtyMinutes();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
