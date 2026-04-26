@@ -84,6 +84,7 @@ return [
         'apikey'      => env('SMSALERT_APIKEY'),
         'sender'      => env('SMSALERT_SENDER', 'GABHAE'),
         'otp_expiry'  => env('OTP_EXPIRY_MINUTES', 10),
-        'template_id' => env('SMSALERT_TEMPLATE_ID'),
+        'template_id'       => env('SMSALERT_TEMPLATE_ID'),
+        'order_template_id' => env('SMSALERT_ORDER_TEMPLATE_ID'),
     ],
 ];
