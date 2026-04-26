@@ -27,10 +27,12 @@ class SendOrderSms implements ShouldQueue
             ($order->customer_last_name  ?? $order->billing_address?->last_name  ?? '')
         );
 
-        $this->smsAlertService->sendOrderConfirmation(
+        $this->smsAlertService->sendOrderPlaced(
             mobile:       $phone,
-            customerName: $customerName,
+            name:         $customerName,
             orderId:      $order->increment_id,
         );
+
+        /* Admin new order alert — disabled until DLT template re-registered with correct name */
     }
 }
