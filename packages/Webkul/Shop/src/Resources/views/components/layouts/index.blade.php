@@ -1,7 +1,13 @@
 @props([
-    'hasHeader'  => true,
-    'hasFeature' => true,
-    'hasFooter'  => true,
+    'hasHeader'       => true,
+    'hasFeature'      => true,
+    'hasFooter'       => true,
+    'metaDescription' => "Shop men's polo t-shirts, slim fit tshirts and casual wear at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan. – Gabha Enterprise",
+    'metaKeywords'    => 'polo tshirt online india, slim fit tshirt men, casual wear men women, buy tshirt under 500, urbanflaky, gabha enterprise, mens fashion jaipur, tshirt rajasthan',
+    'robots'          => 'index, follow',
+    'ogImage'         => null,
+    'ogType'          => 'website',
+    'canonical'       => null,
 ])
 
 <!DOCTYPE html>
@@ -14,7 +20,21 @@
 
         {!! view_render_event('bagisto.shop.layout.head.before') !!}
 
-        <title>{{ $title ?? '' }}</title>
+        <title>{{ $title ?? "Urbanflaky — Men's Polo T-Shirts, Slim Fit & Casual Wear Online | Gabha Enterprise" }}</title>
+
+        <meta name="description" content="{{ $metaDescription }}">
+        <meta name="keywords" content="{{ $metaKeywords }}">
+        <meta name="robots" content="{{ $robots }}">
+
+        <meta property="og:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
+        <meta property="og:description" content="{{ $metaDescription }}">
+        <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.png') }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta property="og:type" content="{{ $ogType }}">
+        <meta property="og:site_name" content="Urbanflaky">
+        <meta property="og:locale" content="en_IN">
+
+        <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
 
         <meta charset="UTF-8">
 
@@ -89,6 +109,8 @@
         @endif
 
         {!! view_render_event('bagisto.shop.layout.head.after') !!}
+
+        @stack('structured_data')
 
     </head>
 
