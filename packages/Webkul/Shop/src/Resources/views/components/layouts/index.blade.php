@@ -22,6 +22,10 @@
 
         <title>{{ $title ?? "Urbanflaky — Men's Polo T-Shirts, Slim Fit & Casual Wear Online | Gabha Enterprise" }}</title>
 
+        {{-- Page-specific meta pushed by individual views (product, category, etc.) --}}
+        {{-- Must come BEFORE layout defaults so page-specific values take precedence --}}
+        @stack('meta')
+
         <meta name="description" content="{{ $metaDescription }}">
         <meta name="keywords" content="{{ $metaKeywords }}">
         <meta name="robots" content="{{ $robots }}">
@@ -59,12 +63,10 @@
             name="currency"
             content="{{ core()->getCurrentCurrency()->toJson() }}"
         >
-        <meta 
-            name="generator" 
+        <meta
+            name="generator"
             content="Bagisto"
         >
-
-        @stack('meta')
 
         <link
             rel="icon"
