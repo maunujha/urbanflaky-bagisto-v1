@@ -2,6 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Store Identity
+
+**Urbanflaky** — fashion e-commerce store by **Gabha Enterprise**, Dholpur, Rajasthan, India.
+- Products: polo t-shirts, slim-fit casuals for men & women. Price range: ₹299–799.
+- Local dev URL: `http://urbanflaky.test` | Admin: `http://urbanflaky.test/admin`
+- Currency: INR | Locale: en | Timezone: Asia/Kolkata | DB: `my_bagisto_store`
+
+## Custom Integrations (Urbanflaky-specific)
+
+All custom app-level code lives in `app/` — NOT in the Webkul packages:
+
+### Shiprocket (Auto-shipment on order)
+- Carrier: `packages/Webkul/Shipping/src/Carriers/Shiprocket.php`
+- Listener: `app/Listeners/CreateShiprocketOrder.php` — triggered on `checkout.order.save.after`
+- Tracking shown in: `packages/Webkul/Shop/src/Resources/views/customers/account/orders/view.blade.php`
+
+### SMS Notifications (SmsAlert + DLT templates)
+- Service: `packages/Webkul/Shop/src/Services/SmsAlertService.php`
+- Listeners in `app/Listeners/`: `SendOrderSms`, `SendShipmentSms`, `SendRefundSms`, `SendRegistrationSms`, `SendCancellationSms`
+- All listeners registered in `packages/Webkul/Shop/src/Providers/EventServiceProvider.php`
+
+### OTP Login
+- Controllers: `packages/Webkul/Shop/src/Http/Controllers/Customer/OtpController.php`
+- API: `packages/Webkul/Shop/src/Http/Controllers/API/CheckoutOtpController.php`
+- Service: `app/Services/OtpCustomerService.php`
+
+## Blade Gotcha
+
+JSON-LD structured data uses `@context` — Blade treats this as a directive.  
+**Always escape as `@@context` inside Blade templates.** Output is `@context` in HTML.
+
+## Packages Actively Modified
+
+- `packages/Webkul/Shop/` — storefront views, SMS listeners, OTP, SEO
+- `packages/Webkul/Shipping/` — Shiprocket carrier
+- `packages/Webkul/Sales/` — order/invoice/refund logic
+- `packages/Webkul/Admin/` — admin panel customisations
+- `app/Listeners/` — Shiprocket + SMS event handlers
+- `app/Services/` — OTP service
+
 ## Project Overview
 
 Bagisto 2.4.x - open-source Laravel 12 e-commerce platform. PHP 8.3+, Vue.js 3, Tailwind CSS 3, Vite 5.
@@ -125,9 +165,9 @@ Vue 3 components are used within Blade templates via `@pushOnce('scripts')` / Bl
 
 Or use: `php artisan package:make Webkul/<Name>` (requires `bagisto/bagisto-package-generator`)
 
-## CI Pipeline
+## After Making Changes
 
-- **pest_tests.yml**: Pest tests on PHP 8.3 + MySQL 8.0
-- **pint_tests.yml**: Code style checks with Laravel Pint
-- **admin_playwright_tests.yml / shop_playwright_tests.yml**: E2E tests (6 parallel shards)
-- **translation_tests.yml**: Translation file validation
+```bash
+php artisan optimize:clear   # always run after editing config, routes, or blade files
+php artisan view:clear       # specifically clears compiled blade (fixes ParseError)
+```

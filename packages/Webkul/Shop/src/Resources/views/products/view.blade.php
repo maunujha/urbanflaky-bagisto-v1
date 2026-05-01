@@ -9,13 +9,27 @@
     $customAttributeValues = $productViewHelper->getAdditionalData($product);
 
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
+
+    $productBaseImage = product_image()->getProductBaseImage($product);
+
+    $reviewCount = $reviewHelper->getTotalFeedback($product);
 @endphp
 
 <!-- SEO Meta Content -->
 @push('meta')
-    <meta name="description" content="{{ trim($product->meta_description) != "" ? $product->meta_description : \Illuminate\Support\Str::limit(strip_tags($product->description), 120, '') }}"/>
+    @php
+        $baseDesc = trim($product->meta_description) != ''
+            ? $product->meta_description
+            : \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 80, '');
+        $metaDesc = ($baseDesc ? $baseDesc . ' ' : '')
+            . 'Shop ' . $product->name . ' at Rs ' . number_format($product->price, 0)
+            . ' on Urbanflaky. Fast delivery pan India. – Gabha Enterprise';
+    @endphp
 
-    <meta name="keywords" content="{{ $product->meta_keywords }}"/>
+    <meta name="description" content="{{ $metaDesc }}">
+    <meta name="keywords" content="{{ $product->meta_keywords }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ route('shop.product_or_category.index', $product->url_key) }}">
 
     @if (core()->getConfigData('catalog.rich_snippets.products.enable'))
         <script type="application/ld+json">
@@ -23,34 +37,73 @@
         </script>
     @endif
 
-    <?php $productBaseImage = product_image()->getProductBaseImage($product); ?>
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $product->name }}">
+    <meta name="twitter:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
+    <meta name="twitter:image:alt" content="{{ $product->name }}">
+    <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}">
 
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="og:type" content="og:product">
+    <meta property="og:title" content="{{ $product->name }}">
+    <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
+    <meta property="og:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
+    <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}">
+@endpush
 
-    <meta name="twitter:title" content="{{ $product->name }}" />
-
-    <meta name="twitter:description" content="{!! htmlspecialchars(trim(strip_tags($product->description))) !!}" />
-
-    <meta name="twitter:image:alt" content="" />
-
-    <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}" />
-
-    <meta property="og:type" content="og:product" />
-
-    <meta property="og:title" content="{{ $product->name }}" />
-
-    <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}" />
-
-    <meta property="og:description" content="{!! htmlspecialchars(trim(strip_tags($product->description))) !!}" />
-
-    <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}" />
-@endPush
+<!-- Product Structured Data -->
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ addslashes($product->name) }}",
+  "description": "{{ addslashes(\Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 200)) }}",
+  "sku": "{{ $product->sku }}",
+  "image": "{{ $productBaseImage['medium_image_url'] }}",
+  "url": "{{ route('shop.product_or_category.index', $product->url_key) }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "Urbanflaky"
+  },
+  "seller": {
+    "@type": "Organization",
+    "name": "Gabha Enterprise"
+  },
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "INR",
+    "price": "{{ $product->price }}",
+    "priceValidUntil": "{{ now()->addYear()->format('Y-m-d') }}",
+    "availability": "{{ $product->isSaleable(1) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
+    "itemCondition": "https://schema.org/NewCondition",
+    "url": "{{ route('shop.product_or_category.index', $product->url_key) }}",
+    "seller": {
+      "@type": "Organization",
+      "name": "Gabha Enterprise"
+    }
+  }
+  @if ($avgRatings && $reviewCount > 0)
+  ,"aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ number_format($avgRatings, 1) }}",
+    "reviewCount": "{{ $reviewCount }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  }
+  @endif
+}
+</script>
+@endpush
 
 <!-- Page Layout -->
 <x-shop::layouts>
     <!-- Page Title -->
     <x-slot:title>
-        {{ trim($product->meta_title) != "" ? $product->meta_title : $product->name }}
+        @if (trim($product->meta_title) != '')
+            {{ $product->meta_title }}
+        @else
+            {{ $product->name }} — Buy Online at Rs {{ number_format($product->price, 0) }} | Urbanflaky
+        @endif
     </x-slot>
 
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
