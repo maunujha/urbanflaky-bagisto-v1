@@ -59,19 +59,11 @@
             <button class="shimmer mt-5 h-14 w-full rounded-xl"></button>
 
             <!-- Share Buttons -->
-            <div class="mt-10 flex items-center gap-9 max-sm:flex-wrap">
-                <div class="shimmer h-6 w-20"></div>
-
-                <div class="flex items-center gap-6 max-sm:flex-wrap">
-                    <div class="shimmer h-6 w-20"></div>
-                    
-                    <div class="flex gap-3">
-                        <span class="shimmer h-10 w-10 rounded-full"></span>
-                        <span class="shimmer h-10 w-10 rounded-full"></span>
-                        <span class="shimmer h-10 w-10 rounded-full"></span>
-                        <span class="shimmer h-10 w-10 rounded-full"></span>
-                    </div>
-                </div>
+            <div class="mt-10 flex flex-wrap items-center gap-5">
+                <div class="shimmer h-5 w-20 rounded"></div>
+                <div class="shimmer h-5 w-24 rounded"></div>
+                <div class="shimmer h-5 w-24 rounded"></div>
+                <div class="shimmer h-5 w-24 rounded"></div>
             </div>
         </div>
     </div>
