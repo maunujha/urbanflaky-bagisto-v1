@@ -313,6 +313,44 @@
         </x-shop::accordion>
     </div>
 
+    <!-- Sticky Add-to-Cart Bar -->
+    <div
+        id="sticky-atc-bar"
+        class="fixed bottom-0 left-0 right-0"
+        aria-hidden="true"
+    >
+        <div class="mx-auto flex max-w-[1180px] items-center gap-4 px-5 py-3 max-sm:gap-2 max-sm:py-2">
+            <!-- Product Thumbnail -->
+            <img
+                id="sticky-atc-thumb"
+                src="{{ $productBaseImage['medium_image_url'] }}"
+                alt="{{ $product->name }}"
+                class="h-14 w-14 flex-shrink-0 rounded-lg object-cover max-sm:h-10 max-sm:w-10"
+            >
+
+            <!-- Product Info -->
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-black max-sm:text-xs" id="sticky-atc-name">{{ $product->name }}</p>
+                <p class="mt-0.5 text-xs text-zinc-500 max-sm:text-[10px]" id="sticky-atc-variant"></p>
+            </div>
+
+            <!-- Price -->
+            <div class="flex-shrink-0 text-right">
+                <p class="text-lg font-bold text-black max-sm:text-sm" id="sticky-atc-price"></p>
+            </div>
+
+            <!-- Add to Cart Button -->
+            <button
+                id="sticky-atc-btn"
+                type="button"
+                class="flex-shrink-0 rounded-xl px-6 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 max-sm:rounded-lg max-sm:px-4 max-sm:py-2 max-sm:text-xs"
+                style="background:#c7eb31;"
+            >
+                Add to Cart
+            </button>
+        </div>
+    </div>
+
     <v-product-associations />
 
     {!! view_render_event('bagisto.shop.products.view.after', ['product' => $product]) !!}
@@ -428,7 +466,9 @@
 
                                 @include('shop::products.view.types.simple')
 
-                                @include('shop::products.view.types.configurable')
+                                <div id="product-variant-section">
+                                    @include('shop::products.view.types.configurable')
+                                </div>
 
                                 @include('shop::products.view.types.grouped')
 
@@ -439,7 +479,7 @@
                                 @include('shop::products.view.types.booking')
 
                                 <!-- Product Actions and Quantity Box -->
-                                <div class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-4">
+                                <div id="product-atc-actions" class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-4">
 
                                     {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
 
@@ -1001,5 +1041,98 @@
         @if (core()->getConfigData('customer.captcha.credentials.status'))
             {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
         @endif
+
+        {{-- Sticky Add-to-Cart Bar
+             Runs after window.load (same event Vue uses to mount) so all
+             Vue-rendered elements like #product-atc-actions are in the DOM. --}}
+        <script>
+        window.addEventListener('load', function () {
+            /* Give Vue a tick to finish rendering after mount */
+            setTimeout(function () {
+                var bar       = document.getElementById('sticky-atc-bar');
+                var stickyBtn = document.getElementById('sticky-atc-btn');
+                var priceEl   = document.getElementById('sticky-atc-price');
+                var varEl     = document.getElementById('sticky-atc-variant');
+                var anchor    = document.getElementById('product-atc-actions');
+
+                if (!bar || !anchor) return;
+
+                /* Guarantee hidden on first paint */
+                bar.style.transform = 'translateY(100%)';
+
+                function showBar() {
+                    bar.style.transform = 'translateY(0)';
+                    bar.setAttribute('aria-hidden', 'false');
+                }
+
+                function hideBar() {
+                    bar.style.transform = 'translateY(100%)';
+                    bar.setAttribute('aria-hidden', 'true');
+                }
+
+                /* Sync price from the page's main price paragraph */
+                function syncPrice() {
+                    var p = document.querySelector('p.text-2xl');
+                    if (p && p.textContent.indexOf('₹') !== -1) {
+                        priceEl.textContent = p.textContent.replace(/\s+/g, ' ').trim();
+                    }
+                }
+
+                /* Sync selected variant labels (aria-selected="true" on active swatches) */
+                function syncVariant() {
+                    var labels = [];
+                    document.querySelectorAll('[aria-selected="true"]').forEach(function (el) {
+                        var t = (el.getAttribute('aria-label') || el.textContent).trim();
+                        if (t) labels.push(t);
+                    });
+                    varEl.textContent = labels.join(' / ');
+                }
+
+                /* Scroll listener: show bar only when the CTA has scrolled
+                   completely ABOVE the viewport (rect.bottom <= 0).
+                   While the CTA is visible OR still below viewport → hide. */
+                function onScroll() {
+                    var rect = anchor.getBoundingClientRect();
+                    if (rect.bottom <= 0) {
+                        showBar();
+                    } else {
+                        hideBar();
+                    }
+                }
+
+                window.addEventListener('scroll', onScroll, { passive: true });
+                onScroll(); /* set correct initial state */
+                syncPrice();
+                syncVariant();
+
+                /* Re-sync when user picks colour / size */
+                document.addEventListener('click', function () {
+                    setTimeout(function () { syncPrice(); syncVariant(); }, 80);
+                });
+
+                /* Vue emits this when a configurable variant is chosen */
+                document.addEventListener('configurable-variant-price-updated', function () {
+                    setTimeout(function () { syncPrice(); syncVariant(); }, 50);
+                });
+
+                /* Sticky button:
+                   1. Click the real Add-to-Cart button (inside v-button Vue component)
+                   2. If validation fails (no variant selected), scroll to variant section */
+                stickyBtn.addEventListener('click', function () {
+                    var realBtn = anchor.querySelector('v-button button');
+                    if (realBtn) realBtn.click();
+
+                    setTimeout(function () {
+                        var variantSection = document.getElementById('product-variant-section');
+                        if (variantSection && variantSection.querySelector('[class*="border-red"]')) {
+                            variantSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }, 200);
+                });
+
+            }, 300); /* 300 ms after load gives Vue time to finish rendering */
+        });
+        </script>
+
     @endPushOnce
 </x-shop::layouts>

@@ -1,0 +1,15 @@
+/* ============================================================
+   Urbanflaky — Custom CSS
+   All site-wide custom styles live here.
+   Included via asset('css/urbanflaky.css') in layout @stack('styles').
+   ============================================================ */
+
+/* ── Sticky Add-to-Cart Bar (Product Detail Page) ── */
+#sticky-atc-bar {
+    background: #fff;
+    border-top: 2px solid #c7eb31;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    transform: translateY(100%);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1000;
+}

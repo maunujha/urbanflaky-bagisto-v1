@@ -106,6 +106,8 @@
 
         @stack('styles')
 
+        <link rel="stylesheet" href="{{ asset('css/urbanflaky.css') }}">
+
         <style>
             {!! core()->getConfigData('general.content.custom_scripts.custom_css') !!}
         </style>
@@ -176,6 +178,8 @@
         {!! view_render_event('bagisto.shop.layout.body.after') !!}
 
         @stack('scripts')
+
+        <script src="{{ asset('js/urbanflaky.js') }}" defer></script>
 
         {!! view_render_event('bagisto.shop.layout.vue-app-mount.before') !!}
         <script>

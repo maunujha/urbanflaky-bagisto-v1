@@ -29,8 +29,10 @@ npm-debug.log
 opencode.json
 package-lock.json
 /playwright-report
-/public/css
-/public/js
+/public/css/*
+!/public/css/urbanflaky.css
+/public/js/*
+!/public/js/urbanflaky.js
 /public/hot
 /public/storage
 /public/vendor
