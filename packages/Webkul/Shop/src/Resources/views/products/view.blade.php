@@ -317,7 +317,7 @@
     <div
         id="sticky-atc-bar"
         class="fixed bottom-0 left-0 right-0"
-        aria-hidden="true"
+        inert
     >
         <div class="mx-auto flex max-w-[1180px] items-center gap-4 px-5 py-3 max-sm:gap-2 max-sm:py-2">
             <!-- Product Thumbnail -->
@@ -455,6 +455,22 @@
                                 @endif
 
                                 {!! view_render_event('bagisto.shop.products.price.after', ['product' => $product]) !!}
+
+                                @php
+                                    $stockQty = $product->type === 'configurable'
+                                        ? $product->variants->sum(fn ($v) => $v->inventories->sum('qty'))
+                                        : $product->inventories->sum('qty');
+                                @endphp
+
+                                @if ($stockQty >= 1 && $stockQty <= 15)
+                                    <div
+                                        class="mt-3 inline-flex items-center gap-2"
+                                        style="background:#FAEEDA; border-radius:20px; padding:5px 12px;"
+                                    >
+                                        <span style="width:8px; height:8px; border-radius:50%; background:#EF9F27; flex-shrink:0; display:inline-block;"></span>
+                                        <span style="font-size:13px; font-weight:500; color:#854F0B;">Only {{ $stockQty }} left in stock</span>
+                                    </div>
+                                @endif
 
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
@@ -1062,12 +1078,12 @@
 
                 function showBar() {
                     bar.style.transform = 'translateY(0)';
-                    bar.setAttribute('aria-hidden', 'false');
+                    bar.removeAttribute('inert');
                 }
 
                 function hideBar() {
                     bar.style.transform = 'translateY(100%)';
-                    bar.setAttribute('aria-hidden', 'true');
+                    bar.setAttribute('inert', '');
                 }
 
                 /* Sync price from the page's main price paragraph */
@@ -1119,15 +1135,24 @@
                    1. Click the real Add-to-Cart button (inside v-button Vue component)
                    2. If validation fails (no variant selected), scroll to variant section */
                 stickyBtn.addEventListener('click', function () {
-                    var realBtn = anchor.querySelector('v-button button');
+                    /* Detect missing variant BEFORE triggering submit so we
+                       don't need to race VeeValidate's async error rendering. */
+                    var selectedInput  = document.getElementById('selected_configurable_option');
+                    var needsVariant   = selectedInput !== null && !selectedInput.value;
+
+                    var realBtn = anchor.querySelector('button[type="submit"]');
                     if (realBtn) realBtn.click();
 
-                    setTimeout(function () {
-                        var variantSection = document.getElementById('product-variant-section');
-                        if (variantSection && variantSection.querySelector('[class*="border-red"]')) {
-                            variantSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                    }, 200);
+                    if (needsVariant) {
+                        /* Give VeeValidate one tick to paint the error messages,
+                           then scroll the variant section into view. */
+                        setTimeout(function () {
+                            var variantSection = document.getElementById('product-variant-section');
+                            if (variantSection) {
+                                variantSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 80);
+                    }
                 });
 
             }, 300); /* 300 ms after load gives Vue time to finish rendering */
