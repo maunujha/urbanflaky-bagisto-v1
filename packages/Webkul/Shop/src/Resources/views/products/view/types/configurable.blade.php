@@ -200,6 +200,8 @@
         <script type="module">
             let galleryImages = @json(product_image()->getGalleryImages($product));
 
+            const defaultProductImages = Object.freeze(@json(product_image()->getGalleryImages($product)));
+
             app.component('v-product-configurable-options', {
                 template: '#v-product-configurable-options-template',
 
@@ -381,27 +383,31 @@
                     },
 
                     reloadImages () {
-                        galleryImages.splice(0, galleryImages.length)
+                        galleryImages.splice(0, galleryImages.length);
 
                         if (this.possibleOptionVariant) {
-                            this.config.variant_images[this.possibleOptionVariant].forEach(function(image) {
+                            (this.config.variant_images[this.possibleOptionVariant] || []).forEach(function(image) {
                                 galleryImages.push(image);
                             });
 
-                            this.config.variant_videos[this.possibleOptionVariant].forEach(function(video) {
+                            (this.config.variant_videos[this.possibleOptionVariant] || []).forEach(function(video) {
                                 galleryImages.push(video);
                             });
                         }
 
-                        this.galleryImages.forEach(function(image) {
-                            galleryImages.push(image);
-                        });
-
-                        if (galleryImages.length) {
-                            this.$parent.$parent.$refs.gallery.media.images =  [...galleryImages];
+                        // Fall back to parent product images so gallery never goes blank
+                        if (! galleryImages.length) {
+                            defaultProductImages.forEach(function(image) {
+                                galleryImages.push(image);
+                            });
                         }
 
                         this.$emitter.emit('configurable-variant-update-images-event', galleryImages);
+
+                        // Direct ref update kept as compatibility fallback
+                        if (this.$parent?.$parent?.$refs?.gallery) {
+                            this.$parent.$parent.$refs.gallery.media.images = [...galleryImages];
+                        }
                     },
                 }
             });

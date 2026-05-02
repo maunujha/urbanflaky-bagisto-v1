@@ -77,6 +77,26 @@
 
                     this.baseFile.path = this.media.videos[0].video_url;
                 }
+
+                this.$emitter.on('configurable-variant-update-images-event', (images) => {
+                    if (! images || ! images.length) {
+                        return;
+                    }
+
+                    this.media.images = [...images];
+                    this.activeIndex = 0;
+
+                    const first = images[0];
+
+                    if (first.type === 'videos') {
+                        this.baseFile.type = 'video';
+                        this.baseFile.path = first.video_url;
+                    } else {
+                        this.isMediaLoading = true;
+                        this.baseFile.type = 'image';
+                        this.baseFile.path = first.large_image_url;
+                    }
+                });
             },
 
             computed: {
