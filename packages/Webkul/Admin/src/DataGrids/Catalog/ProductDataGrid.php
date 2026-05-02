@@ -42,6 +42,8 @@ class ProductDataGrid extends DataGrid
          */
         $queryBuilder = DB::table('product_flat')
             ->distinct()
+            ->join('products as p', 'product_flat.product_id', '=', 'p.id')
+            ->whereNull('p.parent_id')
             ->leftJoin('attribute_families as af', 'product_flat.attribute_family_id', '=', 'af.id')
             ->leftJoin('product_inventories', 'product_flat.product_id', '=', 'product_inventories.product_id')
             ->leftJoin('product_images', 'product_flat.product_id', '=', 'product_images.product_id')
