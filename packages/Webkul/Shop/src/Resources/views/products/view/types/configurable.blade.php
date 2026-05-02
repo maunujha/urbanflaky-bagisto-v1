@@ -245,6 +245,8 @@
 
                         this.childAttributes.unshift(attribute);
                     }
+
+                    this.preloadVariantImages();
                 },
 
                 methods: {
@@ -351,35 +353,71 @@
                     reloadPrice () {
                         let selectedOptionCount = this.childAttributes.filter(attribute => attribute.selectedValue).length;
 
-                        let finalPrice = document.querySelector('.final-price');
-
+                        let finalPrice   = document.querySelector('.final-price');
                         let regularPrice = document.querySelector('.regular-price');
+                        let priceLabel   = document.querySelector('.price-label');
+
+                        if (! finalPrice) return;
 
                         let configVariant = this.config.variant_prices[this.possibleOptionVariant];
+                        let allSelected   = this.childAttributes.length === selectedOptionCount;
 
-                        if (this.childAttributes.length == selectedOptionCount) {
-                            document.querySelector('.price-label').style.display = 'none';
+                        if (allSelected && configVariant) {
+                            if (priceLabel) priceLabel.style.display = 'none';
 
-                            if (parseInt(configVariant.regular.price) > parseInt(configVariant.final.price)) {
-                                regularPrice.style.display = 'block';
+                            const displayPrice = parseFloat(configVariant.regular.price) > parseFloat(configVariant.final.price)
+                                ? configVariant.final.formatted_price
+                                : configVariant.regular.formatted_price;
 
-                                finalPrice.innerHTML = configVariant.final.formatted_price;
+                            finalPrice.innerHTML = displayPrice;
 
-                                regularPrice.innerHTML = configVariant.regular.formatted_price;
-                            } else {
-                                finalPrice.innerHTML = configVariant.regular.formatted_price;
-
-                                regularPrice.style.display = 'none';
+                            if (regularPrice) {
+                                if (parseFloat(configVariant.regular.price) > parseFloat(configVariant.final.price)) {
+                                    regularPrice.style.display = 'block';
+                                    regularPrice.innerHTML     = configVariant.regular.formatted_price;
+                                } else {
+                                    regularPrice.style.display = 'none';
+                                }
                             }
 
-                            this.$emitter.emit('configurable-variant-selected-event',this.possibleOptionVariant);
+                            this.$emitter.emit('configurable-variant-selected-event', this.possibleOptionVariant);
+
+                            this.$emitter.emit('configurable-variant-price-updated', {
+                                price:     displayPrice,
+                                variantId: this.possibleOptionVariant,
+                            });
                         } else {
-                            document.querySelector('.price-label').style.display = 'inline-block';
+                            if (priceLabel) priceLabel.style.display = 'inline-block';
 
                             finalPrice.innerHTML = this.config.regular.formatted_price;
 
+                            if (regularPrice) regularPrice.style.display = 'none';
+
                             this.$emitter.emit('configurable-variant-selected-event', 0);
+
+                            this.$emitter.emit('configurable-variant-price-updated', {
+                                price:     null,
+                                variantId: null,
+                            });
                         }
+                    },
+
+                    preloadVariantImages () {
+                        // Silently preload all variant images after mount so
+                        // switching variants feels instant (images served from cache)
+                        this.$nextTick(() => {
+                            Object.values(this.config.variant_images).forEach(images => {
+                                images.forEach(image => {
+                                    if (image.large_image_url) {
+                                        new Image().src = image.large_image_url;
+                                    }
+
+                                    if (image.medium_image_url) {
+                                        new Image().src = image.medium_image_url;
+                                    }
+                                });
+                            });
+                        });
                     },
 
                     reloadImages () {

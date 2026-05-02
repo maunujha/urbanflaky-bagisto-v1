@@ -490,11 +490,10 @@
                                             type="submit"
                                             class="primary-button mt-5 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-1.5"
                                             button-type="primary-button"
-                                            :title="trans('shop::app.products.view.buy-now')"
-                                            :disabled="! $product->isSaleable(1)"
+                                            ::title="buyNowLabel"
                                             ::loading="isStoring.buyNow"
+                                            ::disabled="isStoring.buyNow || ! variantSelected || ! {{ $product->isSaleable(1) ? 'true' : 'false' }}"
                                             @click="is_buy_now=1;"
-                                            ::disabled="isStoring.buyNow"
                                         />
                                     @endif
 
@@ -704,11 +703,29 @@
                         },
 
                         copySuccess: false,
+
+                        variantSelected: @json($product->type !== 'configurable'),
+
+                        buyNowLabel: @json(
+                            $product->type !== 'configurable'
+                                ? trans('shop::app.products.view.buy-now') . ' – ' . core()->currency($product->getTypeInstance()->getFinalPrice())
+                                : trans('shop::app.products.view.buy-now')
+                        ),
                     }
                 },
 
                 mounted() {
                     this.checkWishlistStatus();
+
+                    this.$emitter.on('configurable-variant-price-updated', ({ price, variantId }) => {
+                        if (variantId && price) {
+                            this.buyNowLabel    = '{{ trans('shop::app.products.view.buy-now') }} – ' + price;
+                            this.variantSelected = true;
+                        } else {
+                            this.buyNowLabel    = '{{ trans('shop::app.products.view.buy-now') }}';
+                            this.variantSelected = false;
+                        }
+                    });
                 },
 
                 methods: {
