@@ -2,6 +2,8 @@
     $channel = core()->getCurrentChannel();
 @endphp
 
+@section('page_seo', true)
+
 <!-- SEO Meta Content -->
 @push('meta')
     <meta name="description" content="{{ $channel->home_seo['meta_description'] ?? "Shop men's polo t-shirts, slim fit tshirts and casual wear for men & women at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan, Jaipur and all metros. – Gabha Enterprise" }}">
@@ -85,7 +87,7 @@
     @endif
 @endpush
 
-<x-shop::layouts>
+<x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
         {{ $channel->home_seo['meta_title'] ?? "Urbanflaky — Men's Polo T-Shirts & Slim Fit Casuals Online | Gabha Enterprise" }}

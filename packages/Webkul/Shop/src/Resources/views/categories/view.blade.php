@@ -1,14 +1,15 @@
 <!-- SEO Meta Content -->
 @push('meta')
-    <meta
-        name="description"
-        content="{{ trim($category->meta_description) != "" ? $category->meta_description : \Illuminate\Support\Str::limit(strip_tags($category->description), 120, '') }}"
-    />
+    <meta name="description" content="{{ trim($category->meta_description) != '' ? $category->meta_description : \Illuminate\Support\Str::limit(strip_tags($category->description ?? ''), 120, '') }}">
+    <meta name="keywords" content="{{ $category->meta_keywords }}">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="{{ url()->current() }}">
 
-    <meta
-        name="keywords"
-        content="{{ $category->meta_keywords }}"
-    />
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ trim($category->meta_title) != '' ? $category->meta_title : $category->name }}">
+    <meta property="og:description" content="{{ trim($category->meta_description) != '' ? $category->meta_description : \Illuminate\Support\Str::limit(strip_tags($category->description ?? ''), 120, '') }}">
+    <meta property="og:image" content="{{ $category->banner_url ?? asset('images/og-image.png') }}">
+    <meta property="og:url" content="{{ url()->current() }}">
 
     @if (core()->getConfigData('catalog.rich_snippets.categories.enable'))
         <script type="application/ld+json">
@@ -17,7 +18,7 @@
     @endif
 @endPush
 
-<x-shop::layouts>
+<x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
         {{ trim($category->meta_title) != "" ? $category->meta_title : $category->name }}

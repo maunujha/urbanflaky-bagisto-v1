@@ -2,6 +2,7 @@
     'hasHeader'       => true,
     'hasFeature'      => true,
     'hasFooter'       => true,
+    'hasCustomSeo'    => false,
     'metaDescription' => "Shop men's polo t-shirts, slim fit tshirts and casual wear at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan. – Gabha Enterprise",
     'metaKeywords'    => 'polo tshirt online india, slim fit tshirt men, casual wear men women, buy tshirt under 500, urbanflaky, gabha enterprise, mens fashion jaipur, tshirt rajasthan',
     'robots'          => 'index, follow',
@@ -26,19 +27,24 @@
         {{-- Must come BEFORE layout defaults so page-specific values take precedence --}}
         @stack('meta')
 
-        <meta name="description" content="{{ $metaDescription }}">
-        <meta name="keywords" content="{{ $metaKeywords }}">
-        <meta name="robots" content="{{ $robots }}">
+        {{-- Generic fallback meta — skipped when a page defines its own SEO block --}}
+        @unless($hasCustomSeo)
+            <meta name="description" content="{{ $metaDescription }}">
+            <meta name="keywords" content="{{ $metaKeywords }}">
+            <meta name="robots" content="{{ $robots }}">
 
-        <meta property="og:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
-        <meta property="og:description" content="{{ $metaDescription }}">
-        <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.png') }}">
-        <meta property="og:url" content="{{ url()->current() }}">
-        <meta property="og:type" content="{{ $ogType }}">
+            <meta property="og:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
+            <meta property="og:description" content="{{ $metaDescription }}">
+            <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.png') }}">
+            <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
+            <meta property="og:type" content="{{ $ogType }}">
+
+            <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
+        @endunless
+
+        {{-- Always present — not page-specific --}}
         <meta property="og:site_name" content="Urbanflaky">
         <meta property="og:locale" content="en_IN">
-
-        <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
 
         <meta charset="UTF-8">
 

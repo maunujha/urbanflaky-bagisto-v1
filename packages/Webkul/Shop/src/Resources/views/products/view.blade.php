@@ -13,23 +13,30 @@
     $productBaseImage = product_image()->getProductBaseImage($product);
 
     $reviewCount = $reviewHelper->getTotalFeedback($product);
+
+    $productBaseDesc = trim($product->meta_description) != ''
+        ? $product->meta_description
+        : \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 80, '');
+
+    $metaDesc = ($productBaseDesc ? $productBaseDesc . ' ' : '')
+        . 'Shop ' . $product->name . ' at Rs ' . number_format($product->price, 0)
+        . ' on Urbanflaky. Fast delivery pan India. – Gabha Enterprise';
+
+    $productCanonical = route('shop.product_or_category.index', $product->url_key);
 @endphp
 
-<!-- SEO Meta Content -->
+<!-- SEO Meta Content — full product-specific block; flags layout to skip its generic fallback -->
 @push('meta')
-    @php
-        $baseDesc = trim($product->meta_description) != ''
-            ? $product->meta_description
-            : \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 80, '');
-        $metaDesc = ($baseDesc ? $baseDesc . ' ' : '')
-            . 'Shop ' . $product->name . ' at Rs ' . number_format($product->price, 0)
-            . ' on Urbanflaky. Fast delivery pan India. – Gabha Enterprise';
-    @endphp
-
     <meta name="description" content="{{ $metaDesc }}">
     <meta name="keywords" content="{{ $product->meta_keywords }}">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="{{ route('shop.product_or_category.index', $product->url_key) }}">
+    <link rel="canonical" href="{{ $productCanonical }}">
+
+    <meta property="og:type" content="og:product">
+    <meta property="og:title" content="{{ $product->meta_title ?: $product->name }}">
+    <meta property="og:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
+    <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
+    <meta property="og:url" content="{{ $productCanonical }}">
 
     @if (core()->getConfigData('catalog.rich_snippets.products.enable'))
         <script type="application/ld+json">
@@ -42,12 +49,6 @@
     <meta name="twitter:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
     <meta name="twitter:image:alt" content="{{ $product->name }}">
     <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}">
-
-    <meta property="og:type" content="og:product">
-    <meta property="og:title" content="{{ $product->name }}">
-    <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
-    <meta property="og:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
-    <meta property="og:url" content="{{ route('shop.product_or_category.index', $product->url_key) }}">
 @endpush
 
 <!-- Product Structured Data -->
@@ -96,7 +97,7 @@
 @endpush
 
 <!-- Page Layout -->
-<x-shop::layouts>
+<x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
         @if (trim($product->meta_title) != '')
