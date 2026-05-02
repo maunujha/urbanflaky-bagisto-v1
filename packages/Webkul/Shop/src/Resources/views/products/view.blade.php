@@ -480,6 +480,92 @@
 
                                 {!! view_render_event('bagisto.shop.products.short_description.after', ['product' => $product]) !!}
 
+                                <!-- Pincode Delivery Checker -->
+                                <div class="mt-5 w-[455px] max-w-full max-sm:w-full">
+
+                                    <!-- Input card -->
+                                    <div style="border:0.5px solid #e0e0e0;border-radius:8px;padding:14px;">
+
+                                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                                            <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#444;">Check Delivery</span>
+                                            <span style="border:1.5px solid #c7eb31;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:700;color:#4a6000;letter-spacing:0.06em;line-height:1.8;">NEW</span>
+                                        </div>
+
+                                        <div style="display:flex;gap:10px;">
+                                            <input
+                                                v-model="pincode"
+                                                type="text"
+                                                inputmode="numeric"
+                                                maxlength="6"
+                                                placeholder="Enter pincode"
+                                                style="flex:1;border:1px solid #d8d8d8;border-radius:8px;padding:10px 14px;font-size:14px;outline:none;color:#222;min-width:0;"
+                                                @keyup.enter="checkDelivery"
+                                            />
+                                            <button
+                                                type="button"
+                                                style="border:1px solid #d8d8d8;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;color:#222;background:white;cursor:pointer;white-space:nowrap;flex-shrink:0;"
+                                                :disabled="checkingDelivery"
+                                                @click="checkDelivery"
+                                            >
+                                                <span v-if="!checkingDelivery">Check</span>
+                                                <span v-else style="opacity:0.45;">···</span>
+                                            </button>
+                                        </div>
+
+                                        <!-- Inline result -->
+                                        <div v-if="deliveryResult" style="margin-top:10px;">
+                                            <template v-if="deliveryResult.deliverable">
+                                                <p style="font-size:13px;color:#2e7d32;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+                                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;"><circle cx="7.5" cy="7.5" r="7.5" fill="#c7eb31"/><path d="M4.5 7.5l2 2 4-4" stroke="#2e7d32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                    Delivery by <strong style="margin-left:2px;">@{{ deliveryResult.days }}</strong>
+                                                    <span v-if="deliveryResult.cod" style="color:#777;font-size:12px;">· COD available</span>
+                                                </p>
+                                                <p v-if="deliveryResult.free" style="font-size:12px;color:#777;margin-top:3px;padding-left:20px;">Free shipping on this order</p>
+                                            </template>
+                                            <p v-else style="font-size:13px;color:#d32f2f;">Delivery not available to this pincode.</p>
+                                        </div>
+                                        <p v-if="deliveryError" style="font-size:12px;color:#d32f2f;margin-top:8px;">@{{ deliveryError }}</p>
+
+                                        <!-- Trust row -->
+                                        <div style="margin-top:12px;padding-top:11px;border-top:1px solid #f0f0f0;display:flex;gap:14px;flex-wrap:wrap;">
+                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                Free delivery
+                                            </span>
+                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                7-day returns
+                                            </span>
+                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                                Easy exchange
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Trust badge card -->
+                                    <div style="margin-top:8px;border:0.5px solid #e0e0e0;border-radius:8px;padding:14px 8px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
+                                        <div style="padding:0 8px;">
+                                            <div style="margin-bottom:6px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            </div>
+                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">Secure payment</p>
+                                        </div>
+                                        <div style="padding:0 8px;border-left:1px solid #efefef;border-right:1px solid #efefef;">
+                                            <div style="margin-bottom:6px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
+                                            </div>
+                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">Easy 7-day returns</p>
+                                        </div>
+                                        <div style="padding:0 8px;">
+                                            <div style="margin-bottom:6px;font-size:22px;line-height:1.1;color:#111;">✦</div>
+                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">100% genuine</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <!-- /Pincode Delivery Checker -->
+
                                 @include('shop::products.view.types.simple')
 
                                 <div id="product-variant-section">
@@ -767,6 +853,11 @@
                                 ? trans('shop::app.products.view.buy-now') . ' – ' . core()->currency($product->getTypeInstance()->getFinalPrice())
                                 : trans('shop::app.products.view.buy-now')
                         ),
+
+                        pincode: '',
+                        deliveryResult: null,
+                        deliveryError: '',
+                        checkingDelivery: false,
                     }
                 },
 
@@ -1000,6 +1091,29 @@
                         document.body.removeChild(el);
                         this.copySuccess = true;
                         setTimeout(() => this.copySuccess = false, 2000);
+                    },
+
+                    checkDelivery() {
+                        if (!/^\d{6}$/.test(this.pincode)) {
+                            this.deliveryError  = 'Please enter a valid 6-digit pincode.';
+                            this.deliveryResult = null;
+                            return;
+                        }
+
+                        this.deliveryError    = '';
+                        this.deliveryResult   = null;
+                        this.checkingDelivery = true;
+
+                        this.$axios.post('{{ route("check.delivery") }}', { pincode: this.pincode })
+                            .then(response => {
+                                this.deliveryResult = response.data;
+                            })
+                            .catch(() => {
+                                this.deliveryError = 'Could not check delivery. Please try again.';
+                            })
+                            .finally(() => {
+                                this.checkingDelivery = false;
+                            });
                     },
                 },
             });
