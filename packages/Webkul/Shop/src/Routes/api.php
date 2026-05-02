@@ -13,7 +13,7 @@ use Webkul\Shop\Http\Controllers\API\ProductController;
 use Webkul\Shop\Http\Controllers\API\ReviewController;
 use Webkul\Shop\Http\Controllers\API\WishlistController;
 
-Route::group(['prefix' => 'api'], function () {
+Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () {
     Route::controller(CoreController::class)->prefix('core')->group(function () {
         Route::get('countries', 'getCountries')->name('shop.api.core.countries');
 
@@ -80,10 +80,14 @@ Route::group(['prefix' => 'api'], function () {
         Route::get('cross-sell', 'crossSellProducts')->name('shop.api.checkout.cart.cross-sell.index');
     });
 
-    Route::controller(CheckoutOtpController::class)->prefix('checkout/otp')->group(function () {
-        Route::post('send', 'send')->name('shop.api.checkout.otp.send');
-        Route::post('verify', 'verify')->name('shop.api.checkout.otp.verify');
-    });
+    // OTP — strictest limit to protect SMS costs and prevent brute-force
+    Route::controller(CheckoutOtpController::class)
+        ->prefix('checkout/otp')
+        ->middleware('throttle:api-otp')
+        ->group(function () {
+            Route::post('send', 'send')->name('shop.api.checkout.otp.send');
+            Route::post('verify', 'verify')->name('shop.api.checkout.otp.verify');
+        });
 
     Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {
         Route::get('summary', 'summary')->name('shop.checkout.onepage.summary');
@@ -97,12 +101,13 @@ Route::group(['prefix' => 'api'], function () {
         Route::post('orders', 'storeOrder')->name('shop.checkout.onepage.orders.store');
     });
 
-    /**
-     * Login routes.
-     */
-    Route::controller(CustomerController::class)->prefix('customer')->group(function () {
-        Route::post('login', 'login')->name('shop.api.customers.session.create');
-    });
+    // Login — auth limiter to prevent credential stuffing
+    Route::controller(CustomerController::class)
+        ->prefix('customer')
+        ->middleware('throttle:api-auth')
+        ->group(function () {
+            Route::post('login', 'login')->name('shop.api.customers.session.create');
+        });
 
     Route::group(['middleware' => ['customer'], 'prefix' => 'customer'], function () {
         Route::controller(AddressController::class)->prefix('addresses')->group(function () {

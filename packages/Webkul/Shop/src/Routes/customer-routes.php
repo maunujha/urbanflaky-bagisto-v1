@@ -24,7 +24,7 @@ Route::prefix('customer')->group(function () {
     Route::controller(ForgotPasswordController::class)->prefix('forgot-password')->group(function () {
         Route::get('', 'create')->name('shop.customers.forgot_password.create');
 
-        Route::post('', 'store')->name('shop.customers.forgot_password.store');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('shop.customers.forgot_password.store');
     });
 
     /**
@@ -33,7 +33,7 @@ Route::prefix('customer')->group(function () {
     Route::controller(ResetPasswordController::class)->prefix('reset-password')->group(function () {
         Route::get('{token}', 'create')->name('shop.customers.reset_password.create');
 
-        Route::post('', 'store')->name('shop.customers.reset_password.store');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('shop.customers.reset_password.store');
     });
 
     /**
@@ -51,20 +51,20 @@ Route::prefix('customer')->group(function () {
     Route::controller(SessionController::class)->prefix('login')->group(function () {
         Route::get('', 'index')->name('shop.customer.session.index');
 
-        Route::post('', 'store')->name('shop.customer.session.create');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('shop.customer.session.create');
     });
 
     /**
      * OTP login routes.
      */
     Route::controller(OtpController::class)->prefix('otp')->group(function () {
-        Route::post('send', 'send')->name('shop.customer.otp.send');
+        Route::post('send', 'send')->middleware('throttle:api-otp')->name('shop.customer.otp.send');
 
         Route::get('verify', 'showVerify')->name('shop.customer.otp.verify');
 
-        Route::post('verify', 'verify')->name('shop.customer.otp.verify.store');
+        Route::post('verify', 'verify')->middleware('throttle:api-otp')->name('shop.customer.otp.verify.store');
 
-        Route::post('resend', 'resend')->name('shop.customer.otp.resend');
+        Route::post('resend', 'resend')->middleware('throttle:api-otp')->name('shop.customer.otp.resend');
     });
 
     /**
@@ -74,13 +74,13 @@ Route::prefix('customer')->group(function () {
         Route::prefix('register')->group(function () {
             Route::get('', 'index')->name('shop.customers.register.index');
 
-            Route::post('', 'store')->name('shop.customers.register.store');
+            Route::post('', 'store')->middleware('throttle:api-auth')->name('shop.customers.register.store');
 
             Route::get('verify-phone', 'showPhoneVerify')->name('shop.customers.register.verify.phone');
 
-            Route::post('verify-phone', 'verifyPhone')->name('shop.customers.register.verify.phone.store');
+            Route::post('verify-phone', 'verifyPhone')->middleware('throttle:api-otp')->name('shop.customers.register.verify.phone.store');
 
-            Route::post('resend-phone-otp', 'resendPhoneOtp')->name('shop.customers.register.resend.phone.otp');
+            Route::post('resend-phone-otp', 'resendPhoneOtp')->middleware('throttle:api-otp')->name('shop.customers.register.resend.phone.otp');
         });
 
         /**
