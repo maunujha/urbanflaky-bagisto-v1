@@ -52,5 +52,5 @@ return Application::configure(basePath: dirname(__DIR__))
         $schedule->command('shiprocket:sync-awb')->everyThirtyMinutes();
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        \Sentry\Laravel\Integration::handles($exceptions);
     })->create();
