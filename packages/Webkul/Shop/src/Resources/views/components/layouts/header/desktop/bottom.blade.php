@@ -449,7 +449,8 @@
                     const q   = cur ? cur.value.trim() : '';
                     if (q.length < MIN_LENGTH) return;
 
-                    fetch(AUTOCOMPLETE_URL + '?query=' + encodeURIComponent(q), {
+                    const limit = p === 'mobile' ? 4 : 8;
+                    fetch(AUTOCOMPLETE_URL + '?query=' + encodeURIComponent(q) + '&limit=' + limit, {
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     })
                     .then(function (r) { return r.json(); })
