@@ -18,7 +18,7 @@ class AutocompleteController extends APIController
             return response()->json([]);
         }
 
-        $limit = max(1, (int) (core()->getConfigData('catalog.products.search.autocomplete_limit') ?: 8));
+        $limit = min(8, max(1, (int) (core()->getConfigData('catalog.products.search.autocomplete_limit') ?: 8)));
         $channel = core()->getCurrentChannel()->code;
         $locale = app()->getLocale();
 

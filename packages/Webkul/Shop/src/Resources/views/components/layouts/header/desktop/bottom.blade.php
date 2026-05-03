@@ -101,7 +101,8 @@
                 <!-- Autocomplete Dropdown -->
                 <div
                     id="desktop-autocomplete-dropdown"
-                    class="absolute top-full left-0 z-50 mt-1 w-full max-w-[445px] rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    class="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    style="min-width:500px;"
                     role="listbox"
                 >
                     <ul id="desktop-autocomplete-list" class="py-1"></ul>
@@ -122,7 +123,8 @@
                 <!-- Trending Searches Dropdown -->
                 <div
                     id="desktop-trending-dropdown"
-                    class="absolute top-full left-0 z-50 mt-1 w-full max-w-[445px] rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    class="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    style="min-width:500px;"
                     role="listbox"
                 >
                     <div class="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
