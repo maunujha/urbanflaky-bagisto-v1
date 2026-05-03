@@ -875,6 +875,19 @@ return [
                 'validation' => 'numeric',
                 'default' => '1000',
             ], [
+                'name' => 'trending_searches',
+                'title' => 'admin::app.configuration.index.catalog.products.search.trending-searches',
+                'info' => 'admin::app.configuration.index.catalog.products.search.trending-searches-info',
+                'type' => 'boolean',
+                'default' => '1',
+            ], [
+                'name' => 'trending_limit',
+                'title' => 'admin::app.configuration.index.catalog.products.search.trending-limit',
+                'info' => 'admin::app.configuration.index.catalog.products.search.trending-limit-info',
+                'type' => 'number',
+                'validation' => 'numeric|min:1|max:20',
+                'default' => '8',
+            ], [
                 'name' => 'autocomplete',
                 'title' => 'admin::app.configuration.index.catalog.products.search.autocomplete',
                 'info' => 'admin::app.configuration.index.catalog.products.search.autocomplete-info',

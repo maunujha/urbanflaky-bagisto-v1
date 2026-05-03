@@ -117,6 +117,21 @@
                     </div>
                 </div>
             @endif
+
+            @if (core()->getConfigData('catalog.products.search.trending_searches') !== '0')
+                <!-- Trending Searches Dropdown -->
+                <div
+                    id="desktop-trending-dropdown"
+                    class="absolute top-full left-0 z-50 mt-1 w-full max-w-[445px] rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    role="listbox"
+                >
+                    <div class="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+                        <span class="icon-trend text-navyBlue text-sm"></span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Trending Searches</span>
+                    </div>
+                    <ul id="desktop-trending-list" class="py-1"></ul>
+                </div>
+            @endif
         </div>
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.after') !!}
@@ -275,40 +290,59 @@
 </div>
 
 @pushOnce('scripts')
-    @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
+    @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0' || core()->getConfigData('catalog.products.search.trending_searches') !== '0')
     <script>
         (function () {
-            const AUTOCOMPLETE_URL = '{{ route('shop.api.search.autocomplete') }}';
-            const SEARCH_URL       = '{{ route('shop.search.index') }}';
-            const MIN_LENGTH       = {{ max(2, (int) (core()->getConfigData('catalog.products.search.min_query_length') ?? 0)) }};
-            const INPUT_IDS        = ['desktop-search-input', 'mobile-search-input'];
+            const AUTOCOMPLETE_ENABLED = {{ core()->getConfigData('catalog.products.search.autocomplete') !== '0' ? 'true' : 'false' }};
+            const TRENDING_ENABLED     = {{ core()->getConfigData('catalog.products.search.trending_searches') !== '0' ? 'true' : 'false' }};
+            const AUTOCOMPLETE_URL     = '{{ route('shop.api.search.autocomplete') }}';
+            const TRENDING_URL         = '{{ route('shop.api.search.trending') }}';
+            const SEARCH_URL           = '{{ route('shop.search.index') }}';
+            const MIN_LENGTH           = {{ max(2, (int) (core()->getConfigData('catalog.products.search.min_query_length') ?? 0)) }};
+            const INPUT_IDS            = ['desktop-search-input', 'mobile-search-input'];
 
-            let debounceTimer = null;
+            let debounceTimer  = null;
+            let trendingCache  = null; // null = not fetched yet
 
-            function els(prefix) {
+            /* ---- Element helpers ---- */
+            function acEls(p) {
                 return {
-                    input:    document.getElementById(prefix + '-search-input'),
-                    dropdown: document.getElementById(prefix + '-autocomplete-dropdown'),
-                    list:     document.getElementById(prefix + '-autocomplete-list'),
-                    viewAll:  document.getElementById(prefix + '-autocomplete-viewall'),
+                    input:    document.getElementById(p + '-search-input'),
+                    dropdown: document.getElementById(p + '-autocomplete-dropdown'),
+                    list:     document.getElementById(p + '-autocomplete-list'),
+                    viewAll:  document.getElementById(p + '-autocomplete-viewall'),
+                };
+            }
+
+            function trEls(p) {
+                return {
+                    dropdown: document.getElementById(p + '-trending-dropdown'),
+                    list:     document.getElementById(p + '-trending-list'),
                 };
             }
 
             function prefixOf(id) { return id.replace('-search-input', ''); }
 
-            function highlight(text, query) {
-                const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark class="bg-yellow-100 font-semibold not-italic">$1</mark>');
+            function showEl(dropdown)  { dropdown && dropdown.classList.remove('hidden'); }
+            function hideEl(dropdown)  { dropdown && dropdown.classList.add('hidden'); }
+
+            function hideAll(p) {
+                hideEl(acEls(p).dropdown);
+                hideEl(trEls(p).dropdown);
             }
 
-            function show(e) { e.dropdown && e.dropdown.classList.remove('hidden'); }
-            function hide(e) { e.dropdown && e.dropdown.classList.add('hidden'); }
+            /* ---- Autocomplete ---- */
+            function highlight(text, query) {
+                const esc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return text.replace(new RegExp('(' + esc + ')', 'gi'), '<mark class="bg-yellow-100 font-semibold not-italic">$1</mark>');
+            }
 
-            function renderResults(results, query, e) {
+            function renderAutocomplete(results, query, p) {
+                const e = acEls(p);
                 if (! e.list) return;
                 e.list.innerHTML = '';
 
-                if (! results.length) { hide(e); return; }
+                if (! results.length) { hideEl(e.dropdown); return; }
 
                 results.forEach(function (product) {
                     const li = document.createElement('li');
@@ -337,10 +371,59 @@
                     e.viewAll.href = SEARCH_URL + '?query=' + encodeURIComponent(query);
                     e.viewAll.textContent = 'View all results for "' + query + '"';
                 }
-                show(e);
+                hideEl(trEls(p).dropdown);
+                showEl(e.dropdown);
             }
 
-            /* ---- Event delegation: works after Vue mounts the templates ---- */
+            /* ---- Trending ---- */
+            function renderTrending(data, p) {
+                const te = trEls(p);
+                if (! te.list || ! te.dropdown) return;
+                if (! data.length) { hideEl(te.dropdown); return; }
+
+                if (te.list.children.length === 0) {
+                    data.forEach(function (item) {
+                        const li = document.createElement('li');
+                        li.className = 'flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors';
+                        li.innerHTML = '<span class="icon-search text-gray-400 text-xs flex-shrink-0"></span>'
+                            + '<span class="text-sm text-gray-700">' + item.term + '</span>'
+                            + '<span class="ml-auto text-xs text-gray-300">' + item.count + '</span>';
+
+                        li.addEventListener('mousedown', function (ev) {
+                            ev.preventDefault();
+                            const input = document.getElementById(p + '-search-input');
+                            if (input) {
+                                input.value = item.term;
+                                input.closest('form').submit();
+                            }
+                        });
+
+                        te.list.appendChild(li);
+                    });
+                }
+
+                hideEl(acEls(p).dropdown);
+                showEl(te.dropdown);
+            }
+
+            function showTrending(p) {
+                if (! TRENDING_ENABLED) return;
+
+                if (trendingCache !== null) {
+                    renderTrending(trendingCache, p);
+                    return;
+                }
+
+                fetch(TRENDING_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        trendingCache = data;
+                        renderTrending(data, p);
+                    })
+                    .catch(function () { trendingCache = []; });
+            }
+
+            /* ---- Event delegation ---- */
 
             document.addEventListener('input', function (ev) {
                 if (! INPUT_IDS.includes(ev.target.id)) return;
@@ -349,11 +432,19 @@
                 const p     = prefixOf(ev.target.id);
                 const query = ev.target.value.trim();
 
-                if (query.length < MIN_LENGTH) { hide(els(p)); return; }
+                if (query.length === 0) {
+                    hideEl(acEls(p).dropdown);
+                    showTrending(p);
+                    return;
+                }
+
+                hideEl(trEls(p).dropdown);
+
+                if (! AUTOCOMPLETE_ENABLED || query.length < MIN_LENGTH) { hideEl(acEls(p).dropdown); return; }
 
                 debounceTimer = setTimeout(function () {
-                    const current = document.getElementById(p + '-search-input');
-                    const q = current ? current.value.trim() : '';
+                    const cur = document.getElementById(p + '-search-input');
+                    const q   = cur ? cur.value.trim() : '';
                     if (q.length < MIN_LENGTH) return;
 
                     fetch(AUTOCOMPLETE_URL + '?query=' + encodeURIComponent(q), {
@@ -361,31 +452,40 @@
                     })
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
-                        const cur = document.getElementById(p + '-search-input');
-                        if (cur && cur.value.trim() === q) renderResults(data, q, els(p));
+                        const c = document.getElementById(p + '-search-input');
+                        if (c && c.value.trim() === q) renderAutocomplete(data, q, p);
                     })
-                    .catch(function () { hide(els(p)); });
+                    .catch(function () { hideEl(acEls(p).dropdown); });
                 }, 300);
             });
 
             document.addEventListener('focusin', function (ev) {
                 if (! INPUT_IDS.includes(ev.target.id)) return;
-                const p = prefixOf(ev.target.id);
-                const e = els(p);
-                if (ev.target.value.trim().length >= MIN_LENGTH && e.list && e.list.children.length > 0) show(e);
+                const p     = prefixOf(ev.target.id);
+                const query = ev.target.value.trim();
+
+                if (query.length === 0) {
+                    showTrending(p);
+                } else if (AUTOCOMPLETE_ENABLED && query.length >= MIN_LENGTH && acEls(p).list && acEls(p).list.children.length > 0) {
+                    showEl(acEls(p).dropdown);
+                }
             });
 
             document.addEventListener('mousedown', function (ev) {
                 INPUT_IDS.forEach(function (id) {
-                    const p = prefixOf(id);
-                    const e = els(p);
-                    if (e.dropdown && ! e.dropdown.contains(ev.target) && ev.target !== e.input) hide(e);
+                    const p     = prefixOf(id);
+                    const input = document.getElementById(id);
+                    const acDrop = acEls(p).dropdown;
+                    const trDrop = trEls(p).dropdown;
+
+                    if (acDrop && ! acDrop.contains(ev.target) && ev.target !== input) hideEl(acDrop);
+                    if (trDrop && ! trDrop.contains(ev.target) && ev.target !== input) hideEl(trDrop);
                 });
             });
 
             document.addEventListener('keydown', function (ev) {
                 if (! INPUT_IDS.includes(ev.target.id)) return;
-                if (ev.key === 'Escape') hide(els(prefixOf(ev.target.id)));
+                if (ev.key === 'Escape') hideAll(prefixOf(ev.target.id));
             });
         })();
     </script>

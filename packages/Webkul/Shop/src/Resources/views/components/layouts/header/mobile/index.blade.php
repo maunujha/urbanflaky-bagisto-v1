@@ -241,6 +241,20 @@
                     </div>
                 </div>
             @endif
+
+            @if (core()->getConfigData('catalog.products.search.trending_searches') !== '0')
+                <div
+                    id="mobile-trending-dropdown"
+                    class="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    role="listbox"
+                >
+                    <div class="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
+                        <span class="icon-trend text-navyBlue text-sm"></span>
+                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Trending Searches</span>
+                    </div>
+                    <ul id="mobile-trending-list" class="py-1"></ul>
+                </div>
+            @endif
         </div>
     </form>
 

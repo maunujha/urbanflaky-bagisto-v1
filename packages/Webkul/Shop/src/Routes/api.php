@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Webkul\Shop\Http\Controllers\API\AddressController;
 use Webkul\Shop\Http\Controllers\API\AutocompleteController;
+use Webkul\Shop\Http\Controllers\API\TrendingSearchController;
 use Webkul\Shop\Http\Controllers\API\CartController;
 use Webkul\Shop\Http\Controllers\API\CategoryController;
 use Webkul\Shop\Http\Controllers\API\CheckoutOtpController;
@@ -35,6 +36,9 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
 
     Route::get('search/autocomplete', [AutocompleteController::class, 'search'])
         ->name('shop.api.search.autocomplete');
+
+    Route::get('search/trending', [TrendingSearchController::class, 'index'])
+        ->name('shop.api.search.trending');
 
     Route::controller(ProductController::class)->prefix('products')->group(function () {
         Route::get('', 'index')->name('shop.api.products.index');
