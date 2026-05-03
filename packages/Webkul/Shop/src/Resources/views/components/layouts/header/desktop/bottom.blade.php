@@ -53,11 +53,12 @@
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.before') !!}
 
         <!-- Search Bar Container -->
-        <div class="relative w-full">
+        <div class="relative w-full" id="desktop-search-wrap">
             <form
                 action="{{ route('shop.search.index') }}"
                 class="flex max-w-[445px] items-center"
                 role="search"
+                id="desktop-search-form"
             >
                 <label
                     for="organic-search"
@@ -71,6 +72,7 @@
                 <input
                     type="text"
                     name="query"
+                    id="desktop-search-input"
                     value="{{ request('query') }}"
                     class="block w-full py-3 text-xs font-medium text-gray-900 transition-all border border-transparent rounded-lg bg-zinc-100 px-11 hover:border-gray-400 focus:border-gray-400"
                     minlength="{{ core()->getConfigData('catalog.products.search.min_query_length') }}"
@@ -79,6 +81,7 @@
                     aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
                     aria-required="true"
                     pattern="[^\\]+"
+                    autocomplete="off"
                     required
                 >
 
@@ -93,6 +96,27 @@
                     @include('shop::search.images.index')
                 @endif
             </form>
+
+            @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
+                <!-- Autocomplete Dropdown -->
+                <div
+                    id="desktop-autocomplete-dropdown"
+                    class="absolute top-full left-0 z-50 mt-1 w-full max-w-[445px] rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    role="listbox"
+                >
+                    <ul id="desktop-autocomplete-list" class="py-1"></ul>
+
+                    <div class="border-t border-gray-100 px-4 py-2.5">
+                        <a
+                            id="desktop-autocomplete-viewall"
+                            href="#"
+                            class="block text-center text-xs font-medium text-navyBlue hover:underline"
+                        >
+                            @lang('shop::app.components.layouts.header.desktop.bottom.search-text') &rarr;
+                        </a>
+                    </div>
+                </div>
+            @endif
         </div>
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.after') !!}
@@ -251,6 +275,122 @@
 </div>
 
 @pushOnce('scripts')
+    @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
+    <script>
+        (function () {
+            const AUTOCOMPLETE_URL = '{{ route('shop.api.search.autocomplete') }}';
+            const SEARCH_URL       = '{{ route('shop.search.index') }}';
+            const MIN_LENGTH       = {{ max(2, (int) (core()->getConfigData('catalog.products.search.min_query_length') ?? 0)) }};
+            const INPUT_IDS        = ['desktop-search-input', 'mobile-search-input'];
+
+            let debounceTimer = null;
+
+            function els(prefix) {
+                return {
+                    input:    document.getElementById(prefix + '-search-input'),
+                    dropdown: document.getElementById(prefix + '-autocomplete-dropdown'),
+                    list:     document.getElementById(prefix + '-autocomplete-list'),
+                    viewAll:  document.getElementById(prefix + '-autocomplete-viewall'),
+                };
+            }
+
+            function prefixOf(id) { return id.replace('-search-input', ''); }
+
+            function highlight(text, query) {
+                const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return text.replace(new RegExp('(' + escaped + ')', 'gi'), '<mark class="bg-yellow-100 font-semibold not-italic">$1</mark>');
+            }
+
+            function show(e) { e.dropdown && e.dropdown.classList.remove('hidden'); }
+            function hide(e) { e.dropdown && e.dropdown.classList.add('hidden'); }
+
+            function renderResults(results, query, e) {
+                if (! e.list) return;
+                e.list.innerHTML = '';
+
+                if (! results.length) { hide(e); return; }
+
+                results.forEach(function (product) {
+                    const li = document.createElement('li');
+                    li.setAttribute('role', 'option');
+                    li.className = 'flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors';
+
+                    const img = product.image
+                        ? '<img src="' + product.image + '" alt="" class="h-10 w-10 flex-shrink-0 rounded object-cover border border-gray-100">'
+                        : '<div class="h-10 w-10 flex-shrink-0 rounded bg-gray-100 flex items-center justify-center"><span class="icon-image text-gray-400 text-lg"></span></div>';
+
+                    const priceHtml = product.original_price
+                        ? '<span class="font-semibold text-navyBlue">' + product.price + '</span><span class="ml-1 text-xs text-gray-400 line-through">' + product.original_price + '</span>'
+                        : '<span class="font-semibold text-navyBlue">' + product.price + '</span>';
+
+                    li.innerHTML = img + '<div class="min-w-0 flex-1"><p class="truncate text-sm text-gray-800">' + highlight(product.name, query) + '</p><p class="text-xs mt-0.5">' + priceHtml + '</p></div>';
+
+                    li.addEventListener('mousedown', function (ev) {
+                        ev.preventDefault();
+                        window.location.href = product.url;
+                    });
+
+                    e.list.appendChild(li);
+                });
+
+                if (e.viewAll) {
+                    e.viewAll.href = SEARCH_URL + '?query=' + encodeURIComponent(query);
+                    e.viewAll.textContent = 'View all results for "' + query + '"';
+                }
+                show(e);
+            }
+
+            /* ---- Event delegation: works after Vue mounts the templates ---- */
+
+            document.addEventListener('input', function (ev) {
+                if (! INPUT_IDS.includes(ev.target.id)) return;
+
+                clearTimeout(debounceTimer);
+                const p     = prefixOf(ev.target.id);
+                const query = ev.target.value.trim();
+
+                if (query.length < MIN_LENGTH) { hide(els(p)); return; }
+
+                debounceTimer = setTimeout(function () {
+                    const current = document.getElementById(p + '-search-input');
+                    const q = current ? current.value.trim() : '';
+                    if (q.length < MIN_LENGTH) return;
+
+                    fetch(AUTOCOMPLETE_URL + '?query=' + encodeURIComponent(q), {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        const cur = document.getElementById(p + '-search-input');
+                        if (cur && cur.value.trim() === q) renderResults(data, q, els(p));
+                    })
+                    .catch(function () { hide(els(p)); });
+                }, 300);
+            });
+
+            document.addEventListener('focusin', function (ev) {
+                if (! INPUT_IDS.includes(ev.target.id)) return;
+                const p = prefixOf(ev.target.id);
+                const e = els(p);
+                if (ev.target.value.trim().length >= MIN_LENGTH && e.list && e.list.children.length > 0) show(e);
+            });
+
+            document.addEventListener('mousedown', function (ev) {
+                INPUT_IDS.forEach(function (id) {
+                    const p = prefixOf(id);
+                    const e = els(p);
+                    if (e.dropdown && ! e.dropdown.contains(ev.target) && ev.target !== e.input) hide(e);
+                });
+            });
+
+            document.addEventListener('keydown', function (ev) {
+                if (! INPUT_IDS.includes(ev.target.id)) return;
+                if (ev.key === 'Escape') hide(els(prefixOf(ev.target.id)));
+            });
+        })();
+    </script>
+    @endif
+
     <script
         type="text/x-template"
         id="v-desktop-category-template"

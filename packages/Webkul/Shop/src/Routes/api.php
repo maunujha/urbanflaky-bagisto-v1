@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Webkul\Shop\Http\Controllers\API\AddressController;
+use Webkul\Shop\Http\Controllers\API\AutocompleteController;
 use Webkul\Shop\Http\Controllers\API\CartController;
 use Webkul\Shop\Http\Controllers\API\CategoryController;
 use Webkul\Shop\Http\Controllers\API\CheckoutOtpController;
@@ -31,6 +32,9 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
 
         Route::get('max-price/{id?}', 'getProductMaxPrice')->name('shop.api.categories.max_price');
     });
+
+    Route::get('search/autocomplete', [AutocompleteController::class, 'search'])
+        ->name('shop.api.search.autocomplete');
 
     Route::controller(ProductController::class)->prefix('products')->group(function () {
         Route::get('', 'index')->name('shop.api.products.index');

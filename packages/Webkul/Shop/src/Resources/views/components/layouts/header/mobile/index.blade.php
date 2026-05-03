@@ -203,7 +203,7 @@
     {!! view_render_event('bagisto.shop.components.layouts.header.mobile.search.before') !!}
 
     <!-- Serach Catalog Form -->
-    <form action="{{ route('shop.search.index') }}" class="flex items-center w-full">
+    <form action="{{ route('shop.search.index') }}" class="flex items-center w-full" id="mobile-search-form">
         <label
             for="organic-search"
             class="sr-only"
@@ -211,20 +211,35 @@
             @lang('shop::app.components.layouts.header.mobile.search')
         </label>
 
-        <div class="relative w-full">
+        <div class="relative w-full" id="mobile-search-wrap">
             <div class="icon-search pointer-events-none absolute top-3 flex items-center text-2xl max-md:text-xl max-sm:top-2.5 ltr:left-3 rtl:right-3"></div>
 
             <input
                 type="text"
+                id="mobile-search-input"
                 class="block w-full rounded-xl border border-['#E3E3E3'] px-11 py-3.5 text-sm font-medium text-gray-900 max-md:rounded-lg max-md:px-10 max-md:py-3 max-md:font-normal max-sm:text-xs"
                 name="query"
                 value="{{ request('query') }}"
                 placeholder="@lang('shop::app.components.layouts.header.mobile.search-text')"
+                autocomplete="off"
                 required
             >
 
             @if (core()->getConfigData('catalog.products.settings.image_search'))
                 @include('shop::search.images.index')
+            @endif
+
+            @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
+                <div
+                    id="mobile-autocomplete-dropdown"
+                    class="absolute top-full left-0 z-50 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                    role="listbox"
+                >
+                    <ul id="mobile-autocomplete-list" class="py-1"></ul>
+                    <div class="border-t border-gray-100 px-4 py-2.5">
+                        <a id="mobile-autocomplete-viewall" href="#" class="block text-center text-xs font-medium text-navyBlue hover:underline"></a>
+                    </div>
+                </div>
             @endif
         </div>
     </form>

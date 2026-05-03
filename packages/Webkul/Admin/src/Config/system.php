@@ -874,6 +874,19 @@ return [
                 'type' => 'number',
                 'validation' => 'numeric',
                 'default' => '1000',
+            ], [
+                'name' => 'autocomplete',
+                'title' => 'admin::app.configuration.index.catalog.products.search.autocomplete',
+                'info' => 'admin::app.configuration.index.catalog.products.search.autocomplete-info',
+                'type' => 'boolean',
+                'default' => '1',
+            ], [
+                'name' => 'autocomplete_limit',
+                'title' => 'admin::app.configuration.index.catalog.products.search.autocomplete-limit',
+                'info' => 'admin::app.configuration.index.catalog.products.search.autocomplete-limit-info',
+                'type' => 'number',
+                'validation' => 'numeric|min:1|max:20',
+                'default' => '8',
             ],
         ],
     ], [
