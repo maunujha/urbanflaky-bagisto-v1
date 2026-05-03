@@ -10,20 +10,19 @@
         id="v-product-card-template"
     >
         <!-- Grid Card -->
-        <div
-            class="1180:transtion-all group w-full rounded-md 1180:relative 1180:grid 1180:content-start 1180:overflow-hidden 1180:duration-300 1180:hover:shadow-[0_5px_10px_rgba(0,0,0,0.1)]"
-            v-if="mode != 'list'"
-        >
-            <div class="relative max-h-[300px] max-w-[291px] overflow-hidden max-md:max-h-60 max-md:max-w-full max-md:rounded-lg max-sm:max-h-[200px] max-sm:max-w-full">
+        <div class="uf-product-card" v-if="mode != 'list'">
+
+            <!-- ── IMAGE CONTAINER (3:4 portrait) ── -->
+            <div class="uf-img-wrap">
+
                 {!! view_render_event('bagisto.shop.components.products.card.image.before') !!}
 
-                <!-- Product Image -->
                 <a
+                    class="uf-img-link"
                     :href="'{{ route('shop.product_or_category.index', ':slug') }}'.replace(':slug', product.url_key)"
-                    :aria-label="product.name + ' '"
+                    :aria-label="product.name"
                 >
                     <x-shop::media.images.lazy
-                        class="after:content-[' '] relative bg-zinc-100 transition-all duration-300 after:block after:pb-[calc(100%+9px)] group-hover:scale-105"
                         ::src="product.base_image.medium_image_url"
                         ::srcset="`
                             ${product.base_image.small_image_url} 150w,
@@ -33,19 +32,120 @@
                         ::key="product.id"
                         ::index="product.id"
                         width="291"
-                        height="300"
+                        height="388"
                         ::alt="product.name"
                     />
                 </a>
 
                 {!! view_render_event('bagisto.shop.components.products.card.image.after') !!}
 
-                <!-- Product Ratings -->
+                <!-- Dark overlay on hover (desktop) -->
+                <div class="uf-overlay"></div>
+
+                <!-- Badge top-left -->
+                <p class="uf-badge uf-badge-sale" v-if="product.on_sale">
+                    @lang('shop::app.components.products.card.sale')
+                </p>
+                <p class="uf-badge uf-badge-new" v-else-if="product.is_new">
+                    @lang('shop::app.components.products.card.new')
+                </p>
+
+                <!-- Top-right: Wishlist + Quick View stacked -->
+                <div class="uf-card-icons">
+
+                    {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.before') !!}
+
+                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
+                        <span
+                            class="uf-icon-btn"
+                            role="button"
+                            tabindex="0"
+                            aria-label="@lang('shop::app.components.products.card.add-to-wishlist')"
+                            :class="product.is_wishlist ? 'icon-heart-fill uf-icon-active' : 'icon-heart'"
+                            @click.prevent="addToWishlist()"
+                        ></span>
+                    @endif
+
+                    {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.after') !!}
+
+                    <!-- Quick View (below wishlist, desktop hover only) -->
+                    <a
+                        class="uf-icon-btn uf-quick-view"
+                        :href="'{{ route('shop.product_or_category.index', ':slug') }}'.replace(':slug', product.url_key)"
+                        aria-label="Quick view"
+                        title="Quick view"
+                    >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </a>
+                </div>
+
+                <!-- Bottom overlay: variants + CTA (desktop hover only) -->
+                <div class="uf-hover-panel">
+
+                    <!-- Variants: only rendered when the product actually has them -->
+                    <template v-if="product.super_attributes && product.super_attributes.length">
+                        <template v-for="attribute in product.super_attributes" :key="attribute.id">
+                            <div class="uf-swatch-row" v-if="attribute.swatch_type === 'color'">
+                                <span
+                                    v-for="opt in attribute.options"
+                                    :key="opt.id"
+                                    class="uf-color-dot"
+                                    :style="{ background: opt.swatch_value || '#ccc' }"
+                                    :class="{ 'uf-color-dot-active': selectedAttributes[attribute.id] == opt.id }"
+                                    :title="opt.label"
+                                    @click.stop="selectAttribute(attribute.id, opt.id)"
+                                ></span>
+                            </div>
+                            <div class="uf-size-row" v-else>
+                                <span
+                                    v-for="opt in attribute.options"
+                                    :key="opt.id"
+                                    class="uf-size-pill"
+                                    :class="{ 'uf-size-active': selectedAttributes[attribute.id] == opt.id }"
+                                    @click.stop="selectAttribute(attribute.id, opt.id)"
+                                >@{{ opt.label }}</span>
+                            </div>
+                        </template>
+                    </template>
+                    <!-- No fallback pills — simple products show no variants -->
+
+                    <!-- Inline error — shows below variants, above CTAs -->
+                    <p class="uf-variant-error" v-if="variantError">@{{ variantError }}</p>
+
+                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.before') !!}
+
+                        <div class="uf-cta-row">
+                            <button
+                                type="button"
+                                class="uf-btn-atc"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click.stop="addToCart()"
+                            >
+                                <span v-if="isAddingToCart">···</span>
+                                <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="uf-btn-buy"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click.stop="buyNow()"
+                            >Buy Now</button>
+                        </div>
+
+                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.after') !!}
+                    @endif
+                </div>
+
+                <!-- Ratings badge (bottom-left) -->
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.before') !!}
 
                 @if (core()->getConfigData('catalog.products.review.summary') == 'star_counts')
                     <x-shop::products.ratings
-                        class="absolute bottom-1.5 items-center !border-white bg-white/80 !px-2 !py-1 text-xs max-sm:!px-1.5 max-sm:!py-0.5 ltr:left-1.5 rtl:right-1.5"
+                        class="absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
                         ::average="product.ratings.average"
                         ::total="product.ratings.total"
                         ::rating="false"
@@ -53,7 +153,7 @@
                     />
                 @else
                     <x-shop::products.ratings
-                        class="absolute bottom-1.5 items-center !border-white bg-white/80 !px-2 !py-1 text-xs max-sm:!px-1.5 max-sm:!py-0.5 ltr:left-1.5 rtl:right-1.5"
+                        class="absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
                         ::average="product.ratings.average"
                         ::total="product.reviews.total"
                         ::rating="false"
@@ -62,131 +162,66 @@
                 @endif
 
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.after') !!}
-
-                <div class="action-items bg-black">
-                    <!-- Product Sale Badge -->
-                    <p
-                        class="absolute top-1.5 inline-block rounded-[44px] bg-red-600 px-2.5 text-sm text-white max-sm:rounded-l-none max-sm:rounded-r-xl max-sm:px-2 max-sm:py-0.5 max-sm:text-xs ltr:left-1.5 max-sm:ltr:left-0 rtl:right-5 max-sm:rtl:right-0"
-                        v-if="product.on_sale"
-                    >
-                        @lang('shop::app.components.products.card.sale')
-                    </p>
-
-                    <!-- Product New Badge -->
-                    <p
-                        class="absolute top-1.5 inline-block rounded-[44px] bg-navyBlue px-2.5 text-sm text-white max-sm:rounded-l-none max-sm:rounded-r-xl max-sm:px-2 max-sm:py-0.5 max-sm:text-xs ltr:left-1.5 max-sm:ltr:left-0 rtl:right-1.5 max-sm:rtl:right-0"
-                        v-else-if="product.is_new"
-                    >
-                        @lang('shop::app.components.products.card.new')
-                    </p>
-
-                    <div class="opacity-0 transition-all duration-300 group-hover:bottom-0 group-hover:opacity-100 max-lg:opacity-100 max-sm:opacity-100">
-
-                        {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.before') !!}
-
-                        @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
-                            <span
-                                class="absolute top-2.5 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-lg md:hidden ltr:right-1.5 rtl:left-1.5"
-                                role="button"
-                                aria-label="@lang('shop::app.components.products.card.add-to-wishlist')"
-                                tabindex="0"
-                                :class="product.is_wishlist ? 'icon-heart-fill text-red-500' : 'icon-heart'"
-                                @click="addToWishlist()"
-                            >
-                            </span>
-                        @endif
-
-                        {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.after') !!}
-
-                        {!! view_render_event('bagisto.shop.components.products.card.compare_option.before') !!}
-
-                        @if (core()->getConfigData('catalog.products.settings.compare_option'))
-                            <span
-                                class="icon-compare absolute top-10 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 bg-white text-lg sm:hidden ltr:right-1.5 rtl:left-1.5"
-                                role="button"
-                                aria-label="@lang('shop::app.components.products.card.add-to-compare')"
-                                tabindex="0"
-                                @click="addToCompare(product.id)"
-                            >
-                            </span>
-                        @endif
-
-                        {!! view_render_event('bagisto.shop.components.products.card.compare_option.after') !!}
-
-                    </div>
-                </div>
             </div>
+            <!-- /uf-img-wrap -->
 
-            <!-- Product Information Section -->
-            <div class="-mt-9 grid max-w-[291px] translate-y-9 content-start gap-2.5 bg-white p-2.5 transition-transform duration-300 ease-out group-hover:-translate-y-0 group-hover:rounded-t-lg max-md:relative max-md:mt-0 max-md:translate-y-0 max-md:gap-0 max-md:px-0 max-md:py-1.5 max-sm:min-w-[170px] max-sm:max-w-[192px]">
+            <!-- ── CONTENT (static, zero layout shift) ── -->
+            <div class="uf-card-content">
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.before') !!}
 
-                <p class="break-all text-base font-medium max-md:mb-1.5 max-md:max-w-56 max-md:whitespace-break-spaces max-md:leading-6 max-sm:max-w-[192px] max-sm:text-sm max-sm:leading-4">
-                    @{{ product.name }}
-                </p>
+                <p class="uf-card-name">@{{ product.name }}</p>
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.after') !!}
 
-                <!-- Pricing -->
-                {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
+                <div class="uf-card-price-row">
 
-                <div
-                    class="flex items-center gap-2.5 text-lg font-semibold max-sm:text-sm max-sm:leading-6"
-                    v-html="product.price_html"
-                >
+                    {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
+
+                    <div class="uf-card-price" v-html="product.price_html"></div>
+
+                    {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
+
+                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                        <button
+                            type="button"
+                            class="uf-mobile-cart"
+                            :disabled="! product.is_saleable || isAddingToCart"
+                            aria-label="@lang('shop::app.components.products.card.add-to-cart')"
+                            @click.prevent="addToCart()"
+                        >+ Add</button>
+                    @endif
                 </div>
 
-                {!! view_render_event('bagisto.shop.components.products.card.price.after') !!}
+                <!-- Color swatches — only when product actually has saleable color variants -->
+                <div class="uf-color-row-content" v-if="product.super_attributes && product.super_attributes.length && colorAttribute && colorAttribute.options.length">
+                    <span
+                        v-for="opt in colorAttribute.options.slice(0, 5)"
+                        :key="opt.id"
+                        class="uf-color-dot-sm"
+                        :style="{ background: opt.swatch_value || '#ccc' }"
+                        :title="opt.label"
+                    ></span>
+                    <span class="uf-color-more" v-if="colorAttribute.options.length > 5">
+                        +@{{ colorAttribute.options.length - 5 }}
+                    </span>
+                </div>
 
-                <!-- Product Actions Section -->
-                <div class="action-items flex items-center justify-between opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100 max-md:hidden">
-                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.before') !!}
-
-                        <button
-                            class="secondary-button w-full max-w-full p-2.5 text-sm font-medium max-sm:rounded-xl max-sm:p-2"
-                            :disabled="! product.is_saleable || isAddingToCart"
-                            @click="addToCart()"
-                        >
-                            @lang('shop::app.components.products.card.add-to-cart')
-                        </button>
-
-                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.after') !!}
-                    @endif
-
-                    {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.before') !!}
-
-                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
-                        <span
-                            class="cursor-pointer p-2.5 text-2xl max-sm:hidden"
-                            role="button"
-                            aria-label="@lang('shop::app.components.products.card.add-to-wishlist')"
-                            tabindex="0"
-                            :class="product.is_wishlist ? 'icon-heart-fill text-red-600' : 'icon-heart'"
-                            @click="addToWishlist()"
-                        >
-                        </span>
-                    @endif
-
-                    {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.after') !!}
-
-                    {!! view_render_event('bagisto.shop.components.products.card.compare_option.before') !!}
-
-                    @if (core()->getConfigData('catalog.products.settings.compare_option'))
-                        <span
-                            class="icon-compare cursor-pointer p-2.5 text-2xl max-sm:hidden"
-                            role="button"
-                            aria-label="@lang('shop::app.components.products.card.add-to-compare')"
-                            tabindex="0"
-                            @click="addToCompare(product.id)"
-                        >
-                        </span>
-                    @endif
-
-                    {!! view_render_event('bagisto.shop.components.products.card.compare_option.after') !!}
+                <!-- Free delivery / Easy return strip -->
+                <div class="uf-delivery-strip">
+                    <span class="uf-ds-item">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+                        Free Delivery
+                    </span>
+                    <span class="uf-ds-sep">·</span>
+                    <span class="uf-ds-item">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+                        7-Day Returns
+                    </span>
                 </div>
             </div>
+            <!-- /uf-card-content -->
+
         </div>
 
         <!-- List Card -->
@@ -348,12 +383,40 @@
             data() {
                 return {
                     isCustomer: '{{ auth()->guard('customer')->check() }}',
-
                     isAddingToCart: false,
+                    selectedAttributes: {},
+                    variantError: null,
                 }
             },
 
+            computed: {
+                isConfigurable() {
+                    return this.product.type === 'configurable';
+                },
+
+                colorAttribute() {
+                    if (!this.product.super_attributes) return null;
+                    return this.product.super_attributes.find(a => a.swatch_type === 'color') || null;
+                },
+
+                allSelected() {
+                    if (!this.isConfigurable || !this.product.super_attributes) return true;
+                    return this.product.super_attributes.length === Object.keys(this.selectedAttributes).length;
+                },
+            },
+
             methods: {
+                selectAttribute(attrId, optionId) {
+                    const updated = { ...this.selectedAttributes };
+                    if (updated[attrId] == optionId) {
+                        delete updated[attrId];
+                    } else {
+                        updated[attrId] = optionId;
+                    }
+                    this.selectedAttributes = updated;
+                    this.variantError = null;
+                },
+
                 addToWishlist() {
                     if (this.isCustomer) {
                         this.$axios.post(`{{ route('shop.api.customers.account.wishlist.store') }}`, {
@@ -371,9 +434,6 @@
                 },
 
                 addToCompare(productId) {
-                    /**
-                     * This will handle for customers.
-                     */
                     if (this.isCustomer) {
                         this.$axios.post('{{ route("shop.api.compare.store") }}', {
                                 'product_id': productId
@@ -394,64 +454,81 @@
                         return;
                     }
 
-                    /**
-                     * This will handle for guests.
-                     */
                     let items = this.getStorageValue() ?? [];
 
                     if (items.length) {
                         if (! items.includes(productId)) {
                             items.push(productId);
-
                             localStorage.setItem('compare_items', JSON.stringify(items));
-
                             this.$emitter.emit('add-flash', { type: 'success', message: "@lang('shop::app.components.products.card.add-to-compare-success')" });
                         } else {
                             this.$emitter.emit('add-flash', { type: 'warning', message: "@lang('shop::app.components.products.card.already-in-compare')" });
                         }
                     } else {
                         localStorage.setItem('compare_items', JSON.stringify([productId]));
-
                         this.$emitter.emit('add-flash', { type: 'success', message: "@lang('shop::app.components.products.card.add-to-compare-success')" });
-
                     }
                 },
 
                 getStorageValue(key) {
                     let value = localStorage.getItem('compare_items');
-
-                    if (! value) {
-                        return [];
-                    }
-
+                    if (! value) return [];
                     return JSON.parse(value);
                 },
 
+                buildCartPayload(isBuyNow = false) {
+                    const payload = {
+                        quantity: 1,
+                        product_id: this.product.id,
+                    };
+
+                    if (this.isConfigurable && Object.keys(this.selectedAttributes).length) {
+                        payload.super_attribute = this.selectedAttributes;
+                    }
+
+                    if (isBuyNow) {
+                        payload.is_buy_now = 1;
+                    }
+
+                    return payload;
+                },
+
                 addToCart() {
+                    if (this.isConfigurable && !this.allSelected) {
+                        this.variantError = 'Please select variant to add to cart';
+                        return;
+                    }
+
+                    this.variantError = null;
                     this.isAddingToCart = true;
 
-                    this.$axios.post('{{ route("shop.api.checkout.cart.store") }}', {
-                            'quantity': 1,
-                            'product_id': this.product.id,
-                        })
+                    this.$axios.post('{{ route("shop.api.checkout.cart.store") }}', this.buildCartPayload())
                         .then(response => {
-                            if (response.data.message) {
-                                this.$emitter.emit('update-mini-cart', response.data.data );
-
-                                this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
-                            } else {
-                                this.$emitter.emit('add-flash', { type: 'warning', message: response.data.data.message });
-                            }
-
+                            this.$emitter.emit('update-mini-cart', response.data.data);
+                            this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
                             this.isAddingToCart = false;
                         })
                         .catch(error => {
-                            this.$emitter.emit('add-flash', { type: 'error', message: error.response.data.message });
+                            this.variantError = error.response?.data?.message || 'Could not add to cart';
+                            this.isAddingToCart = false;
+                        });
+                },
 
-                            if (error.response.data.redirect_uri) {
-                                window.location.href = error.response.data.redirect_uri;
-                            }
+                buyNow() {
+                    if (this.isConfigurable && !this.allSelected) {
+                        this.variantError = 'Please select variant to proceed';
+                        return;
+                    }
 
+                    this.variantError = null;
+                    this.isAddingToCart = true;
+
+                    this.$axios.post('{{ route("shop.api.checkout.cart.store") }}', this.buildCartPayload(true))
+                        .then(response => {
+                            window.location.href = response.data.redirect || '{{ route("shop.checkout.onepage.index") }}';
+                        })
+                        .catch(error => {
+                            this.variantError = error.response?.data?.message || 'Could not proceed';
                             this.isAddingToCart = false;
                         });
                 },
