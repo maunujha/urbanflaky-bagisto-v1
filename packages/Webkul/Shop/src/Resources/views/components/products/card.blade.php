@@ -139,9 +139,10 @@
                         {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.after') !!}
                     @endif
                 </div>
-
+                <div class="card-rating">
                 <!-- Ratings badge (bottom-left) -->
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.before') !!}
+                </div>
 
                 @if (core()->getConfigData('catalog.products.review.summary') == 'star_counts')
                     <x-shop::products.ratings
