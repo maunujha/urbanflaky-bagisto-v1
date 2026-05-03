@@ -76,6 +76,10 @@
                         </div>
                         <p id="login-phone-error" class="su-phone-err"></p>
 
+                        @if (core()->getConfigData('customer.captcha.credentials.status'))
+                            {!! \Webkul\Customer\Facades\Captcha::render() !!}
+                        @endif
+
                         <button id="login-send-btn" type="submit" class="su-btn">
                             <span id="login-send-spinner" class="su-spin"></span>
                             <span id="login-send-text">Send OTP</span>
@@ -183,6 +187,7 @@
     </div>
 
     @push('scripts')
+    {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
     <script>
     /* ── document-level delegation (survives Vue's app.mount) ── */
 

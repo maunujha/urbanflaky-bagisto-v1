@@ -100,6 +100,10 @@
                         </div>
                         <p id="phone-error" class="su-phone-err"></p>
 
+                        @if (core()->getConfigData('customer.captcha.credentials.status'))
+                            {!! \Webkul\Customer\Facades\Captcha::render() !!}
+                        @endif
+
                         <button id="send-otp-btn" type="submit" class="su-btn">
                             <span id="send-spinner" class="su-spin"></span>
                             <span id="send-otp-text">Send OTP</span>
@@ -182,6 +186,7 @@
     </div>
 
     @push('scripts')
+    {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
     <script>
     /* ─────────────────────────────────────────────────────────
        All OTP box events use document-level delegation so they

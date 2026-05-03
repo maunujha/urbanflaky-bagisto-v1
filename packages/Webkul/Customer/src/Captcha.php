@@ -10,12 +10,12 @@ class Captcha implements CaptchaContract
     /**
      * Client endpoint.
      */
-    const string CLIENT_ENDPOINT = 'https://www.google.com/recaptcha/enterprise.js';
+    const string CLIENT_ENDPOINT = 'https://www.google.com/recaptcha/api.js';
 
     /**
-     * Site verify endpoint.
+     * Site verify endpoint (standard reCAPTCHA v3).
      */
-    const string SITE_VERIFY_ENDPOINT = 'https://recaptchaenterprise.googleapis.com/v1/projects/{project_id}/assessments';
+    const string SITE_VERIFY_ENDPOINT = 'https://www.google.com/recaptcha/api/siteverify';
 
     /**
      * Project Id.
@@ -100,7 +100,7 @@ class Captcha implements CaptchaContract
      */
     public function getSiteVerifyEndpoint(): string
     {
-        return str_replace('{project_id}', $this->projectId, static::SITE_VERIFY_ENDPOINT);
+        return static::SITE_VERIFY_ENDPOINT;
     }
 
     /**
@@ -124,7 +124,9 @@ class Captcha implements CaptchaContract
     }
 
     /**
-     * Validate response.
+     * Validate response using standard reCAPTCHA v3 siteverify API.
+     * Admin "API Key" field = reCAPTCHA v3 Secret Key.
+     * Admin "Site Key" field = reCAPTCHA v3 Site Key.
      */
     public function validateResponse($response): bool
     {
@@ -134,69 +136,52 @@ class Captcha implements CaptchaContract
             return false;
         }
 
-        if (
-            empty($this->apiKey)
-            || empty($this->projectId)
-            || empty($this->siteKey)
-        ) {
-            logger()->error('reCAPTCHA: Validation failed - API Key, Project ID, or Site Key is not configured.');
+        if (empty($this->apiKey) || empty($this->siteKey)) {
+            logger()->error('reCAPTCHA: Validation failed - Secret Key or Site Key is not configured.');
 
             return false;
         }
 
-        $endpoint = $this->getSiteVerifyEndpoint().'?key='.$this->apiKey;
-
-        $payload = [
-            'event' => [
-                'token' => $response,
-                'siteKey' => $this->siteKey,
-                'expectedAction' => 'submit',
-            ],
-        ];
-
         try {
-            logger()->info('reCAPTCHA: Sending assessment request.', ['endpoint' => $endpoint, 'payload' => $payload]);
+            logger()->info('reCAPTCHA: Sending siteverify request.');
 
-            $apiResponse = Http::post($endpoint, $payload);
+            $apiResponse = Http::asForm()->post($this->getSiteVerifyEndpoint(), [
+                'secret'   => $this->apiKey,
+                'response' => $response,
+            ]);
 
             $result = $apiResponse->json();
 
-            if (
-                ! $result
-                || $apiResponse->failed()
-            ) {
+            if (! $result || $apiResponse->failed()) {
                 logger()->error('reCAPTCHA: Failed to get valid response from Google.', ['response' => $result]);
 
                 return false;
             }
 
-            logger()->info('reCAPTCHA: Assessment response received.', ['response' => $result]);
+            logger()->info('reCAPTCHA: Siteverify response received.', ['response' => $result]);
 
-            if (
-                isset($result['tokenProperties']['valid'])
-                && $result['tokenProperties']['valid']
-                && isset($result['riskAnalysis']['score'])
-            ) {
-                $score = $result['riskAnalysis']['score'];
+            if (isset($result['success']) && $result['success'] && isset($result['score'])) {
+                $score = (float) $result['score'];
 
                 $isValid = $score >= $this->scoreThreshold;
 
                 logger()->info('reCAPTCHA: Validation result.', [
-                    'score' => $score,
+                    'score'     => $score,
                     'threshold' => $this->scoreThreshold,
-                    'success' => $isValid,
+                    'success'   => $isValid,
                 ]);
 
                 return $isValid;
             }
 
-            logger()->error('reCAPTCHA: Invalid response structure from Google.', ['response' => $result]);
+            logger()->error('reCAPTCHA: Invalid response or token rejected.', [
+                'response' => $result,
+            ]);
 
             return false;
         } catch (\Exception $e) {
             logger()->error('reCAPTCHA: Exception during validation request.', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
             ]);
 
             return false;

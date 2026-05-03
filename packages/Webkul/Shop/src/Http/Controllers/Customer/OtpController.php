@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Customer\Repositories\CustomerRepository;
+use Webkul\Customer\Facades\Captcha;
 use Webkul\Shop\Http\Controllers\Controller;
 use Webkul\Shop\Services\SmsAlertService;
 
@@ -24,12 +25,13 @@ class OtpController extends Controller
      */
     public function send(Request $request): RedirectResponse
     {
-        $request->validate([
-            'phone' => 'required|digits:10',
-        ], [
-            'phone.required' => trans('shop::app.customers.otp.phone-required'),
-            'phone.digits'   => trans('shop::app.customers.otp.phone-digits'),
-        ]);
+        $request->validate(
+            Captcha::getValidations(['phone' => 'required|digits:10']),
+            Captcha::getValidationMessages([
+                'phone.required' => trans('shop::app.customers.otp.phone-required'),
+                'phone.digits'   => trans('shop::app.customers.otp.phone-digits'),
+            ])
+        );
 
         $customer = $this->customerRepository->findOneWhere([
             'phone'      => $request->phone,
