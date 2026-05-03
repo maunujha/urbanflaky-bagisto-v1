@@ -2,6 +2,8 @@
 @inject ('productViewHelper', 'Webkul\Product\Helpers\View')
 
 @php
+    $shippingReturnsPage = app('Webkul\CMS\Repositories\PageRepository')->findByUrlKey('shipping-returns-tab');
+
     $avgRatings = $reviewHelper->getAverageRating($product);
 
     $percentageRatings = $reviewHelper->getPercentageRating($product);
@@ -141,7 +143,7 @@
                     :is-selected="true"
                 >
                     <div class="container mt-[60px] max-1180:px-5">
-                        <p class="text-lg text-zinc-500 max-1180:text-sm">
+                        <p class="text-md text-zinc-500 max-1180:text-sm">
                             {!! $product->description !!}
                         </p>
                     </div>
@@ -207,6 +209,24 @@
                 >
                     @include('shop::products.view.reviews')
                 </x-shop::tabs.item>
+
+                <!-- Shipping & Returns Tab -->
+                <x-shop::tabs.item
+                    id="shipping-returns-tab"
+                    class="container mt-[60px] !p-0"
+                    title="Shipping & Returns"
+                    :is-selected="false"
+                >
+                    <div class="container mt-[60px] max-1180:px-5">
+                        <div class="text-md text-zinc-500 max-1180:text-sm">
+                            @if ($shippingReturnsPage?->html_content)
+                                {!! $shippingReturnsPage->html_content !!}
+                            @else
+                                @include('shop::products.view.partials.shipping-returns-default')
+                            @endif
+                        </div>
+                    </div>
+                </x-shop::tabs.item>
             </x-shop::tabs>
         </div>
     </div>
@@ -225,7 +245,7 @@
             </x-slot>
 
             <x-slot:content class="max-sm:px-0">
-                <div class="mb-5 text-lg text-zinc-500 max-1180:text-sm max-md:mb-1 max-md:px-4">
+                <div class="mb-5 text-md text-zinc-500 max-1180:text-sm max-md:mb-1 max-md:px-4">
                     {!! $product->description !!}
                 </div>
             </x-slot>
@@ -245,7 +265,7 @@
 
                 <x-slot:content class="max-sm:px-0">
                     <div class="container max-1180:px-5">
-                        <div class="grid max-w-max grid-cols-[auto_1fr] gap-4 text-lg text-zinc-500 max-1180:text-sm">
+                        <div class="grid max-w-max grid-cols-[auto_1fr] gap-4 text-md text-zinc-500 max-1180:text-sm">
                             @foreach ($customAttributeValues as $customAttributeValue)
                                 @if (! empty($customAttributeValue['value']))
                                     <div class="grid">
@@ -311,6 +331,28 @@
                 @include('shop::products.view.reviews')
             </x-slot>
         </x-shop::accordion>
+
+        <!-- Shipping & Returns Accordion -->
+        <x-shop::accordion
+            class="max-md:border-none"
+            :is-active="false"
+        >
+            <x-slot:header class="bg-gray-100 max-md:!py-3 max-sm:!py-2">
+                <p class="text-base font-medium 1180:hidden">
+                    Shipping &amp; Returns
+                </p>
+            </x-slot>
+
+            <x-slot:content class="max-sm:px-0">
+                <div class="mb-5 text-md text-zinc-500 max-1180:text-sm max-md:mb-1 max-md:px-4">
+                    @if ($shippingReturnsPage?->html_content)
+                        {!! $shippingReturnsPage->html_content !!}
+                    @else
+                        @include('shop::products.view.partials.shipping-returns-default')
+                    @endif
+                </div>
+            </x-slot>
+        </x-shop::accordion>
     </div>
 
     <!-- Sticky Add-to-Cart Bar -->
@@ -336,7 +378,7 @@
 
             <!-- Price -->
             <div class="flex-shrink-0 text-right">
-                <p class="text-lg font-bold text-black max-sm:text-sm" id="sticky-atc-price"></p>
+                <p class="text-md font-bold text-black max-sm:text-sm" id="sticky-atc-price"></p>
             </div>
 
             <!-- Add to Cart Button -->
@@ -434,7 +476,7 @@
                                 <!-- Pricing -->
                                 {!! view_render_event('bagisto.shop.products.price.before', ['product' => $product]) !!}
 
-                                <p class="mt-[22px] flex items-center gap-2.5 text-2xl !font-medium max-sm:mt-2 max-sm:gap-x-2.5 max-sm:gap-y-0 max-sm:text-lg">
+                                <p class="mt-[22px] flex items-center gap-2.5 text-2xl !font-medium max-sm:mt-2 max-sm:gap-x-2.5 max-sm:gap-y-0 max-sm:text-md">
                                     {!! $product->getTypeInstance()->getPriceHtml() !!}
                                 </p>
 
@@ -474,11 +516,103 @@
 
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
-                                <p class="mt-6 text-lg text-zinc-500 max-sm:mt-1.5 max-sm:text-sm">
+                                <p class="mt-6 text-md text-zinc-500 max-sm:mt-1.5 max-sm:text-sm">
                                     {!! $product->short_description !!}
                                 </p>
 
                                 {!! view_render_event('bagisto.shop.products.short_description.after', ['product' => $product]) !!}
+
+                                @include('shop::products.view.types.simple')
+
+                                <div id="product-variant-section">
+                                    @include('shop::products.view.types.configurable')
+                                </div>
+
+                                @include('shop::products.view.types.grouped')
+
+                                @include('shop::products.view.types.bundle')
+
+                                @include('shop::products.view.types.downloadable')
+
+                                @include('shop::products.view.types.booking')
+
+                                <!-- Product Actions and Quantity Box -->
+                                <div id="product-atc-actions" class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-6">
+
+                                    {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
+
+                                    @if ($product->getTypeInstance()->showQuantityBox())
+                                        <x-shop::quantity-changer
+                                            name="quantity"
+                                            value="1"
+                                            class="gap-x-4 rounded-xl px-7 py-4 max-md:py-3 max-sm:gap-x-5 max-sm:rounded-lg max-sm:px-4 max-sm:py-1.5"
+                                        />
+                                    @endif
+
+                                    {!! view_render_event('bagisto.shop.products.view.quantity.after', ['product' => $product]) !!}
+
+                                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                                        <!-- Add To Cart Button -->
+                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.before', ['product' => $product]) !!}
+
+                                        <x-shop::button
+                                            type="submit"
+                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            button-type="secondary-button"
+                                            :loading="false"
+                                            :title="trans('shop::app.products.view.add-to-cart')"
+                                            :disabled="! $product->isSaleable(1)"
+                                            ::loading="isStoring.addToCart"
+                                            ::disabled="isStoring.addToCart"
+                                            @click="is_buy_now=0;"
+                                        />
+
+                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
+                                    @else
+                                        <button
+                                            type="button"
+                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            @click="$refs.contactUsModal.open()"
+                                        >
+                                            @lang('shop::app.components.layouts.footer.contact-us')
+                                        </button>
+                                    @endif
+                                </div>
+
+                                <!-- Buy Now Button -->
+                                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                                    {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}
+
+                                    @if (core()->getConfigData('catalog.products.storefront.buy_now_button_display'))
+                                        <x-shop::button
+                                            type="submit"
+                                            class="primary-button mt-4 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            button-type="primary-button"
+                                            ::title="buyNowLabel"
+                                            ::loading="isStoring.buyNow"
+                                            ::disabled="isStoring.buyNow || ! variantSelected || ! {{ $product->isSaleable(1) ? 'true' : 'false' }}"
+                                            @click="is_buy_now=1;"
+                                        />
+                                    @endif
+
+                                    {!! view_render_event('bagisto.shop.products.view.buy_now.after', ['product' => $product]) !!}
+                                @endif
+
+                                <!-- Trust Badges -->
+                                <div class="mt-5 flex max-w-[470px] flex-wrap items-center gap-x-5 gap-y-2 border-zinc-100 pt-4">
+                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                        Free delivery
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
+                                        Easy returns
+                                    </span>
+                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        Secure payment
+                                    </span>
+                                </div>
 
                                 <!-- Pincode Delivery Checker -->
                                 <div class="mt-5 w-[455px] max-w-full max-sm:w-full">
@@ -566,82 +700,6 @@
                                 </div>
                                 <!-- /Pincode Delivery Checker -->
 
-                                @include('shop::products.view.types.simple')
-
-                                <div id="product-variant-section">
-                                    @include('shop::products.view.types.configurable')
-                                </div>
-
-                                @include('shop::products.view.types.grouped')
-
-                                @include('shop::products.view.types.bundle')
-
-                                @include('shop::products.view.types.downloadable')
-
-                                @include('shop::products.view.types.booking')
-
-                                <!-- Product Actions and Quantity Box -->
-                                <div id="product-atc-actions" class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-4">
-
-                                    {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
-
-                                    @if ($product->getTypeInstance()->showQuantityBox())
-                                        <x-shop::quantity-changer
-                                            name="quantity"
-                                            value="1"
-                                            class="gap-x-4 rounded-xl px-7 py-4 max-md:py-3 max-sm:gap-x-5 max-sm:rounded-lg max-sm:px-4 max-sm:py-1.5"
-                                        />
-                                    @endif
-
-                                    {!! view_render_event('bagisto.shop.products.view.quantity.after', ['product' => $product]) !!}
-
-                                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                                        <!-- Add To Cart Button -->
-                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.before', ['product' => $product]) !!}
-
-                                        <x-shop::button
-                                            type="submit"
-                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
-                                            button-type="secondary-button"
-                                            :loading="false"
-                                            :title="trans('shop::app.products.view.add-to-cart')"
-                                            :disabled="! $product->isSaleable(1)"
-                                            ::loading="isStoring.addToCart"
-                                            ::disabled="isStoring.addToCart"
-                                            @click="is_buy_now=0;"
-                                        />
-
-                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
-                                    @else
-                                        <button
-                                            type="button"
-                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
-                                            @click="$refs.contactUsModal.open()"
-                                        >
-                                            @lang('shop::app.components.layouts.footer.contact-us')
-                                        </button>
-                                    @endif
-                                </div>
-
-                                <!-- Buy Now Button -->
-                                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                                    {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}
-
-                                    @if (core()->getConfigData('catalog.products.storefront.buy_now_button_display'))
-                                        <x-shop::button
-                                            type="submit"
-                                            class="primary-button mt-5 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-1.5"
-                                            button-type="primary-button"
-                                            ::title="buyNowLabel"
-                                            ::loading="isStoring.buyNow"
-                                            ::disabled="isStoring.buyNow || ! variantSelected || ! {{ $product->isSaleable(1) ? 'true' : 'false' }}"
-                                            @click="is_buy_now=1;"
-                                        />
-                                    @endif
-
-                                    {!! view_render_event('bagisto.shop.products.view.buy_now.after', ['product' => $product]) !!}
-                                @endif
-
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.before', ['product' => $product]) !!}
 
                                 <!-- Share Buttons -->
@@ -723,7 +781,7 @@
             <!-- Contact Us Modal -->
             <x-shop::modal ref="contactUsModal">
                 <x-slot:header>
-                <h2 class="text-lg font-semibold max-md:text-base">
+                <h2 class="text-md font-semibold max-md:text-base">
                         @lang('shop::app.products.view.contact-us.title')
                     </h2>
                 </x-slot>

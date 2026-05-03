@@ -34,7 +34,7 @@
 
                     <div class="max-lg:grid max-lg:justify-center">
                         <!-- Service Title -->
-                        <p class="font-dmserif text-base font-medium max-md:text-xl max-sm:text-sm">
+                        <p class="font-default-uf text-base font-medium max-md:text-xl max-sm:text-sm">
                             {{ $service['title'] }}
                         </p>
 

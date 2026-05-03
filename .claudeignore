@@ -1,0 +1,44 @@
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+vendor/
+
+# ── Storage & uploads (runtime-generated, not source) ─────────
+storage/
+public/storage
+
+# ── Compiled / build output ───────────────────────────────────
+public/themes/
+public/build/
+public/css/
+public/js/
+public/vendor/
+public/fonts/
+bootstrap/cache/
+
+# ── Package-level build artefacts ────────────────────────────
+packages/Webkul/Admin/node_modules/
+packages/Webkul/Shop/node_modules/
+packages/Webkul/Installer/node_modules/
+
+# ── Lock files (machine-generated, rarely useful to read) ────
+composer.lock
+package-lock.json
+yarn.lock
+
+# ── Environment & secrets ─────────────────────────────────────
+.env
+.env.*
+
+# ── Test artefacts ────────────────────────────────────────────
+playwright-report/
+test-results/
+.phpunit.result.cache
+coverage/
+
+# ── IDE / editor metadata ─────────────────────────────────────
+.idea/
+.vscode/
+.cursor/
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log

@@ -72,7 +72,7 @@
                             @guest('customer')
                                 <x-slot:content>
                                     <div class="grid gap-2.5">
-                                        <p class="text-xl font-dmserif">
+                                        <p class="text-xl font-default-uf">
                                             @lang('shop::app.components.layouts.header.mobile.welcome-guest')
                                         </p>
 
@@ -113,7 +113,7 @@
                                 @auth('customer')
                                     <x-slot:content class="!p-0">
                                         <div class="grid gap-2.5 p-5 pb-0">
-                                            <p class="text-xl font-dmserif" v-pre>
+                                            <p class="text-xl font-default-uf" v-pre>
                                         @lang('shop::app.components.layouts.header.mobile.welcome')’
                                                 {{ auth()->guard('customer')->user()->first_name }}
                                             </p>

@@ -26,9 +26,17 @@
                     <!-- Dropdown Options Container -->
                     <template v-if="! attribute.swatch_type || attribute.swatch_type == '' || attribute.swatch_type == 'dropdown'">
                         <!-- Dropdown Label -->
-                        <h2 class="mb-4 text-xl max-sm:mb-1.5 max-sm:text-base max-sm:font-medium">
-                            @{{ attribute.label }}
-                        </h2>
+                        <div class="mb-4 flex items-center gap-3 max-sm:mb-1.5">
+                            <h2 class="text-xl max-sm:text-base max-sm:font-medium">
+                                @{{ attribute.label }}
+                            </h2>
+                            <button
+                                v-if="attribute.label.toLowerCase().includes('size')"
+                                type="button"
+                                style="font-size:13px;color:#666;text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
+                                @click="openSizeGuide(attribute)"
+                            >Size Guide ↗</button>
+                        </div>
                         
                         <!-- Dropdown Options -->
                         <v-field
@@ -56,9 +64,17 @@
                     <!-- Swatch Options Container -->
                     <template v-else>
                         <!-- Option Label -->
-                        <h2 class="mb-4 text-xl max-sm:mb-2 max-sm:text-base">
-                            @{{ attribute.label }}
-                        </h2>
+                        <div class="mb-4 flex items-center gap-3 max-sm:mb-2">
+                            <h2 class="text-xl max-sm:text-base">
+                                @{{ attribute.label }}
+                            </h2>
+                            <button
+                                v-if="attribute.label.toLowerCase().includes('size')"
+                                type="button"
+                                style="font-size:13px;color:#666;text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
+                                @click="openSizeGuide(attribute)"
+                            >Size Guide ↗</button>
+                        </div>
 
                         <!-- Swatch Options -->
                         <div class="flex items-center gap-3">
@@ -194,6 +210,53 @@
                         </p>
                     </v-error-message>
                 </div>
+
+                <!-- Size Guide Modal -->
+                <teleport to="body">
+                    <div
+                        v-if="sizeGuideOpen"
+                        style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;"
+                        @click.self="closeSizeGuide"
+                    >
+                        <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;padding:28px 24px 24px;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                            <!-- Close button -->
+                            <button
+                                type="button"
+                                style="position:absolute;top:14px;right:16px;font-size:20px;line-height:1;background:none;border:none;cursor:pointer;color:#888;padding:4px;"
+                                aria-label="Close size guide"
+                                @click="closeSizeGuide"
+                            >✕</button>
+
+                            <h3 style="font-size:17px;font-weight:700;margin-bottom:4px;color:#111;">Size Guide</h3>
+                            <p style="font-size:12px;color:#888;margin-bottom:16px;">All measurements in centimetres (cm)</p>
+
+                            <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                                <thead>
+                                    <tr style="background:#f5f5f5;">
+                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Size</th>
+                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Chest</th>
+                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Shoulder</th>
+                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Length</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="row in sizeChartRows"
+                                        :key="row.size"
+                                        :style="isSelectedSize(row.size) ? 'background:#c7eb31;font-weight:600;' : 'background:#fff;'"
+                                    >
+                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.size }}</td>
+                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.chest }}</td>
+                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.shoulder }}</td>
+                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.length }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <p style="font-size:11px;color:#aaa;margin-top:14px;line-height:1.5;">Measurements are approximate and may vary slightly by style.</p>
+                        </div>
+                    </div>
+                </teleport>
             </div>
         </script>
 
@@ -218,10 +281,29 @@
                         selectedOptionVariant: '',
 
                         galleryImages: [],
+
+                        sizeGuideOpen: false,
+
+                        sizeGuideAttribute: null,
+
+                        sizeChartRows: [
+                            { size: 'XS',  chest: '84–88',   shoulder: '38', length: '67' },
+                            { size: 'S',   chest: '88–92',   shoulder: '40', length: '69' },
+                            { size: 'M',   chest: '92–96',   shoulder: '42', length: '71' },
+                            { size: 'L',   chest: '96–100',  shoulder: '44', length: '73' },
+                            { size: 'XL',  chest: '100–106', shoulder: '46', length: '75' },
+                            { size: 'XXL', chest: '106–112', shoulder: '48', length: '77' },
+                        ],
                     }
                 },
 
                 mounted() {
+                    document.addEventListener('keydown', (e) => {
+                        if (e.key === 'Escape' && this.sizeGuideOpen) {
+                            this.sizeGuideOpen = false;
+                        }
+                    });
+
                     let attributes = JSON.parse(JSON.stringify(this.config)).attributes.slice();
 
                     let index = attributes.length;
@@ -446,6 +528,23 @@
                         if (this.$parent?.$parent?.$refs?.gallery) {
                             this.$parent.$parent.$refs.gallery.media.images = [...galleryImages];
                         }
+                    },
+
+                    openSizeGuide(attribute) {
+                        this.sizeGuideAttribute = attribute;
+                        this.sizeGuideOpen = true;
+                    },
+
+                    closeSizeGuide() {
+                        this.sizeGuideOpen = false;
+                    },
+
+                    isSelectedSize(size) {
+                        if (!this.sizeGuideAttribute) return false;
+                        const selected = this.sizeGuideAttribute.options.find(
+                            o => o.id === this.sizeGuideAttribute.selectedValue
+                        );
+                        return selected && selected.label.trim().toUpperCase() === size.toUpperCase();
                     },
                 }
             });
