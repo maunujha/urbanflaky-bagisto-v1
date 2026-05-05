@@ -1,7 +1,7 @@
 {{-- Recently Viewed Products
      - Stores up to 8 product IDs in localStorage (key: uf_rv_products).
      - Pushes current product on load; displays remaining IDs (excluding current).
-     - Hidden when fewer than 2 other products exist in history.
+     - Hidden when fewer than 2 items exist in total history (i.e. first visit ever).
 --}}
 <section
     id="rv-section"
@@ -24,7 +24,7 @@
 .rv-card:hover img { opacity: 0.85; }
 </style>
 
-@pushOnce('scripts')
+@push('scripts')
 <script>
 (function () {
     var STORAGE_KEY  = 'uf_rv_products';
@@ -52,9 +52,9 @@
     }
 
     function buildCard(p) {
-        var url  = PRODUCT_URL.replace(':slug', p.url_key);
-        var img  = (p.base_image && p.base_image.medium_image_url) ? p.base_image.medium_image_url : '';
-        var name = p.name || '';
+        var url   = PRODUCT_URL.replace(':slug', p.url_key);
+        var img   = (p.base_image && p.base_image.medium_image_url) ? p.base_image.medium_image_url : '';
+        var name  = p.name || '';
         var price = p.min_price || '';
 
         var a = document.createElement('a');
@@ -93,22 +93,40 @@
         var list   = push(CURRENT_ID);
         var toShow = list.filter(function (id) { return id !== CURRENT_ID; });
 
-        if (toShow.length < 2) return;
+        console.log('[RV] current=' + CURRENT_ID + ' history=' + JSON.stringify(list) + ' toShow=' + JSON.stringify(toShow));
+
+        // Require at least 1 other product in history (section appears after 2nd visit)
+        if (toShow.length < 1) {
+            console.log('[RV] not enough history, hiding section');
+            return;
+        }
 
         fetch(API_ENDPOINT + '?ids=' + toShow.join(','), { headers: { 'Accept': 'application/json' } })
-            .then(function (r) { return r.json(); })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(function (json) {
                 var data = Array.isArray(json.data) ? json.data : [];
-                if (data.length < 2) return;
+                console.log('[RV] API returned ' + data.length + ' product(s)');
+
+                if (data.length < 1) return;
 
                 var section = document.getElementById('rv-section');
                 var scroll  = document.getElementById('rv-scroll');
-                if (!section || !scroll) return;
+
+                if (!section || !scroll) {
+                    console.warn('[RV] DOM elements #rv-section/#rv-scroll not found');
+                    return;
+                }
 
                 data.forEach(function (p) { scroll.appendChild(buildCard(p)); });
                 section.style.display = '';
+                console.log('[RV] section shown with ' + data.length + ' card(s)');
             })
-            .catch(function () {});
+            .catch(function (err) {
+                console.error('[RV] fetch failed:', err);
+            });
     }
 
     if (document.readyState === 'loading') {
@@ -118,4 +136,4 @@
     }
 })();
 </script>
-@endPushOnce
+@endpush
