@@ -43,6 +43,8 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
     Route::controller(ProductController::class)->prefix('products')->group(function () {
         Route::get('', 'index')->name('shop.api.products.index');
 
+        Route::get('by-ids', 'byIds')->name('shop.api.products.by-ids');
+
         Route::get('{id}/related', 'relatedProducts')->name('shop.api.products.related.index');
 
         Route::get('{id}/up-sell', 'upSellProducts')->name('shop.api.products.up-sell.index');

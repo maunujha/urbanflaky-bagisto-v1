@@ -123,4 +123,24 @@ class ProductController extends APIController
 
         return ProductResource::collection($upSellProducts);
     }
+
+    /**
+     * Fetch multiple products by IDs (used by the recently-viewed section).
+     * Accepts comma-separated ?ids=1,2,3 (max 8).
+     */
+    public function byIds(): JsonResource
+    {
+        $ids = array_values(array_filter(
+            array_map('intval', explode(',', request()->query('ids', ''))),
+            fn ($id) => $id > 0
+        ));
+
+        if (empty($ids)) {
+            return ProductResource::collection(collect([]));
+        }
+
+        $products = $this->productRepository->findWhereIn('id', array_slice($ids, 0, 8));
+
+        return ProductResource::collection($products);
+    }
 }

@@ -395,6 +395,8 @@
 
     <v-product-associations />
 
+    @include('shop::products.view.recently-viewed')
+
     {!! view_render_event('bagisto.shop.products.view.after', ['product' => $product]) !!}
 
     @pushOnce('scripts')
