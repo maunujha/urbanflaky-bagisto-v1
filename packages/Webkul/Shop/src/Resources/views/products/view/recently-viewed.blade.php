@@ -1,9 +1,4 @@
-{{-- Recently Viewed Products
-     No server-rendered HTML here — Vue re-renders the DOM on mount and would
-     drop any static elements it didn't create.  The section is built and
-     injected into #main entirely in JS, after the fetch resolves (which
-     happens post-load, i.e., after Vue has already finished mounting).
---}}
+{{-- Recently Viewed Products — section injected via JS into #main after fetch resolves --}}
 @push('scripts')
 <script>
 (function () {
@@ -111,9 +106,7 @@
                 if (data.length < 1) return;
                 inject(data);
             })
-            .catch(function (err) {
-                console.error('[RV] error:', err);
-            });
+            .catch(function () {});
     }
 
     if (document.readyState === 'loading') {
