@@ -1,29 +1,9 @@
 {{-- Recently Viewed Products
-     - Stores up to 8 product IDs in localStorage (key: uf_rv_products).
-     - Pushes current product on load; displays remaining IDs (excluding current).
-     - Hidden when fewer than 2 items exist in total history (i.e. first visit ever).
+     No server-rendered HTML here — Vue re-renders the DOM on mount and would
+     drop any static elements it didn't create.  The section is built and
+     injected into #main entirely in JS, after the fetch resolves (which
+     happens post-load, i.e., after Vue has already finished mounting).
 --}}
-<section
-    id="rv-section"
-    class="container mt-14 !p-0 max-1180:px-5"
-    style="display:none"
->
-    <h2 class="mb-6 text-xl font-semibold text-black max-sm:text-lg">Recently Viewed</h2>
-
-    <div
-        id="rv-scroll"
-        style="display:flex;gap:16px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;"
-    >
-        {{-- Cards injected by JS --}}
-    </div>
-</section>
-
-<style>
-#rv-scroll::-webkit-scrollbar { display: none; }
-.rv-card img { transition: opacity 0.2s; }
-.rv-card:hover img { opacity: 0.85; }
-</style>
-
 @push('scripts')
 <script>
 (function () {
@@ -72,7 +52,7 @@
         imgEl.loading       = 'lazy';
         imgEl.width         = 160;
         imgEl.height        = 213;
-        imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+        imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;transition:opacity .2s;';
         wrap.appendChild(imgEl);
 
         var nameEl = document.createElement('p');
@@ -89,17 +69,37 @@
         return a;
     }
 
+    function inject(products) {
+        var main = document.getElementById('main');
+        if (!main) return;
+
+        var css = document.createElement('style');
+        css.textContent = '#rv-scroll::-webkit-scrollbar{display:none}.rv-card img{transition:opacity .2s}.rv-card:hover img{opacity:.85}';
+        document.head.appendChild(css);
+
+        var section = document.createElement('section');
+        section.style.cssText = 'max-width:1180px;margin:56px auto 0;padding:0 20px 40px;';
+
+        var heading = document.createElement('h2');
+        heading.textContent  = 'Recently Viewed';
+        heading.style.cssText = 'font-size:1.25rem;font-weight:600;color:#111;margin-bottom:24px;';
+
+        var scroll = document.createElement('div');
+        scroll.id = 'rv-scroll';
+        scroll.style.cssText = 'display:flex;gap:16px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;';
+
+        products.forEach(function (p) { scroll.appendChild(buildCard(p)); });
+
+        section.appendChild(heading);
+        section.appendChild(scroll);
+        main.appendChild(section);
+    }
+
     function init() {
         var list   = push(CURRENT_ID);
         var toShow = list.filter(function (id) { return id !== CURRENT_ID; });
 
-        console.log('[RV] current=' + CURRENT_ID + ' history=' + JSON.stringify(list) + ' toShow=' + JSON.stringify(toShow));
-
-        // Require at least 1 other product in history (section appears after 2nd visit)
-        if (toShow.length < 1) {
-            console.log('[RV] not enough history, hiding section');
-            return;
-        }
+        if (toShow.length < 1) return;
 
         fetch(API_ENDPOINT + '?ids=' + toShow.join(','), { headers: { 'Accept': 'application/json' } })
             .then(function (r) {
@@ -108,24 +108,11 @@
             })
             .then(function (json) {
                 var data = Array.isArray(json.data) ? json.data : [];
-                console.log('[RV] API returned ' + data.length + ' product(s)');
-
                 if (data.length < 1) return;
-
-                var section = document.getElementById('rv-section');
-                var scroll  = document.getElementById('rv-scroll');
-
-                if (!section || !scroll) {
-                    console.warn('[RV] DOM elements #rv-section/#rv-scroll not found');
-                    return;
-                }
-
-                data.forEach(function (p) { scroll.appendChild(buildCard(p)); });
-                section.style.display = '';
-                console.log('[RV] section shown with ' + data.length + ' card(s)');
+                inject(data);
             })
             .catch(function (err) {
-                console.error('[RV] fetch failed:', err);
+                console.error('[RV] error:', err);
             });
     }
 
