@@ -17,36 +17,32 @@
     ]); 
 @endphp
 
-<!-- Features -->
+<!-- Features / Trust Badges -->
 @if ($customization)
-    <div
-        class="container mt-20 max-lg:px-8 max-md:mt-10 max-md:px-4"
-        v-pre
-    >
-        <div class="max-md:max-y-6 flex justify-center gap-6 max-lg:flex-wrap max-md:grid max-md:grid-cols-2 max-md:gap-x-2.5 max-md:text-center">
-            @foreach ($customization->options['services'] as $service)
-                <div class="flex items-center gap-5 bg-white max-md:grid max-md:gap-2.5 max-sm:gap-1 max-sm:px-2">
-                    <span
-                        class="{{ $service['service_icon'] }} flex items-center justify-center w-[60px] h-[60px] bg-white border border-black rounded-full text-4xl text-navyBlue p-2.5 max-md:m-auto max-md:w-16 max-md:h-16 max-sm:w-10 max-sm:h-10 max-sm:text-2xl"
-                        role="presentation"
-                    >
-                    </span>
+    <section class="w-full px-5 py-16 md:px-10 md:py-24 xl:px-14 xl:py-28" v-pre>
+        <div class="relative mx-auto max-w-[1360px]">
+            <div class="grid grid-cols-2 gap-3.5 md:grid-cols-4 md:gap-5 xl:gap-6">
+                @foreach ($customization->options['services'] as $service)
+                    <div class="group relative isolate flex flex-col items-center gap-[18px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] px-[18px] pb-7 pt-8 text-center backdrop-blur-sm transition-all duration-300 lg:hover:-translate-y-1 lg:hover:border-uf-accent/40 lg:hover:bg-white/[0.06] lg:hover:shadow-[0_18px_36px_rgba(0,0,0,0.45)]">
+                        <span
+                            class="{{ $service['service_icon'] }} inline-flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-uf-accent/30 bg-uf-accent/[0.08] text-[28px] leading-none text-uf-accent transition-all duration-300 md:h-16 md:w-16 md:text-[30px] lg:group-hover:scale-105 lg:group-hover:border-uf-accent lg:group-hover:bg-uf-accent lg:group-hover:text-black lg:group-hover:shadow-[0_6px_18px_rgba(199,235,49,0.35)]"
+                            role="presentation"
+                        ></span>
 
-                    <div class="max-lg:grid max-lg:justify-center">
-                        <!-- Service Title -->
-                        <p class="font-default-uf text-base font-medium max-md:text-xl max-sm:text-sm">
-                            {{ $service['title'] }}
-                        </p>
+                        <div class="flex flex-col items-center gap-1.5">
+                            <p class="m-0 font-poppins text-[13px] font-bold uppercase leading-tight tracking-[1.5px] text-white md:text-sm md:tracking-[2px]">
+                                {{ $service['title'] }}
+                            </p>
 
-                        <!-- Service Description -->
-                        <p class="mt-2.5 max-w-[217px] text-sm font-medium text-zinc-500 max-md:mt-0 max-md:text-base max-sm:text-xs">
-                            {{ $service['description'] }}
-                        </p>
+                            <p class="m-0 max-w-[220px] font-poppins text-xs font-normal leading-relaxed text-neutral-400 md:text-[13px]">
+                                {{ $service['description'] }}
+                            </p>
+                        </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            </div>
         </div>
-    </div>
+    </section>
 @endif
 
 {!! view_render_event('bagisto.shop.layout.features.after') !!}

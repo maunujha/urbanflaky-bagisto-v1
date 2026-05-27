@@ -77,9 +77,11 @@ class HomeController extends Controller
                 'name',
                 'email',
                 'contact',
+                'topic',
                 'message',
             ])));
 
+            session()->forget(['contact_phone_verified', 'contact_otp_phone']);
             session()->flash('success', trans('shop::app.home.thanks-for-contact'));
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());

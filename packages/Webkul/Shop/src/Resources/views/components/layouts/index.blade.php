@@ -96,12 +96,12 @@
 
         <link
             rel="preload" as="style"
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
         />
 
         <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Serif+Display&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
         />
 
         @stack('styles')
@@ -157,7 +157,7 @@
             {!! view_render_event('bagisto.shop.layout.content.before') !!}
 
             <!-- Page Content Blade Component -->
-            <main id="main" class="bg-white">
+            <main id="main" class="uf-main">
                 {{ $slot }}
             </main>
 

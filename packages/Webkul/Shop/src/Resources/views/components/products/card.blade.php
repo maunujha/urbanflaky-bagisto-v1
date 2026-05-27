@@ -23,13 +23,13 @@
                     :aria-label="product.name"
                 >
                     <x-shop::media.images.lazy
-                        ::src="product.base_image.medium_image_url"
+                        ::src="currentImage.medium_image_url"
                         ::srcset="`
-                            ${product.base_image.small_image_url} 150w,
-                            ${product.base_image.medium_image_url} 300w,
+                            ${currentImage.small_image_url} 150w,
+                            ${currentImage.medium_image_url} 300w,
                         `"
                         sizes="(max-width: 768px) 150px, (max-width: 1200px) 300px, 600px"
-                        ::key="product.id"
+                        ::key="`${product.id}-${currentImage.medium_image_url}`"
                         ::index="product.id"
                         width="291"
                         height="388"
@@ -69,24 +69,25 @@
                     {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.after') !!}
 
                     <!-- Quick View (below wishlist, desktop hover only) -->
-                    <a
+                    <button
+                        type="button"
                         class="uf-icon-btn uf-quick-view"
-                        :href="'{{ route('shop.product_or_category.index', ':slug') }}'.replace(':slug', product.url_key)"
                         aria-label="Quick view"
                         title="Quick view"
+                        @click.stop.prevent="openQuickView()"
                     >
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                             <circle cx="12" cy="12" r="3"/>
                         </svg>
-                    </a>
+                    </button>
                 </div>
 
                 <!-- Bottom overlay: variants + CTA (desktop hover only) -->
                 <div class="uf-hover-panel">
 
-                    <!-- Variants: only rendered when the product actually has them -->
-                    <template v-if="product.super_attributes && product.super_attributes.length">
+                    <!-- Variants: only rendered for configurable products with actual options -->
+                    <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
                         <template v-for="attribute in product.super_attributes" :key="attribute.id">
                             <div class="uf-swatch-row" v-if="attribute.swatch_type === 'color'">
                                 <span
@@ -173,6 +174,8 @@
 
                 <p class="uf-card-name">@{{ product.name }}</p>
 
+                <p class="uf-card-subtitle" v-if="product.short_description">@{{ product.short_description }}</p>
+
                 {!! view_render_event('bagisto.shop.components.products.card.name.after') !!}
 
                 <div class="uf-card-price-row">
@@ -189,32 +192,18 @@
                             class="uf-mobile-cart"
                             :disabled="! product.is_saleable || isAddingToCart"
                             aria-label="@lang('shop::app.components.products.card.add-to-cart')"
-                            @click.prevent="addToCart()"
-                        >+ Add</button>
+                            @click.prevent="mobileCartClick()"
+                        ><span v-if="isAddingToCart">···</span><span v-else>+</span></button>
                     @endif
                 </div>
 
-                <!-- Color swatches — only when product actually has saleable color variants -->
-                <div class="uf-color-row-content" v-if="product.super_attributes && product.super_attributes.length && colorAttribute && colorAttribute.options.length">
-                    <span
-                        v-for="opt in colorAttribute.options.slice(0, 5)"
-                        :key="opt.id"
-                        class="uf-color-dot-sm"
-                        :style="{ background: opt.swatch_value || '#ccc' }"
-                        :title="opt.label"
-                    ></span>
-                    <span class="uf-color-more" v-if="colorAttribute.options.length > 5">
-                        +@{{ colorAttribute.options.length - 5 }}
-                    </span>
-                </div>
-
-                <!-- Free delivery / Easy return strip -->
+                <!-- Subtle trust strip (single line, minimal) -->
                 <div class="uf-delivery-strip">
                     <span class="uf-ds-item">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
                         Free Delivery
                     </span>
-                    <span class="uf-ds-sep">·</span>
+                    <span class="uf-ds-sep">|</span>
                     <span class="uf-ds-item">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
                         7-Day Returns
@@ -222,6 +211,179 @@
                 </div>
             </div>
             <!-- /uf-card-content -->
+
+            <!-- Mobile Variant Bottom Sheet -->
+            <teleport to="body" v-if="variantSheetOpen">
+                <div class="uf-sheet-backdrop fixed inset-0" @click="closeVariantSheet()"></div>
+                <div class="uf-sheet fixed inset-x-0 bottom-0 bg-zinc-900" @click.stop>
+                    <div class="uf-sheet-handle"></div>
+
+                    <button
+                        type="button"
+                        class="uf-sheet-close"
+                        aria-label="Close"
+                        @click="closeVariantSheet()"
+                    >×</button>
+
+                    <div class="uf-sheet-scroll px-5">
+                        <p class="mb-1 text-sm text-white">@{{ product.name }}</p>
+                        <div class="uf-card-price mb-4" v-html="product.price_html"></div>
+
+                        <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
+                            <div
+                                class="mb-4"
+                                v-for="attribute in product.super_attributes"
+                                :key="attribute.id"
+                            >
+                                <p class="mb-2 text-xs uppercase tracking-wider text-zinc-500">@{{ attribute.label }}</p>
+                                <div class="flex flex-wrap gap-2" v-if="attribute.swatch_type === 'color'">
+                                    <span
+                                        v-for="opt in attribute.options"
+                                        :key="opt.id"
+                                        class="uf-color-dot"
+                                        :style="{ background: opt.swatch_value || '#ccc' }"
+                                        :class="{ 'uf-color-dot-active': selectedAttributes[attribute.id] == opt.id }"
+                                        :title="opt.label"
+                                        @click="selectAttribute(attribute.id, opt.id)"
+                                    ></span>
+                                </div>
+                                <div class="flex flex-wrap gap-2" v-else>
+                                    <span
+                                        v-for="opt in attribute.options"
+                                        :key="opt.id"
+                                        class="uf-size-pill"
+                                        :class="{ 'uf-size-active': selectedAttributes[attribute.id] == opt.id }"
+                                        @click="selectAttribute(attribute.id, opt.id)"
+                                    >@{{ opt.label }}</span>
+                                </div>
+                            </div>
+                        </template>
+
+                        <p class="mb-3 text-xs text-red-400" v-if="variantError">@{{ variantError }}</p>
+
+                        <div class="uf-cta-row">
+                            <button
+                                type="button"
+                                class="uf-btn-atc"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click="addToCart()"
+                            >
+                                <span v-if="isAddingToCart">···</span>
+                                <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="uf-btn-buy"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click="buyNow()"
+                            >Buy Now</button>
+                        </div>
+                    </div>
+                </div>
+            </teleport>
+
+            <!-- Quick View Modal -->
+            <teleport to="body" v-if="quickViewOpen">
+                <div
+                    class="uf-qv-backdrop fixed inset-0 flex items-center justify-center p-4"
+                    @click="closeQuickView()"
+                    @keydown.esc="closeQuickView()"
+                >
+                    <div
+                        class="uf-qv-modal relative w-full overflow-hidden rounded-lg border border-white/10 bg-zinc-900"
+                        @click.stop
+                    >
+                        <button
+                            type="button"
+                            class="uf-qv-close absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-xl text-white"
+                            aria-label="Close"
+                            @click="closeQuickView()"
+                        >×</button>
+
+                        <div class="uf-qv-grid">
+                            <!-- Image -->
+                            <div class="uf-qv-image flex items-center justify-center overflow-hidden bg-black">
+                                <img
+                                    :src="currentImage.large_image_url || currentImage.medium_image_url"
+                                    :alt="product.name"
+                                    class="h-full w-full object-cover"
+                                />
+                            </div>
+
+                            <!-- Info -->
+                            <div class="uf-qv-info overflow-y-auto p-8 max-md:p-5">
+                                <h3 class="mb-3 text-xl font-medium text-white">@{{ product.name }}</h3>
+
+                                <div class="uf-text-accent mb-5 text-xl" v-html="product.price_html"></div>
+
+                                <!-- Variants -->
+                                <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
+                                    <div
+                                        class="mb-5"
+                                        v-for="attribute in product.super_attributes"
+                                        :key="attribute.id"
+                                    >
+                                        <p class="mb-2 text-xs uppercase tracking-wider text-zinc-500">
+                                            @{{ attribute.label }}
+                                        </p>
+                                        <div class="flex flex-wrap gap-2" v-if="attribute.swatch_type === 'color'">
+                                            <span
+                                                v-for="opt in attribute.options"
+                                                :key="opt.id"
+                                                class="uf-color-dot"
+                                                :style="{ background: opt.swatch_value || '#ccc' }"
+                                                :class="{ 'uf-color-dot-active': selectedAttributes[attribute.id] == opt.id }"
+                                                :title="opt.label"
+                                                @click="selectAttribute(attribute.id, opt.id)"
+                                            ></span>
+                                        </div>
+                                        <div class="flex flex-wrap gap-2" v-else>
+                                            <span
+                                                v-for="opt in attribute.options"
+                                                :key="opt.id"
+                                                class="uf-size-pill"
+                                                :class="{ 'uf-size-active': selectedAttributes[attribute.id] == opt.id }"
+                                                @click="selectAttribute(attribute.id, opt.id)"
+                                            >@{{ opt.label }}</span>
+                                        </div>
+                                    </div>
+                                </template>
+
+                                <p
+                                    class="mb-3 rounded-sm bg-red-500 px-3 py-2 text-xs text-white"
+                                    v-if="variantError"
+                                >@{{ variantError }}</p>
+
+                                <!-- CTAs -->
+                                <div class="uf-cta-row mt-2 flex gap-2">
+                                    <button
+                                        type="button"
+                                        class="uf-btn-atc"
+                                        :disabled="! product.is_saleable || isAddingToCart"
+                                        @click="addToCart()"
+                                    >
+                                        <span v-if="isAddingToCart">···</span>
+                                        <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="uf-btn-buy"
+                                        :disabled="! product.is_saleable || isAddingToCart"
+                                        @click="buyNow()"
+                                    >Buy Now</button>
+                                </div>
+
+                                <a
+                                    :href="productUrl"
+                                    class="mt-4 inline-block text-xs text-zinc-400 underline transition hover:text-white"
+                                >
+                                    View Full Details →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </teleport>
 
         </div>
 
@@ -387,6 +549,9 @@
                     isAddingToCart: false,
                     selectedAttributes: {},
                     variantError: null,
+                    currentImage: this.product.base_image,
+                    quickViewOpen: false,
+                    variantSheetOpen: false,
                 }
             },
 
@@ -404,9 +569,56 @@
                     if (!this.isConfigurable || !this.product.super_attributes) return true;
                     return this.product.super_attributes.length === Object.keys(this.selectedAttributes).length;
                 },
+
+                productUrl() {
+                    return '{{ route('shop.product_or_category.index', ':slug') }}'.replace(':slug', this.product.url_key);
+                },
+            },
+
+            mounted() {
+                this._escHandler = (e) => {
+                    if (e.key !== 'Escape') return;
+                    if (this.quickViewOpen)    this.closeQuickView();
+                    if (this.variantSheetOpen) this.closeVariantSheet();
+                };
+                document.addEventListener('keydown', this._escHandler);
+            },
+
+            beforeUnmount() {
+                document.removeEventListener('keydown', this._escHandler);
+                if (this.quickViewOpen || this.variantSheetOpen) document.body.style.overflow = '';
             },
 
             methods: {
+                openQuickView() {
+                    this.quickViewOpen = true;
+                    document.body.style.overflow = 'hidden';
+                },
+
+                closeQuickView() {
+                    this.quickViewOpen = false;
+                    document.body.style.overflow = '';
+                },
+
+                mobileCartClick() {
+                    if (this.isConfigurable) {
+                        this.openVariantSheet();
+                    } else {
+                        this.addToCart();
+                    }
+                },
+
+                openVariantSheet() {
+                    this.variantSheetOpen = true;
+                    this.variantError = null;
+                    document.body.style.overflow = 'hidden';
+                },
+
+                closeVariantSheet() {
+                    this.variantSheetOpen = false;
+                    document.body.style.overflow = '';
+                },
+
                 selectAttribute(attrId, optionId) {
                     const updated = { ...this.selectedAttributes };
                     if (updated[attrId] == optionId) {
@@ -416,6 +628,16 @@
                     }
                     this.selectedAttributes = updated;
                     this.variantError = null;
+
+                    // Swap card image when the selected attribute is the color swatch
+                    if (this.colorAttribute && attrId == this.colorAttribute.id) {
+                        const selectedColorId = updated[attrId];
+                        if (selectedColorId && this.product.variant_images && this.product.variant_images[selectedColorId]) {
+                            this.currentImage = this.product.variant_images[selectedColorId];
+                        } else {
+                            this.currentImage = this.product.base_image;
+                        }
+                    }
                 },
 
                 addToWishlist() {
@@ -508,6 +730,8 @@
                             this.$emitter.emit('update-mini-cart', response.data.data);
                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
                             this.isAddingToCart = false;
+                            if (this.variantSheetOpen) this.closeVariantSheet();
+                            if (this.quickViewOpen)    this.closeQuickView();
                         })
                         .catch(error => {
                             this.variantError = error.response?.data?.message || 'Could not add to cart';

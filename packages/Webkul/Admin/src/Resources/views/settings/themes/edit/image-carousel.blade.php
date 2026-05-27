@@ -36,6 +36,11 @@
                         :name="'{{ $currentLocale->code }}[deleted_sliders]['+ index +'][image]'"
                         :value="deletedSlider.image"
                     />
+                    <input
+                        type="hidden"
+                        :name="'{{ $currentLocale->code }}[deleted_sliders]['+ index +'][mobile_image]'"
+                        :value="deletedSlider.mobile_image"
+                    />
                 </template>
 
                 <div
@@ -49,6 +54,13 @@
                         class="hidden"
                         :name="'{{ $currentLocale->code }}[options]['+ index +'][image]'"
                         :ref="'imageInput_' + index"
+                    />
+
+                    <input
+                        type="file"
+                        class="hidden"
+                        :name="'{{ $currentLocale->code }}[options]['+ index +'][mobile_image]'"
+                        :ref="'mobileImageInput_' + index"
                     />
 
                     <input
@@ -67,6 +79,12 @@
                         type="hidden"
                         :name="'{{ $currentLocale->code }}[options]['+ index +'][image]'"
                         :value="image.image"
+                    />
+
+                    <input
+                        type="hidden"
+                        :name="'{{ $currentLocale->code }}[options]['+ index +'][mobile_image]'"
+                        :value="image.mobile_image"
                     />
                 
                     <!-- Details -->
@@ -95,7 +113,7 @@
                                 </p>
 
                                 <p class="text-gray-600 dark:text-gray-300">
-                                    @lang('admin::app.settings.themes.edit.image'): 
+                                    @lang('admin::app.settings.themes.edit.image'):
 
                                     <span class="text-gray-600 transition-all dark:text-gray-300">
                                         <a
@@ -109,6 +127,27 @@
                                             </span>
                                         </a>
                                     </span>
+                                </p>
+
+                                <p class="text-gray-600 dark:text-gray-300" v-if="image.mobile_image">
+                                    Mobile Image:
+
+                                    <span class="text-gray-600 transition-all dark:text-gray-300">
+                                        <a
+                                            :href="'{{ config('app.url') }}/' + image.mobile_image"
+                                            :ref="'mobileImage_' + index"
+                                            target="_blank"
+                                            class="text-blue-600 transition-all hover:underline ltr:ml-2 rtl:mr-2"
+                                        >
+                                            <span :ref="'mobileImageName_' + index">
+                                                @{{ image.mobile_image }}
+                                            </span>
+                                        </a>
+                                    </span>
+                                </p>
+
+                                <p class="text-gray-400 italic dark:text-gray-500" v-else>
+                                    Mobile Image: <span class="ml-1">(uses desktop image as fallback)</span>
                                 </p>
                             </div>
                         </div>
@@ -211,7 +250,7 @@
 
                             <x-admin::form.control-group>
                                 <x-admin::form.control-group.label class="required">
-                                    @lang('admin::app.settings.themes.edit.slider-image')
+                                    Desktop Image
                                 </x-admin::form.control-group.label>
 
                                 <div class="hidden">
@@ -233,7 +272,35 @@
                             </x-admin::form.control-group>
 
                             <p class="text-xs text-gray-600 dark:text-gray-300">
-                                @lang('admin::app.settings.themes.edit.image-size')
+                                Desktop image resolution: <b>1920px × 700px</b>
+                            </p>
+
+                            <x-admin::form.control-group class="mt-5">
+                                <x-admin::form.control-group.label>
+                                    Mobile Image
+                                    <span class="ml-1 text-xs font-normal text-gray-500">(optional — falls back to desktop image if empty)</span>
+                                </x-admin::form.control-group.label>
+
+                                <div class="hidden">
+                                    <x-admin::media.images
+                                        ::key="'mobile_slider_image_hidden_' + mediaComponentKey"
+                                        name="mobile_slider_image"
+                                        ::uploaded-images='selectedSliderMediaMobileImages'
+                                    />
+                                </div>
+
+                                <v-media-images
+                                    :key="'mobile_slider_image_' + mediaComponentKey"
+                                    name="mobile_slider_image"
+                                    :uploaded-images='selectedSliderMediaMobileImages'
+                                >
+                                </v-media-images>
+
+                                <x-admin::form.control-group.error control-name="mobile_slider_image" />
+                            </x-admin::form.control-group>
+
+                            <p class="text-xs text-gray-600 dark:text-gray-300">
+                                Recommended mobile resolution: <b>750px × 1000px</b> (3:4 portrait)
                             </p>
                         </x-slot>
 
@@ -269,8 +336,10 @@
                     selectedSlider: {},
 
                     selectedSliderMediaImages: [],
+                    selectedSliderMediaMobileImages: [],
 
                     selectedSliderOriginalImage: null,
+                    selectedSliderOriginalMobileImage: null,
 
                     mediaComponentKey: 0,
 
@@ -289,8 +358,12 @@
             methods: {
                 saveSliderImage(_, { resetForm, setErrors }) {
                     const formData = new FormData(this.$refs.createSliderForm);
+
                     const sliderImage = formData.get("slider_image[]");
                     const hasUploadedImage = sliderImage instanceof File && sliderImage.name !== '';
+
+                    const mobileImage = formData.get("mobile_slider_image[]");
+                    const hasUploadedMobileImage = mobileImage instanceof File && mobileImage.name !== '';
 
                     try {
                         const sliderData = {
@@ -305,8 +378,13 @@
                         const sliderIndex = this.upsertSlider(sliderData);
 
                         if (hasUploadedImage) {
-                            this.setFile(sliderImage, sliderIndex);
-                            this.markSliderImageForDeletion();
+                            this.setFile(sliderImage, sliderIndex, 'imageInput_', 'image_', 'imageName_');
+                            this.markSliderImageForDeletion('image');
+                        }
+
+                        if (hasUploadedMobileImage) {
+                            this.setFile(mobileImage, sliderIndex, 'mobileImageInput_', 'mobileImage_', 'mobileImageName_');
+                            this.markSliderImageForDeletion('mobile_image');
                         }
 
                         resetForm();
@@ -335,14 +413,16 @@
                     return this.sliders.images.length - 1;
                 },
 
-                markSliderImageForDeletion() {
-                    if (! this.isUpdating || ! this.selectedSliderOriginalImage) {
-                        return;
-                    }
+                markSliderImageForDeletion(field = 'image') {
+                    if (! this.isUpdating) return;
 
-                    this.deletedSliders.push({
-                        image: this.selectedSliderOriginalImage,
-                    });
+                    const original = field === 'mobile_image'
+                        ? this.selectedSliderOriginalMobileImage
+                        : this.selectedSliderOriginalImage;
+
+                    if (! original) return;
+
+                    this.deletedSliders.push({ [field]: original });
                 },
 
                 hasSliderImage(formData, hasUploadedImage) {
@@ -355,17 +435,20 @@
                     });
                 },
 
-                setFile(file, index) {
+                setFile(file, index, inputRef, linkRef, nameRef) {
                     const dataTransfer = new DataTransfer();
-
                     dataTransfer.items.add(file);
 
                     setTimeout(() => {
-                        this.$refs['image_' + index][0].href = URL.createObjectURL(file);
-
-                        this.$refs['imageName_' + index][0].innerHTML = file.name;
-
-                        this.$refs['imageInput_' + index][0].files = dataTransfer.files;
+                        if (this.$refs[linkRef + index]?.[0]) {
+                            this.$refs[linkRef + index][0].href = URL.createObjectURL(file);
+                        }
+                        if (this.$refs[nameRef + index]?.[0]) {
+                            this.$refs[nameRef + index][0].innerHTML = file.name;
+                        }
+                        if (this.$refs[inputRef + index]?.[0]) {
+                            this.$refs[inputRef + index][0].files = dataTransfer.files;
+                        }
                     }, 0);
                 },
 
@@ -373,13 +456,13 @@
                     this.$emitter.emit('open-confirm-modal', {
                         agree: () => {
                             const slider = this.sliders.images[index];
+                            if (! slider) return;
 
-                            if (! slider) {
-                                return;
-                            }
-
-                            if (slider.image) {
-                                this.deletedSliders.push(slider);
+                            if (slider.image || slider.mobile_image) {
+                                this.deletedSliders.push({
+                                    image: slider.image,
+                                    mobile_image: slider.mobile_image,
+                                });
                             }
 
                             this.sliders.images.splice(index, 1);
@@ -402,9 +485,15 @@
                         this.isUpdating = true;
                         this.selectedSliderIndex = index;
                         this.selectedSlider = { ...slider };
+
                         this.selectedSliderOriginalImage = slider.image;
                         this.selectedSliderMediaImages = slider.image
                             ? [{ id: `slider_image_${index}`, url: '{{ asset('/') }}' + slider.image }]
+                            : [];
+
+                        this.selectedSliderOriginalMobileImage = slider.mobile_image;
+                        this.selectedSliderMediaMobileImages = slider.mobile_image
+                            ? [{ id: `mobile_slider_image_${index}`, url: '{{ asset('/') }}' + slider.mobile_image }]
                             : [];
                     }
 
@@ -416,7 +505,9 @@
                 resetSelectedSlider() {
                     this.selectedSlider = {};
                     this.selectedSliderMediaImages = [];
+                    this.selectedSliderMediaMobileImages = [];
                     this.selectedSliderOriginalImage = null;
+                    this.selectedSliderOriginalMobileImage = null;
                     this.selectedSliderIndex = null;
                     this.isUpdating = false;
                 },

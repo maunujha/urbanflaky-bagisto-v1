@@ -11,7 +11,7 @@
         type="text/x-template"
         id='v-toolbar-template'
     >
-        <div>
+        <div class="uf-cat-toolbar">
             <!-- Desktop Toolbar -->
             <div class="flex justify-between max-md:hidden">
                 {!! view_render_event('bagisto.shop.categories.toolbar.filter.before') !!}
@@ -23,11 +23,11 @@
                 >
                     <x-slot:toggle>
                         <!-- Dropdown Toggler -->
-                        <button class="flex w-full max-w-[200px] cursor-pointer items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-3.5 text-base transition-all hover:border-gray-400 focus:border-gray-400 max-md:w-[110px] max-md:border-0 max-md:pl-2.5 max-md:pr-2.5">
+                        <button class="hover:uf-border-accent flex w-full max-w-[220px] cursor-pointer items-center justify-between gap-4 rounded-sm border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-normal tracking-wide text-white transition max-md:w-[110px] max-md:border-0 max-md:bg-transparent">
                             @{{ sortLabel ?? "@lang('shop::app.products.sort-by.title')" }}
 
                             <span
-                                class="icon-arrow-down text-2xl"
+                                class="icon-arrow-down text-lg text-zinc-400"
                                 role="presentation"
                             ></span>
                         </button>
@@ -55,11 +55,11 @@
                     <x-shop::dropdown position="bottom-right">
                         <x-slot:toggle>
                             <!-- Dropdown Toggler -->
-                            <button class="flex w-full max-w-[200px] cursor-pointer items-center justify-between gap-4 rounded-lg border border-zinc-200 bg-white p-3.5 text-base transition-all hover:border-gray-400 focus:border-gray-400 max-md:w-[110px] max-md:border-0 max-md:pl-2.5 max-md:pr-2.5">
+                            <button class="hover:uf-border-accent flex w-full cursor-pointer items-center justify-between gap-3 rounded-sm border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-normal tracking-wide text-white transition max-md:w-[80px] max-md:border-0 max-md:bg-transparent">
                                 @{{ filters.applied.limit ?? "@lang('shop::app.categories.toolbar.show')" }}
 
                                 <span
-                                    class="icon-arrow-down text-2xl"
+                                    class="icon-arrow-down text-lg text-zinc-400"
                                     role="presentation"
                                 ></span>
                             </button>
@@ -78,23 +78,23 @@
                     </x-shop::dropdown>
 
                     <!-- Listing Mode Switcher -->
-                    <div class="flex items-center gap-5">
+                    <div class="flex items-center gap-2">
                         <span
-                            class="cursor-pointer text-2xl"
+                            class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-sm text-xl transition"
                             role="button"
                             aria-label="@lang('shop::app.categories.toolbar.list')"
                             tabindex="0"
-                            :class="(filters.applied.mode === 'list') ? 'icon-listing-fill' : 'icon-listing'"
+                            :class="(filters.applied.mode === 'list') ? 'icon-listing-fill uf-text-accent uf-bg-accent-soft' : 'icon-listing text-zinc-500 hover:text-white'"
                             @click="changeMode('list')"
                         >
                         </span>
 
                         <span
-                            class="cursor-pointer text-2xl"
+                            class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-sm text-xl transition"
                             role="button"
                             aria-label="@lang('shop::app.categories.toolbar.grid')"
                             tabindex="0"
-                            :class="(filters.applied.mode === 'grid') ? 'icon-grid-view-fill' : 'icon-grid-view'"
+                            :class="(filters.applied.mode === 'grid') ? 'icon-grid-view-fill uf-text-accent uf-bg-accent-soft' : 'icon-grid-view text-zinc-500 hover:text-white'"
                             @click="changeMode('grid')"
                         >
                         </span>
@@ -108,8 +108,8 @@
             <div class="md:hidden">
                 <ul>
                     <li
-                        class="px-4 py-2.5"
-                        :class="{'bg-gray-100': sort.value == filters.applied.sort}"
+                        class="cursor-pointer px-4 py-3 text-sm text-zinc-300 transition hover:bg-white/[0.04]"
+                        :class="{'uf-bg-accent-soft uf-text-accent': sort.value == filters.applied.sort}"
                         v-for="(sort, key) in filters.available.sort"
                         @click="apply('sort', sort.value)"
                     >

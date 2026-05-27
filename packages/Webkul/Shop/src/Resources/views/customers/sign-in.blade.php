@@ -7,9 +7,7 @@
 @endpush
 
 <x-shop::layouts
-    :has-header="false"
     :has-feature="false"
-    :has-footer="false"
 >
     <x-slot:title>
         {{ session('show_login_otp') ? 'Verify OTP' : 'Sign In' }}
@@ -19,16 +17,6 @@
 
     <div class="su-wrap">
         <div class="su-outer">
-
-            {{-- Logo --}}
-            <div class="su-logo-wrap">
-                <a href="{{ route('shop.home.index') }}">
-                    <img
-                        src="{{ core()->getCurrentChannel()->logo_url ?? bagisto_asset('images/logo.svg') }}"
-                        alt="{{ config('app.name') }}"
-                    >
-                </a>
-            </div>
 
             <div class="su-card">
 

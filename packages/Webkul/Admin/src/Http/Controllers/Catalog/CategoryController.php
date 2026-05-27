@@ -83,6 +83,7 @@ class CategoryController extends Controller
             'attributes',
             'logo_path',
             'banner_path',
+            'card_background',
         ]);
 
         if (! empty($data['description'])) {
@@ -139,7 +140,8 @@ class CategoryController extends Controller
             'position',
             'display_mode',
             'status',
-            'attributes'
+            'attributes',
+            'card_background',
         );
 
         $data[$locale] = $localeData;

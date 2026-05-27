@@ -14,7 +14,7 @@
 
 <!-- Mobile Filters Navigation -->
 <div
-    class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-zinc-200 bg-white px-5 ltr:left-0 rtl:right-0"
+    class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0"
     v-if="isMobile"
 >
     <!-- Filter Drawer -->
@@ -38,12 +38,12 @@
         <!-- Drawer Header -->
         <x-slot:header>
             <div class="flex items-center justify-between">
-                <p class="text-lg font-semibold">
+                <p class="text-lg font-medium uppercase text-white">
                     @lang('shop::app.categories.filters.filters')
                 </p>
 
                 <p
-                    class="cursor-pointer text-sm font-medium ltr:mr-[50px] rtl:ml-[50px]"
+                    class="uf-text-accent cursor-pointer text-xs font-normal uppercase tracking-wider ltr:mr-[50px] rtl:ml-[50px]"
                     @click="clearFilters('filter', '')"
                 >
                     @lang('shop::app.categories.filters.clear-all')
@@ -65,7 +65,7 @@
     </x-shop::drawer>
 
     <!-- Separator -->
-    <span class="h-5 w-0.5 bg-zinc-200"></span>
+    <span class="h-5 w-0.5 bg-white/15"></span>
 
     <!-- Sort Drawer -->
     <x-shop::drawer
@@ -88,7 +88,7 @@
         <!-- Drawer Header -->
         <x-slot:header>
             <div class="flex items-center justify-between">
-                <p class="text-lg font-semibold">
+                <p class="text-lg font-medium uppercase text-white">
                     @lang('shop::app.categories.filters.sort')
                 </p>
             </div>
@@ -116,15 +116,15 @@
 
         <!-- Filters Container -->
         <template v-else>
-            <div class="panel-side journal-scroll grid max-h-[1320px] min-w-[342px] grid-cols-[1fr] overflow-y-auto overflow-x-hidden max-xl:min-w-[270px] md:max-w-[342px] md:ltr:pr-7 md:rtl:pl-7">
+            <div class="uf-cat-filters panel-side journal-scroll grid max-h-[1320px] grid-cols-[1fr] overflow-y-auto overflow-x-hidden rounded-md border border-white/10 bg-white/[0.03] p-5 md:ltr:pr-5 md:rtl:pl-5">
                 <!-- Filters Header Container -->
-                <div class="flex h-[50px] items-center justify-between border-b border-zinc-200 pb-2.5 max-md:hidden">
-                    <p class="text-lg font-semibold max-sm:font-medium">
+                <div class="mb-1 flex h-[42px] items-center justify-between border-b border-white/10 pb-3 max-md:hidden">
+                    <p class="uf-filters-title text-sm font-medium uppercase text-white">
                         @lang('shop::app.categories.filters.filters')
                     </p>
 
                     <p
-                        class="cursor-pointer text-xs font-medium"
+                        class="uf-text-accent uf-text-accent-hover cursor-pointer text-[11px] font-normal uppercase transition"
                         tabindex="0"
                         @click="clear()"
                     >
@@ -150,11 +150,11 @@
         type="text/x-template"
         id="v-filter-item-template"
     >
-        <x-shop::accordion class="last:border-b-0">
+        <x-shop::accordion class="border-white/10 last:border-b-0">
             <!-- Filter Item Header -->
-            <x-slot:header class="px-0 py-2.5 max-sm:!pb-1.5">
+            <x-slot:header class="px-0 py-3 max-sm:!pb-1.5">
                 <div class="flex items-center justify-between">
-                    <p class="text-lg font-semibold max-sm:text-base max-sm:font-medium">
+                    <p class="text-[13px] font-medium uppercase text-white">
                         @{{ filter.name }}
                     </p>
                 </div>
@@ -182,11 +182,11 @@
                         v-if="filter.type !== 'boolean'"
                     >
                         <div class="relative">
-                            <div class="icon-search pointer-events-none absolute top-3 flex items-center text-2xl max-md:text-xl max-sm:top-2.5 ltr:left-3 rtl:right-3"></div>
+                            <div class="icon-search pointer-events-none absolute top-1/2 -translate-y-1/2 flex items-center text-base text-zinc-500 ltr:left-3 rtl:right-3"></div>
 
                             <input
                                 type="text"
-                                class="block w-full rounded-xl border border-zinc-200 px-11 py-3.5 text-sm font-medium text-gray-900 max-md:rounded-lg max-md:px-10 max-md:py-3 max-md:font-normal max-sm:text-xs"
+                                class="uf-ring-accent block w-full rounded-sm border border-white/10 px-10 py-2.5 text-xs font-normal placeholder:text-zinc-500 transition"
                                 placeholder="@lang('shop::app.categories.filters.search.title')"
                                 v-model="searchQuery"
                                 v-debounce:500="searchOptions"
@@ -194,7 +194,7 @@
                         </div>
 
                         <p
-                            class="mt-1 flex flex-row-reverse text-xs text-gray-600"
+                            class="mt-1 flex flex-row-reverse text-xs text-zinc-500"
                             v-text="
                                 '@lang('shop::app.categories.filters.search.results-info', ['currentCount' => 'currentCount', 'totalCount' => 'totalCount'])'
                                     .replace('currentCount', options.length)
@@ -206,13 +206,13 @@
                     </div>
 
                     <!-- Filter Options -->
-                    <ul class="pb-3 text-base text-gray-700">
+                    <ul class="pb-3 pt-2 text-base text-zinc-300">
                         <template v-if="options.length">
                             <li
                                 :key="`${filter.id}_${option.id}`"
                                 v-for="(option, optionIndex) in options"
                             >
-                                <div class="flex select-none items-center gap-x-4 rounded hover:bg-gray-100 max-sm:gap-x-1 max-sm:!p-0 ltr:pl-2 rtl:pr-2">
+                                <div class="group flex select-none items-center gap-3 rounded-sm px-1.5 py-1 transition hover:bg-white/5 max-sm:gap-x-2 ltr:pl-2 rtl:pr-2">
                                     <input
                                         type="checkbox"
                                         :id="`filter_${filter.id}_option_ ${option.id}`"
@@ -223,7 +223,7 @@
                                     />
 
                                     <label
-                                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-navyBlue peer-checked:text-navyBlue max-sm:text-xl"
+                                        class="icon-uncheck cursor-pointer"
                                         role="checkbox"
                                         aria-checked="false"
                                         :aria-label="option.name"
@@ -234,7 +234,7 @@
                                     </label>
 
                                     <label
-                                        class="w-full cursor-pointer p-2 text-base text-gray-900 max-sm:p-1 max-sm:text-sm ltr:pl-0 rtl:pr-0"
+                                        class="w-full cursor-pointer py-1.5 text-sm font-normal transition max-sm:text-xs ltr:pl-0 rtl:pr-0"
                                         :id="'label_option_' + option.id"
                                         :for="`filter_${filter.id}_option_ ${option.id}`"
                                         role="button"
@@ -248,7 +248,7 @@
 
                         <template v-else>
                             <li
-                                class="flex flex-col items-center justify-center gap-2 py-2"
+                                class="flex flex-col items-center justify-center gap-2 py-2 text-[11px] tracking-wide text-zinc-500"
                                 v-if="! isLoadingMore"
                             >
                                 @lang('shop::app.categories.filters.search.no-options-available')
@@ -295,7 +295,7 @@
                     <div class="flex justify-center pb-3" v-if="meta && meta.current_page < meta.last_page">
                         <button
                             type="button"
-                            class="rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            class="uf-bg-accent-hover rounded-sm border border-white/10 bg-transparent px-4 py-2 text-[11px] font-medium uppercase text-zinc-300 transition disabled:opacity-50"
                             @click="loadMoreOptions"
                             :disabled="isLoadingMore"
                         >

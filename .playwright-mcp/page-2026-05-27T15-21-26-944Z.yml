@@ -1,0 +1,198 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - generic: 
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - generic [ref=e8]:
+              - button "Menu" [ref=e10] [cursor=pointer]: 
+              - text:  
+            - link "Bagisto":
+              - /url: http://urbanflaky.test
+              - img "Urbanflaky"
+          - generic [ref=e11]:
+            - button "Search" [ref=e12] [cursor=pointer]:
+              - generic [ref=e13]: 
+            - generic [ref=e14]:
+              - button "Shopping Cart" [ref=e17] [cursor=pointer]: 
+              - text: 
+            - link "Account" [ref=e18] [cursor=pointer]:
+              - /url: http://urbanflaky.test/customer/login
+              - generic [ref=e19]: 
+        - generic:
+          - generic:
+            - generic: Search
+            - generic: 
+            - generic:
+              - textbox:
+                - /placeholder: Search products here
+            - generic: 
+    - main [ref=e20]:
+      - paragraph [ref=e22]: Men
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e28] [cursor=pointer]:
+              - generic [ref=e29]: 
+              - text: Filter
+            - text: 
+          - generic [ref=e31]:
+            - generic [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: 
+              - text: Sort
+            - text:     
+        - generic [ref=e35]:
+          - text:    
+          - generic [ref=e37]:
+            - generic [ref=e41]:
+              - paragraph [ref=e42]
+              - paragraph [ref=e43]
+            - generic [ref=e47]:
+              - paragraph [ref=e48]
+              - paragraph [ref=e49]
+            - generic [ref=e53]:
+              - paragraph [ref=e54]
+              - paragraph [ref=e55]
+            - generic [ref=e59]:
+              - paragraph [ref=e60]
+              - paragraph [ref=e61]
+            - generic [ref=e65]:
+              - paragraph [ref=e66]
+              - paragraph [ref=e67]
+            - generic [ref=e71]:
+              - paragraph [ref=e72]
+              - paragraph [ref=e73]
+            - generic [ref=e77]:
+              - paragraph [ref=e78]
+              - paragraph [ref=e79]
+            - generic [ref=e83]:
+              - paragraph [ref=e84]
+              - paragraph [ref=e85]
+            - generic [ref=e89]:
+              - paragraph [ref=e90]
+              - paragraph [ref=e91]
+            - generic [ref=e95]:
+              - paragraph [ref=e96]
+              - paragraph [ref=e97]
+            - generic [ref=e101]:
+              - paragraph [ref=e102]
+              - paragraph [ref=e103]
+            - generic [ref=e107]:
+              - paragraph [ref=e108]
+              - paragraph [ref=e109]
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - text: 
+        - generic [ref=e114]:
+          - paragraph [ref=e115]: Free Shipping
+          - paragraph [ref=e116]: Enjoy free shipping on all orders
+      - generic [ref=e117]:
+        - text: 
+        - generic [ref=e118]:
+          - paragraph [ref=e119]: Product Replace
+          - paragraph [ref=e120]: Easy Product Replacement Available!
+      - generic [ref=e121]:
+        - text: 
+        - generic [ref=e122]:
+          - paragraph [ref=e123]: Emi Available
+          - paragraph [ref=e124]: No cost EMI available on all major credit cards
+      - generic [ref=e125]:
+        - text: 
+        - generic [ref=e126]:
+          - paragraph [ref=e127]: 24/7 Support
+          - paragraph [ref=e128]: Dedicated 24/7 support via chat and email
+    - generic [ref=e129]:
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - img [ref=e133]
+          - generic [ref=e135]:
+            - generic [ref=e136]: Drop Your Email. Stay Fresh.
+            - generic [ref=e137]: New drops, exclusive deals & streetwear news — no spam, ever.
+        - generic [ref=e138]:
+          - textbox "Email" [ref=e139]:
+            - /placeholder: your@email.com
+          - button "Subscribe" [ref=e140] [cursor=pointer]
+          - status [ref=e141]
+      - contentinfo [ref=e142]:
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - link "Urbanflaky" [ref=e145] [cursor=pointer]:
+              - /url: http://urbanflaky.test
+              - generic [ref=e146]: UF
+              - generic [ref=e147]:
+                - generic [ref=e148]: Urban Flaky
+                - generic [ref=e149]: Premium Streetwear
+            - paragraph [ref=e150]: Bold threads for bold people. We make streetwear that hits different — designed in India, worn everywhere.
+            - generic [ref=e151]:
+              - link "Instagram" [ref=e152] [cursor=pointer]:
+                - /url: https://instagram.com/urbanflaky
+                - img [ref=e153]
+              - link "Facebook" [ref=e155] [cursor=pointer]:
+                - /url: https://facebook.com/urbanflaky
+                - img [ref=e156]
+              - link "X / Twitter" [ref=e158] [cursor=pointer]:
+                - /url: https://x.com/urbanflaky
+                - img [ref=e159]
+          - generic [ref=e161]:
+            - generic [ref=e162]: About Us
+            - list [ref=e163]:
+              - listitem [ref=e164]:
+                - link "Contact Us" [ref=e165] [cursor=pointer]:
+                  - /url: /contact-us
+              - listitem [ref=e166]:
+                - link "Customer Service" [ref=e167] [cursor=pointer]:
+                  - /url: /page/customer-service
+              - listitem [ref=e168]:
+                - link "What's New" [ref=e169] [cursor=pointer]:
+                  - /url: /page/whats-new
+              - listitem [ref=e170]:
+                - link "Terms of Use" [ref=e171] [cursor=pointer]:
+                  - /url: /page/terms-of-use
+              - listitem [ref=e172]:
+                - link "Terms & Conditions" [ref=e173] [cursor=pointer]:
+                  - /url: /page/terms-conditions
+          - generic [ref=e174]:
+            - generic [ref=e175]: Privacy Policy
+            - list [ref=e176]:
+              - listitem [ref=e177]:
+                - link "Payment Policy" [ref=e178] [cursor=pointer]:
+                  - /url: /page/payment-policy
+              - listitem [ref=e179]:
+                - link "Shipping Policy" [ref=e180] [cursor=pointer]:
+                  - /url: /page/shipping-policy
+              - listitem [ref=e181]:
+                - link "Refund Policy" [ref=e182] [cursor=pointer]:
+                  - /url: /page/refund-policy
+              - listitem [ref=e183]:
+                - link "Return Policy" [ref=e184] [cursor=pointer]:
+                  - /url: /page/return-policy
+          - generic [ref=e185]:
+            - generic [ref=e186]: Contact
+            - generic [ref=e187]:
+              - img [ref=e189]
+              - generic [ref=e191]:
+                - generic [ref=e192]: Address
+                - generic [ref=e193]:
+                  - text: H.No. 402, Krishna Colony, Bari road
+                  - text: Dholpur, RJ 328001
+            - generic [ref=e194]:
+              - img [ref=e196]
+              - generic [ref=e198]:
+                - generic [ref=e199]: Email
+                - link "support@urbanflaky.in" [ref=e201] [cursor=pointer]:
+                  - /url: mailto:support@urbanflaky.in
+        - generic [ref=e202]:
+          - paragraph [ref=e203]: © 2026 Urban Flaky™ · Gabha Enterprise · All rights reserved.
+          - generic:
+            - generic [ref=e204]: Made in India
+            - generic [ref=e205]: Secure Checkout
+          - generic [ref=e206]:
+            - link "Privacy" [ref=e207] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/privacy-policy
+            - link "Terms" [ref=e208] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/terms-conditions
+            - link "Sitemap" [ref=e209] [cursor=pointer]:
+              - /url: http://urbanflaky.test/sitemap.xml

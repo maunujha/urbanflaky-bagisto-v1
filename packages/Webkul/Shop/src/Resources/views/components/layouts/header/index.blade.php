@@ -6,11 +6,15 @@
     </div>
 @endif
 
-<header class="shadow-gray sticky top-0 z-10 bg-white shadow-sm max-lg:shadow-none">
+<header
+    id="uf-header"
+    data-scrolled="false"
+    class="group/header sticky top-0 z-10 w-full border-b border-white/[0.06] bg-uf-bg/60 backdrop-blur-xl transition-all duration-300 data-[scrolled=true]:border-white/[0.10] data-[scrolled=true]:bg-uf-bg/85 data-[scrolled=true]:shadow-[0_8px_24px_rgba(0,0,0,0.45)]"
+>
     <v-header-switcher>
         <!-- Desktop Header Shimmer -->
         <div class="flex flex-wrap max-lg:hidden">
-            <div class="flex min-h-[78px] w-full justify-between border border-b border-l-0 border-r-0 border-t-0 px-[60px] max-1180:px-8">
+            <div class="flex min-h-[78px] w-full justify-between px-[60px] max-1180:px-8">
                 <!-- Left Navigation Section -->
                 <div class="flex items-center gap-x-10 max-[1180px]:gap-x-5">
                     <!-- Logo Shimmer -->

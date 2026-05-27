@@ -4,6 +4,7 @@ namespace Webkul\Shop\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Str;
 use Webkul\Product\Helpers\Review;
 
 class ProductResource extends JsonResource
@@ -36,6 +37,9 @@ class ProductResource extends JsonResource
             'sku' => $this->sku,
             'name' => $this->name,
             'description' => $this->description,
+            'short_description' => $this->short_description
+                ? Str::limit(strip_tags($this->short_description), 55)
+                : null,
             'url_key' => $this->url_key,
             'base_image' => product_image()->getProductBaseImage($this),
             'images' => product_image()->getGalleryImages($this),
@@ -108,6 +112,38 @@ class ProductResource extends JsonResource
                         ->values();
                 },
                 []
+            ),
+
+            'variant_images' => $this->when(
+                $this->type === 'configurable',
+                function () {
+                    $product = $this->resource;
+
+                    $colorAttr = $product->super_attributes->firstWhere('swatch_type', 'color');
+
+                    if (! $colorAttr) {
+                        return (object) [];
+                    }
+
+                    $map = [];
+
+                    foreach ($product->variants as $variant) {
+                        if (! $variant->isSaleable()) {
+                            continue;
+                        }
+
+                        $optionId = $variant->{$colorAttr->code};
+
+                        if (! $optionId || isset($map[$optionId])) {
+                            continue;
+                        }
+
+                        $map[$optionId] = product_image()->getProductBaseImage($variant);
+                    }
+
+                    return (object) $map;
+                },
+                (object) []
             ),
         ];
     }

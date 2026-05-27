@@ -67,6 +67,11 @@ class Order extends Model implements OrderContract
     public const STATUS_FRAUD = 'fraud';
 
     /**
+     * Shipped (in transit) state — set after shipment created, before delivery confirmed.
+     */
+    public const STATUS_SHIPPED = 'shipped';
+
+    /**
      * The attributes that aren't mass assignable.
      *
      * @var array
@@ -92,6 +97,7 @@ class Order extends Model implements OrderContract
         self::STATUS_PENDING => 'Pending',
         self::STATUS_PENDING_PAYMENT => 'Pending Payment',
         self::STATUS_PROCESSING => 'Processing',
+        self::STATUS_SHIPPED => 'Shipped',
         self::STATUS_COMPLETED => 'Completed',
         self::STATUS_CANCELED => 'Canceled',
         self::STATUS_CLOSED => 'Closed',

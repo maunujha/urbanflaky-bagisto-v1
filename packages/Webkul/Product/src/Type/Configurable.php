@@ -378,6 +378,13 @@ class Configurable extends AbstractType
     {
         $data['quantity'] = parent::handleQuantity((int) $data['quantity']);
 
+        // Resolve variant id from a super_attribute map (id => option_id) when
+        // the caller didn't pre-resolve it. PDP form sends selected_configurable_option
+        // directly; product-card AJAX sends super_attribute only.
+        if (empty($data['selected_configurable_option']) && ! empty($data['super_attribute'])) {
+            $data['selected_configurable_option'] = $this->resolveVariantFromSuperAttribute($data['super_attribute']);
+        }
+
         if (empty($data['selected_configurable_option'])) {
             return trans('product::app.checkout.cart.missing-options');
         }
@@ -611,5 +618,42 @@ class Configurable extends AbstractType
     public function getPriceIndexer()
     {
         return app(ConfigurableIndexer::class);
+    }
+
+    /**
+     * Resolve the child variant id whose attribute values match the given
+     * super_attribute map ({attribute_id => option_id}). Returns null when no
+     * variant matches.
+     */
+    protected function resolveVariantFromSuperAttribute(array $superAttribute): ?int
+    {
+        $codeMap = [];
+
+        foreach ($this->product->super_attributes as $attr) {
+            $optionId = $superAttribute[$attr->id] ?? null;
+
+            if (! $optionId) {
+                return null;
+            }
+
+            $codeMap[$attr->code] = (int) $optionId;
+        }
+
+        foreach ($this->product->variants as $variant) {
+            $allMatch = true;
+
+            foreach ($codeMap as $code => $optionId) {
+                if ((int) $variant->{$code} !== $optionId) {
+                    $allMatch = false;
+                    break;
+                }
+            }
+
+            if ($allMatch) {
+                return (int) $variant->id;
+            }
+        }
+
+        return null;
     }
 }

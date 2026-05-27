@@ -80,6 +80,10 @@ class OrderDataGrid extends DataGrid
                     'value' => Order::STATUS_PROCESSING,
                 ],
                 [
+                    'label' => trans('shop::app.customers.account.orders.status.options.shipped'),
+                    'value' => Order::STATUS_SHIPPED,
+                ],
+                [
                     'label' => trans('shop::app.customers.account.orders.status.options.completed'),
                     'value' => Order::STATUS_COMPLETED,
                 ],
@@ -109,6 +113,9 @@ class OrderDataGrid extends DataGrid
                 switch ($row->status) {
                     case Order::STATUS_PROCESSING:
                         return '<p class="label-processing">'.trans('shop::app.customers.account.orders.status.options.processing').'</p>';
+
+                    case Order::STATUS_SHIPPED:
+                        return '<p class="label-info">'.trans('shop::app.customers.account.orders.status.options.shipped').'</p>';
 
                     case Order::STATUS_COMPLETED:
                         return '<p class="label-active">'.trans('shop::app.customers.account.orders.status.options.completed').'</p>';

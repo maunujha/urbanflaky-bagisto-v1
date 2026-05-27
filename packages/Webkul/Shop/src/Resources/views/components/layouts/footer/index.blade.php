@@ -1,15 +1,7 @@
 {!! view_render_event('bagisto.shop.layout.footer.before') !!}
 
-<!--
-    The category repository is injected directly here because there is no way
-    to retrieve it from the view composer, as this is an anonymous component.
--->
 @inject('themeCustomizationRepository', 'Webkul\Theme\Repositories\ThemeCustomizationRepository')
 
-<!--
-    This code needs to be refactored to reduce the amount of PHP in the Blade
-    template as much as possible.
--->
 @php
     $channel = core()->getCurrentChannel();
 
@@ -19,137 +11,251 @@
         'theme_code' => $channel->theme,
         'channel_id' => $channel->id,
     ]);
+
+    $storeAddress   = core()->getConfigData('sales.shipping.origin.address');
+    $storeCity      = core()->getConfigData('sales.shipping.origin.city');
+    $storeZip       = core()->getConfigData('sales.shipping.origin.zipcode');
+    $storeState     = core()->getConfigData('sales.shipping.origin.state');
+    $storePhone     = core()->getConfigData('sales.shipping.origin.telephone');
+    $storeEmail     = env('CONTACT_MAIL_ADDRESS', 'support@urbanflaky.in');
 @endphp
 
-<footer class="mt-9 bg-lightOrange max-sm:mt-10">
-    <div class="flex justify-between gap-x-6 gap-y-8 p-[60px] max-1060:flex-col-reverse max-md:gap-5 max-md:p-8 max-sm:px-4 max-sm:py-5">
-        <!-- For Desktop View -->
-        <div
-            class="flex flex-wrap items-start gap-24 max-1180:gap-6 max-1060:hidden"
-            v-pre
-        >
-            @if ($customization?->options)
-                @foreach ($customization->options as $footerLinkSection)
-                    <ul class="grid gap-5 text-sm">
-                        @php
-                            usort($footerLinkSection, function ($a, $b) {
-                                return $a['sort_order'] - $b['sort_order'];
-                            });
-                        @endphp
+<div class="uf-footer-wrap">
 
-                        @foreach ($footerLinkSection as $link)
-                            <li>
-                                <a href="{{ $link['url'] }}">
-                                    {{ $link['title'] }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                @endforeach
-            @endif
-        </div>
-
-        <!-- For Mobile view -->
-        <x-shop::accordion
-            :is-active="false"
-            class="hidden !w-full rounded-xl !border-2 !border-[#e9decc] max-1060:block max-sm:rounded-lg"
-        >
-            <x-slot:header class="rounded-t-lg bg-[#F1EADF] font-medium max-md:p-2.5 max-sm:px-3 max-sm:py-2 max-sm:text-sm">
-                @lang('shop::app.components.layouts.footer.footer-content')
-            </x-slot>
-
-            <x-slot:content class="flex justify-between !bg-transparent !p-4">
-                @if ($customization?->options)
-                    @foreach ($customization->options as $footerLinkSection)
-                        <ul
-                            class="grid gap-5 text-sm"
-                            v-pre
-                        >
-                            @php
-                                usort($footerLinkSection, function ($a, $b) {
-                                    return $a['sort_order'] - $b['sort_order'];
-                                });
-                            @endphp
-
-                            @foreach ($footerLinkSection as $link)
-                                <li>
-                                    <a
-                                        href="{{ $link['url'] }}"
-                                        class="text-sm font-medium max-sm:text-xs"
-                                    >
-                                        {{ $link['title'] }}
-                                    </a>
-                                </li>
-                            @endforeach
-                        </ul>
-                    @endforeach
-                @endif
-            </x-slot>
-        </x-shop::accordion>
-
+    {{-- ── NEWSLETTER BAND ── --}}
+    @if (core()->getConfigData('customer.settings.newsletter.subscription'))
         {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.before') !!}
 
-        <!-- News Letter subscription -->
-        @if (core()->getConfigData('customer.settings.newsletter.subscription'))
-            <div class="grid gap-2.5">
-                <p
-                    class="max-w-[288px] text-3xl italic leading-[45px] text-navyBlue max-md:text-2xl max-sm:text-lg"
-                    role="heading"
-                    aria-level="2"
-                >
-                    @lang('shop::app.components.layouts.footer.newsletter-text')
-                </p>
-
-                <p class="text-xs">
-                    @lang('shop::app.components.layouts.footer.subscribe-stay-touch')
-                </p>
-
+        <div class="uf-nl-band">
+            <div class="uf-nl-left">
+                <div class="uf-nl-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 4H4C2.9 4 2 4.9 2 6v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                </div>
                 <div>
-                    <x-shop::form
-                        :action="route('shop.subscription.store')"
-                        class="mt-2.5 rounded max-sm:mt-0"
-                    >
-                        <div class="relative w-full">
-                            <x-shop::form.control-group.control
-                                type="email"
-                                class="block w-[420px] max-w-full rounded-xl border-2 border-[#e9decc] bg-[#F1EADF] px-5 py-4 text-base max-1060:w-full max-md:p-3.5 max-sm:mb-0 max-sm:rounded-lg max-sm:border-2 max-sm:p-2 max-sm:text-sm"
-                                name="email"
-                                rules="required|email"
-                                label="Email"
-                                :aria-label="trans('shop::app.components.layouts.footer.email')"
-                                placeholder="email@example.com"
-                            />
-    
-                            <x-shop::form.control-group.error control-name="email" />
-    
-                            <button
-                                type="submit"
-                                class="absolute top-1.5 flex w-max items-center rounded-xl bg-white px-7 py-2.5 font-medium hover:bg-zinc-100 ltr:right-2 rtl:left-2 max-md:top-1 max-md:px-5 max-md:text-xs max-sm:mt-0 max-sm:rounded-lg max-sm:px-4 max-sm:py-2"
-                            >
-                                @lang('shop::app.components.layouts.footer.subscribe')
-                            </button>
-                        </div>
-                    </x-shop::form>
+                    <div class="uf-nl-heading">Drop Your Email. Stay Fresh.</div>
+                    <div class="uf-nl-sub">New drops, exclusive deals &amp; streetwear news — no spam, ever.</div>
                 </div>
             </div>
-        @endif
+
+            <form
+                id="uf-nl-form"
+                class="uf-nl-form"
+                method="POST"
+                action="{{ route('shop.subscription.store') }}"
+                novalidate
+            >
+                @csrf
+                <input
+                    type="email"
+                    name="email"
+                    placeholder="your@email.com"
+                    aria-label="{{ trans('shop::app.components.layouts.footer.email') }}"
+                    required
+                >
+                <button type="submit" id="uf-nl-submit">@lang('shop::app.components.layouts.footer.subscribe')</button>
+                <div class="uf-nl-msg" id="uf-nl-msg" role="status" aria-live="polite"></div>
+            </form>
+        </div>
 
         {!! view_render_event('bagisto.shop.layout.footer.newsletter_subscription.after') !!}
-    </div>
+    @endif
 
-    <div class="flex justify-between bg-[#F1EADF] px-[60px] py-3.5 max-md:justify-center max-sm:px-5">
-        {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
+    {{-- ── MAIN FOOTER ── --}}
+    <footer class="uf-footer-main">
+        <div class="uf-footer-grid">
 
-        <p class="text-sm text-zinc-600 max-md:text-center">
-            @if (core()->getConfigData('general.content.footer.copyright_content'))
-                {!! core()->getConfigData('general.content.footer.copyright_content') !!}
+            {{-- Brand Column --}}
+            <div>
+                <a href="{{ route('shop.home.index') }}" class="uf-logo-lockup" style="text-decoration:none;" aria-label="{{ config('app.name') }}">
+                    <div class="uf-logo-square">UF</div>
+                    <div>
+                        <div class="uf-logo-brand">Urban Flaky</div>
+                        <div class="uf-logo-tagline">Premium Streetwear</div>
+                    </div>
+                </a>
+
+                <p class="uf-brand-desc">
+                    Bold threads for bold people. We make streetwear that hits different — designed in India, worn everywhere.
+                </p>
+
+                <div class="uf-social-row">
+                    <a href="https://instagram.com/urbanflaky" class="uf-social-btn" aria-label="Instagram" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="https://facebook.com/urbanflaky" class="uf-social-btn" aria-label="Facebook" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    </a>
+                    <a href="https://x.com/urbanflaky" class="uf-social-btn" aria-label="X / Twitter" target="_blank" rel="noopener">
+                        <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.741l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                    @if ($storePhone)
+                        <a href="https://wa.me/91{{ preg_replace('/\D/', '', $storePhone) }}" class="uf-social-btn" aria-label="WhatsApp" target="_blank" rel="noopener">
+                            <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Footer Link Sections (from admin) --}}
+            @if ($customization?->options)
+                @php
+                    $sections = array_slice($customization->options, 0, 2);
+                @endphp
+
+                @foreach ($sections as $sectionIdx => $footerLinkSection)
+                    @php usort($footerLinkSection, fn($a, $b) => $a['sort_order'] - $b['sort_order']); @endphp
+                    <div>
+                        <div class="uf-col-heading">
+                            {{ $footerLinkSection[0]['title'] ?? ($sectionIdx === 0 ? 'Company' : 'Policies') }}
+                        </div>
+                        <ul class="uf-col-list" v-pre>
+                            @foreach (array_slice($footerLinkSection, 1) as $link)
+                                <li><a href="{{ $link['url'] }}">{{ $link['title'] }}</a></li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
             @else
-                @lang('shop::app.components.layouts.footer.footer-text', ['current_year'=> date('Y') ])
+                {{-- Fallback if no admin links configured --}}
+                <div>
+                    <div class="uf-col-heading">Company</div>
+                    <ul class="uf-col-list">
+                        <li><a href="{{ url('about-us') }}">About Us</a></li>
+                        <li><a href="{{ url('contact-us') }}">Contact Us</a></li>
+                        <li><a href="{{ route('shop.customer.session.index') }}">My Account</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="uf-col-heading">Policies</div>
+                    <ul class="uf-col-list">
+                        <li><a href="{{ url('privacy-policy') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url('refund-policy') }}">Refund Policy</a></li>
+                        <li><a href="{{ url('shipping-policy') }}">Shipping Policy</a></li>
+                    </ul>
+                </div>
             @endif
-        </p>
 
-        {!! view_render_event('bagisto.shop.layout.footer.footer_text.after') !!}
-    </div>
-</footer>
+            {{-- Contact Column --}}
+            <div>
+                <div class="uf-col-heading">Contact</div>
+
+                @if ($storeAddress)
+                    <div class="uf-contact-item">
+                        <div class="uf-contact-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                        </div>
+                        <div>
+                            <div class="uf-ct-label">Address</div>
+                            <div class="uf-ct-value">
+                                {{ $storeAddress }}<br>
+                                {{ $storeCity }}, {{ $storeState }} {{ $storeZip }}
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                <div class="uf-contact-item">
+                    <div class="uf-contact-icon">
+                        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                    </div>
+                    <div>
+                        <div class="uf-ct-label">Email</div>
+                        <div class="uf-ct-value"><a href="mailto:{{ $storeEmail }}">{{ $storeEmail }}</a></div>
+                    </div>
+                </div>
+
+                @if ($storePhone)
+                    <div class="uf-contact-item">
+                        <div class="uf-contact-icon">
+                            <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+                        </div>
+                        <div>
+                            <div class="uf-ct-label">Phone</div>
+                            <div class="uf-ct-value"><a href="tel:+91{{ preg_replace('/\D/', '', $storePhone) }}">{{ $storePhone }}</a></div>
+                        </div>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- Bottom Bar --}}
+        <div class="uf-footer-bottom">
+            {!! view_render_event('bagisto.shop.layout.footer.footer_text.before') !!}
+
+            <p class="uf-copy">
+                @if (core()->getConfigData('general.content.footer.copyright_content'))
+                    {!! core()->getConfigData('general.content.footer.copyright_content') !!}
+                @else
+                    &copy; {{ date('Y') }} <span>Urban Flaky&#8482;</span> · Gabha Enterprise · All rights reserved.
+                @endif
+            </p>
+
+            <div class="uf-bottom-badges">
+                <div class="uf-badge">Made in India</div>
+                <div class="uf-badge">Secure Checkout</div>
+            </div>
+
+            <div class="uf-policy-links">
+                <a href="{{ url('page/privacy-policy') }}">Privacy</a>
+                <a href="{{ url('page/terms-conditions') }}">Terms</a>
+                <a href="{{ url('sitemap.xml') }}">Sitemap</a>
+            </div>
+
+            {!! view_render_event('bagisto.shop.layout.footer.footer_text.after') !!}
+        </div>
+    </footer>
+</div>
 
 {!! view_render_event('bagisto.shop.layout.footer.after') !!}
+
+@pushOnce('scripts')
+<script>
+(function () {
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!form || form.id !== 'uf-nl-form') return;
+        e.preventDefault();
+
+        const btn   = form.querySelector('#uf-nl-submit');
+        const input = form.querySelector('input[name="email"]');
+        const msg   = form.querySelector('#uf-nl-msg');
+
+        const email = (input.value || '').trim();
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            msg.className = 'uf-nl-msg uf-err';
+            msg.textContent = 'Please enter a valid email address.';
+            return;
+        }
+
+        btn.disabled = true;
+        const originalText = btn.textContent;
+        btn.textContent = 'Sending…';
+        msg.textContent = '';
+        msg.className = 'uf-nl-msg';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+            },
+            body: new FormData(form),
+        })
+        .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
+        .then(({ ok, body }) => {
+            msg.className = 'uf-nl-msg ' + (ok ? 'uf-ok' : 'uf-err');
+            msg.textContent = body.message || (ok ? 'Subscribed.' : 'Something went wrong.');
+            if (ok) input.value = '';
+        })
+        .catch(() => {
+            msg.className = 'uf-nl-msg uf-err';
+            msg.textContent = 'Network error. Please try again.';
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        });
+    });
+})();
+</script>
+@endPushOnce

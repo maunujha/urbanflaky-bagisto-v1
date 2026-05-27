@@ -19,6 +19,7 @@
             v-bind="$attrs"
             :data-src="src"
             :id="'image-' + $.uid"
+            decoding="async"
             @load="onLoad"
             v-show="! isLoading"
             v-if="lazy"
@@ -28,6 +29,7 @@
             v-bind="$attrs"
             :data-src="src"
             :id="'image-' + $.uid"
+            decoding="async"
             @load="onLoad"
             v-else
             v-show="! isLoading"

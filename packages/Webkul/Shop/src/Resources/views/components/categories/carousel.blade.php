@@ -14,71 +14,64 @@
         type="text/x-template"
         id="v-categories-carousel-template"
     >
-        <div
-            class="container mt-14 max-lg:px-8 max-md:mt-7 max-md:!px-0 max-sm:mt-5"
+        <section
+            class="uf-cat-section"
             v-if="! isLoading && categories?.length"
+            aria-label="Shop by category"
         >
-            <div class="relative">
-                <div
-                    ref="swiperContainer"
-                    class="scrollbar-hide flex gap-10 overflow-auto scroll-smooth max-lg:gap-4"
-                >
-                    <div
-                        class="grid min-w-[120px] max-w-[120px] grid-cols-1 justify-items-center gap-4 font-medium max-md:min-w-20 max-md:max-w-20 max-md:gap-2.5 max-md:first:ml-4 max-sm:min-w-[60px] max-sm:max-w-[60px] max-sm:gap-1.5"
-                        v-for="category in categories"
-                    >
-                        <a
-                            :href="category.slug"
-                            class="h-[110px] w-[110px] rounded-full bg-zinc-100 max-md:h-20 max-md:w-20 max-sm:h-[60px] max-sm:w-[60px]"
-                            :aria-label="category.name"
-                        >
-                            <x-shop::media.images.lazy
-                                ::src="category.logo?.small_image_url || fallback"
-                                ::srcset="`
-                                    ${(category.logo?.small_image_url || fallback)} 60w,
-                                    ${(category.logo?.medium_image_url || fallback)} 110w,
-                                    ${(category.logo?.large_image_url || fallback)} 300w
-                                `"
-                                sizes="(max-width: 640px) 60px, 110px"
-                                width="110"
-                                height="110"
-                                class="w-full rounded-full max-sm:h-[60px] max-sm:w-[60px]"
-                                ::alt="category.name"
-                            />
-                        </a>
+            <div class="uf-cat-container">
+                <h2 class="uf-cat-title" v-if="title" v-text="title"></h2>
 
-                        <a
-                            :href="category.slug"
-                            class=""
-                        >
-                            <p
-                                class="text-center text-lg text-black max-md:text-base max-md:font-normal max-sm:text-sm"
-                                v-text="category.name"
-                            >
-                            </p>
-                        </a>
-                    </div>
+                <div class="uf-cat-grid" ref="swiperContainer">
+                    <a
+                        v-for="category in categories"
+                        :key="category.id"
+                        :href="category.slug"
+                        :class="['uf-cat-card', category.card_background ? 'uf-bg-' + category.card_background : 'uf-bg-default']"
+                        :aria-label="category.name"
+                    >
+                        <div class="uf-cat-card-image">
+                            <img
+                                v-if="category.logo?.original_image_url"
+                                :src="category.logo.original_image_url"
+                                :alt="category.name"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </div>
+
+                        <div class="uf-cat-content">
+                            <span class="uf-cat-name" v-text="category.name"></span>
+                            <span class="uf-cat-cta">
+                                Explore Now <span class="uf-cat-cta-arrow">›</span>
+                            </span>
+                        </div>
+                    </a>
                 </div>
 
-                <span
-                    class="icon-arrow-left-stylish absolute -left-10 top-9 flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full border border-black bg-white text-2xl transition hover:bg-black hover:text-white max-lg:-left-7 max-md:hidden"
-                    role="button"
-                    aria-label="@lang('shop::components.carousel.previous')"
-                    tabindex="0"
+                <button
+                    type="button"
+                    class="uf-cat-arrow uf-cat-prev"
+                    v-show="hasOverflow"
+                    :disabled="atStart"
                     @click="swipeLeft"
+                    aria-label="@lang('shop::components.carousel.previous')"
                 >
-                </span>
+                    <span class="icon-arrow-left-stylish"></span>
+                </button>
 
-                <span
-                    class="icon-arrow-right-stylish absolute -right-6 top-9 flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-full border border-black bg-white text-2xl transition hover:bg-black hover:text-white max-lg:-right-7 max-md:hidden"
-                    role="button"
-                    aria-label="@lang('shop::components.carousel.next')"
-                    tabindex="0"
+                <button
+                    type="button"
+                    class="uf-cat-arrow uf-cat-next"
+                    v-show="hasOverflow"
+                    :disabled="atEnd"
                     @click="swipeRight"
+                    aria-label="@lang('shop::components.carousel.next')"
                 >
-                </span>
+                    <span class="icon-arrow-right-stylish"></span>
+                </button>
             </div>
-        </div>
+        </section>
 
         <!-- Category Carousel Shimmer -->
         <template v-if="isLoading">
@@ -102,17 +95,23 @@
             data() {
                 return {
                     isLoading: true,
-
                     categories: [],
-
-                    offset: 323,
-
+                    hasOverflow: false,
+                    atStart: true,
+                    atEnd: false,
                     fallback: "{{ bagisto_asset('images/small-product-placeholder.webp') }}"
                 };
             },
 
             mounted() {
                 this.getCategories();
+                window.addEventListener('resize', this.updateScrollState);
+            },
+
+            beforeUnmount() {
+                window.removeEventListener('resize', this.updateScrollState);
+                const container = this.$refs.swiperContainer;
+                if (container) container.removeEventListener('scroll', this.updateScrollState);
             },
 
             methods: {
@@ -120,23 +119,43 @@
                     this.$axios.get(this.src)
                         .then(response => {
                             this.isLoading = false;
-
                             this.categories = response.data.data;
+
+                            this.$nextTick(() => {
+                                const container = this.$refs.swiperContainer;
+                                if (container) container.addEventListener('scroll', this.updateScrollState, { passive: true });
+                                this.updateScrollState();
+                            });
                         }).catch(error => {
                             console.log(error);
                         });
                 },
 
-                swipeLeft() {
+                cardOffset() {
                     const container = this.$refs.swiperContainer;
+                    if (! container) return 320;
+                    const firstCard = container.querySelector('.uf-cat-card');
+                    if (! firstCard) return container.clientWidth * 0.8;
+                    const style = window.getComputedStyle(container);
+                    const gap = parseFloat(style.columnGap || style.gap || 16) || 16;
+                    return firstCard.getBoundingClientRect().width + gap;
+                },
 
-                    container.scrollLeft -= this.offset;
+                updateScrollState() {
+                    const container = this.$refs.swiperContainer;
+                    if (! container) return;
+                    const maxScroll = container.scrollWidth - container.clientWidth;
+                    this.hasOverflow = maxScroll > 2;
+                    this.atStart = container.scrollLeft <= 2;
+                    this.atEnd = container.scrollLeft >= maxScroll - 2;
+                },
+
+                swipeLeft() {
+                    this.$refs.swiperContainer.scrollBy({ left: -this.cardOffset(), behavior: 'smooth' });
                 },
 
                 swipeRight() {
-                    const container = this.$refs.swiperContainer;
-
-                    container.scrollLeft += this.offset;
+                    this.$refs.swiperContainer.scrollBy({ left: this.cardOffset(), behavior: 'smooth' });
                 },
             },
         });

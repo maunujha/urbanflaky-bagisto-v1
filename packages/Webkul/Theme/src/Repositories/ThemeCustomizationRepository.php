@@ -79,7 +79,12 @@ class ThemeCustomizationRepository extends Repository
 
         if (isset($data[$locale]['deleted_sliders'])) {
             foreach ($data[$locale]['deleted_sliders'] as $slider) {
-                Storage::delete(str_replace('storage/', '', $slider['image']));
+                if (! empty($slider['image'])) {
+                    Storage::delete(str_replace('storage/', '', $slider['image']));
+                }
+                if (! empty($slider['mobile_image'])) {
+                    Storage::delete(str_replace('storage/', '', $slider['mobile_image']));
+                }
             }
         }
 
@@ -89,20 +94,32 @@ class ThemeCustomizationRepository extends Repository
 
         $options = [];
 
+        $storeImage = function ($file) use ($theme) {
+            $path = 'theme/'.$theme->id.'/'.Str::random(40).'.webp';
+            $encoded = image_manager()->read($file)->encodeByExtension('webp');
+            Storage::put($path, (string) $encoded);
+
+            return 'storage/'.$path;
+        };
+
         foreach ($data[$locale]['options'] as $image) {
             if (isset($image['service_icon'])) {
                 $options['services'][] = [
                     'service_icon' => $image['service_icon'],
-                    'description' => $image['description'],
-                    'title' => $image['title'],
+                    'description'  => $image['description'],
+                    'title'        => $image['title'],
                 ];
-            } elseif ($image['image'] instanceof UploadedFile) {
+
+                continue;
+            }
+
+            $isUpload       = isset($image['image'])        && $image['image']        instanceof UploadedFile;
+            $isMobileUpload = isset($image['mobile_image']) && $image['mobile_image'] instanceof UploadedFile;
+
+            if ($isUpload || $isMobileUpload) {
                 try {
-                    $path = 'theme/'.$theme->id.'/'.Str::random(40).'.webp';
-
-                    $encoded = image_manager()->read($image['image'])->encodeByExtension('webp');
-
-                    Storage::put($path, (string) $encoded);
+                    $desktopPath = $isUpload       ? $storeImage($image['image'])        : ($image['image']        ?? null);
+                    $mobilePath  = $isMobileUpload ? $storeImage($image['mobile_image']) : ($image['mobile_image'] ?? null);
                 } catch (\Exception $e) {
                     session()->flash('error', $e->getMessage());
 
@@ -110,13 +127,14 @@ class ThemeCustomizationRepository extends Repository
                 }
 
                 if (($data['type'] ?? '') == 'static_content') {
-                    return Storage::url($path);
+                    return Storage::url(str_replace('storage/', '', $desktopPath));
                 }
 
                 $options['images'][] = [
-                    'image' => 'storage/'.$path,
-                    'link' => $image['link'],
-                    'title' => $image['title'],
+                    'image'        => $desktopPath,
+                    'mobile_image' => $mobilePath,
+                    'link'         => $image['link'] ?? '',
+                    'title'        => $image['title'] ?? '',
                 ];
             } else {
                 $options['images'][] = $image;

@@ -4,6 +4,7 @@ namespace Webkul\Shop\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use App\Listeners\CreateShiprocketOrder;
+use App\Listeners\MarkOrderShipped;
 use App\Listeners\SendOrderSms;
 use App\Listeners\SendRefundSms;
 use App\Listeners\SendRegistrationSms;
@@ -80,6 +81,7 @@ class EventServiceProvider extends ServiceProvider
 
         'sales.shipment.save.after' => [
             [Shipment::class, 'afterCreated'],
+            [MarkOrderShipped::class, 'handle'],
         ],
 
         'sales.refund.save.after' => [

@@ -32,7 +32,13 @@ class SubscriptionController extends Controller
         Event::dispatch('customer.subscription.before');
 
         if ($this->isAlreadySubscribed($email)) {
-            session()->flash('error', trans('shop::app.subscription.already'));
+            $msg = trans('shop::app.subscription.already');
+
+            if (request()->expectsJson()) {
+                return response()->json(['success' => false, 'message' => $msg], 422);
+            }
+
+            session()->flash('error', $msg);
 
             return redirect()->back();
         }
@@ -43,7 +49,13 @@ class SubscriptionController extends Controller
 
         Event::dispatch('customer.subscription.after', $subscription);
 
-        session()->flash('success', trans('shop::app.subscription.subscribe-success'));
+        $msg = trans('shop::app.subscription.subscribe-success');
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => $msg]);
+        }
+
+        session()->flash('success', $msg);
 
         return redirect()->back();
     }

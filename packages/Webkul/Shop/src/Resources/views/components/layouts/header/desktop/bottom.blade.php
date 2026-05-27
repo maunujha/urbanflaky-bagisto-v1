@@ -1,16 +1,14 @@
 {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.before') !!}
 
-<div class="flex min-h-[78px] w-full justify-between border border-b border-l-0 border-r-0 border-t-0 px-[60px] max-1180:px-8">
-    <!--
-        This section will provide categories for the first, second, and third levels. If
-        additional levels are required, users can customize them according to their needs.
-    -->
-    <!-- Left Nagivation Section -->
-    <div class="flex items-center gap-x-10 max-[1180px]:gap-x-5">
+<div class="relative flex w-full items-center justify-between gap-6 px-10 transition-all duration-300 group-data-[scrolled=true]/header:min-h-[60px] min-h-[78px] xl:px-14 group-data-[scrolled=true]/header:py-1">
+
+    <!-- Left: Logo + Categories -->
+    <div class="flex items-center gap-x-10 max-[1180px]:gap-x-6">
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.logo.before') !!}
 
         <a
             href="{{ route('shop.home.index') }}"
+            class="shrink-0 transition-all duration-300 group-data-[scrolled=true]/header:scale-90"
             aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.bagisto')"
         >
             <img
@@ -18,6 +16,7 @@
                 width="131"
                 height="29"
                 alt="{{ config('app.name') }}"
+                class="h-auto w-[120px] xl:w-[131px]"
             >
         </a>
 
@@ -27,164 +26,78 @@
 
         <v-desktop-category>
             <div class="flex items-center gap-5">
-                <span
-                    class="w-20 h-6 rounded shimmer"
-                    role="presentation"
-                ></span>
-
-                <span
-                    class="w-20 h-6 rounded shimmer"
-                    role="presentation"
-                ></span>
-
-                <span
-                    class="w-20 h-6 rounded shimmer"
-                    role="presentation"
-                ></span>
+                <span class="h-6 w-20 rounded shimmer" role="presentation"></span>
+                <span class="h-6 w-20 rounded shimmer" role="presentation"></span>
+                <span class="h-6 w-20 rounded shimmer" role="presentation"></span>
             </div>
         </v-desktop-category>
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.category.after') !!}
     </div>
 
-    <!-- Right Nagivation Section -->
-    <div class="flex items-center gap-x-9 max-[1100px]:gap-x-6 max-lg:gap-x-8">
+    <!-- Right: Icon group -->
+    <div class="flex items-center gap-x-1.5">
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.before') !!}
 
-        <!-- Search Bar Container -->
-        <div class="relative w-full" id="desktop-search-wrap">
-            <form
-                action="{{ route('shop.search.index') }}"
-                class="flex max-w-[445px] items-center"
-                role="search"
-                id="desktop-search-form"
-            >
-                <label
-                    for="organic-search"
-                    class="sr-only"
-                >
-                    @lang('shop::app.components.layouts.header.desktop.bottom.search')
-                </label>
-
-                <div class="icon-search pointer-events-none absolute top-2.5 flex items-center text-xl ltr:left-3 rtl:right-3"></div>
-
-                <input
-                    type="text"
-                    name="query"
-                    id="desktop-search-input"
-                    value="{{ request('query') }}"
-                    class="block w-full py-3 text-xs font-medium text-gray-900 transition-all border border-transparent rounded-lg bg-zinc-100 px-11 hover:border-gray-400 focus:border-gray-400"
-                    minlength="{{ core()->getConfigData('catalog.products.search.min_query_length') }}"
-                    maxlength="{{ core()->getConfigData('catalog.products.search.max_query_length') }}"
-                    placeholder="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
-                    aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
-                    aria-required="true"
-                    pattern="[^\\]+"
-                    autocomplete="off"
-                    required
-                >
-
-                <button
-                    type="submit"
-                    class="hidden"
-                    aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.submit')"
-                >
-                </button>
-
-                @if (core()->getConfigData('catalog.products.settings.image_search'))
-                    @include('shop::search.images.index')
-                @endif
-            </form>
-
-            @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
-                <!-- Autocomplete Dropdown -->
-                <div
-                    id="desktop-autocomplete-dropdown"
-                    class="absolute z-50 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
-                    style="min-width:500px; left:-50%; top:56px;"
-                    role="listbox"
-                >
-                    <ul id="desktop-autocomplete-list" class="py-1"></ul>
-
-                    <div class="border-t border-gray-100 px-4 py-2.5">
-                        <a
-                            id="desktop-autocomplete-viewall"
-                            href="#"
-                            class="block text-center text-xs font-medium text-navyBlue hover:underline"
-                        >
-                            @lang('shop::app.components.layouts.header.desktop.bottom.search-text') &rarr;
-                        </a>
-                    </div>
-                </div>
-            @endif
-
-            @if (core()->getConfigData('catalog.products.search.trending_searches') !== '0')
-                <!-- Trending Searches Dropdown -->
-                <div
-                    id="desktop-trending-dropdown"
-                    class="absolute z-50 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
-                    style="min-width:500px; left:-50%; top:56px;"
-                    role="listbox"
-                >
-                    <div class="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
-                        <span class="icon-trend text-navyBlue text-sm"></span>
-                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Trending Searches</span>
-                    </div>
-                    <ul id="desktop-trending-list" class="py-1"></ul>
-                </div>
-            @endif
-        </div>
+        <!-- Search trigger -->
+        <button
+            type="button"
+            id="uf-search-toggle"
+            aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
+            aria-expanded="false"
+            aria-controls="uf-search-panel"
+            class="flex h-10 w-10 items-center justify-center rounded-full text-white/85 transition-all hover:bg-white/10 hover:text-uf-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-uf-accent"
+        >
+            <span class="icon-search text-[22px] leading-none"></span>
+        </button>
 
         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.search_bar.after') !!}
 
-        <!-- Right Navigation Links -->
-        <div class="mt-1.5 flex gap-x-8 max-[1100px]:gap-x-6 max-lg:gap-x-8">
+        {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.before') !!}
 
-            {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.before') !!}
+        <!-- Compare -->
+        @if(core()->getConfigData('catalog.products.settings.compare_option'))
+            <a
+                href="{{ route('shop.compare.index') }}"
+                aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.compare')"
+                class="flex h-10 w-10 items-center justify-center rounded-full text-white/85 transition-all hover:bg-white/10 hover:text-uf-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-uf-accent"
+            >
+                <span class="icon-compare text-[22px] leading-none" role="presentation"></span>
+            </a>
+        @endif
 
-            <!-- Compare -->
-            @if(core()->getConfigData('catalog.products.settings.compare_option'))
-                <a
-                    href="{{ route('shop.compare.index') }}"
-                    aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.compare')"
-                >
-                    <span
-                        class="inline-block text-2xl cursor-pointer icon-compare"
-                        role="presentation"
-                    ></span>
-                </a>
-            @endif
+        {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.after') !!}
 
-            {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.compare.after') !!}
+        {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.before') !!}
 
-            {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.before') !!}
-
-            <!-- Mini cart -->
-            @if(core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+        <!-- Mini cart -->
+        @if(core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+            <div class="flex h-10 w-10 items-center justify-center rounded-full text-white/85 transition-all hover:bg-white/10 hover:text-uf-accent [&_.icon-cart]:text-[22px]">
                 @include('shop::checkout.cart.mini-cart')
-            @endif
+            </div>
+        @endif
 
-            {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.after') !!}
+        {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.mini_cart.after') !!}
 
-            {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.profile.before') !!}
+        {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.profile.before') !!}
 
-            <!-- user profile -->
-            <x-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
-                <x-slot:toggle>
-                    <span
-                        class="inline-block text-2xl cursor-pointer icon-users"
-                        role="button"
-                        aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.profile')"
-                        tabindex="0"
-                    ></span>
-                </x-slot>
+        <!-- user profile -->
+        <x-shop::dropdown position="bottom-{{ core()->getCurrentLocale()->direction === 'ltr' ? 'right' : 'left' }}">
+            <x-slot:toggle>
+                <span
+                    class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-white/85 transition-all hover:bg-white/10 hover:text-uf-accent icon-users text-[22px] leading-none"
+                    role="button"
+                    aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.profile')"
+                    tabindex="0"
+                ></span>
+            </x-slot>
 
                 <!-- Guest Dropdown -->
                 @guest('customer')
                     <x-slot:content>
                         <div class="grid gap-2.5">
-                            <p class="text-xl font-default-uf">
+                            <p class="text-xl font-poppins font-bold">
                                 @lang('shop::app.components.layouts.header.desktop.bottom.welcome-guest')
                             </p>
 
@@ -225,7 +138,7 @@
                 @auth('customer')
                     <x-slot:content class="!p-0">
                         <div class="grid gap-2.5 p-5 pb-0">
-                            <p class="text-xl font-default-uf" v-pre>
+                            <p class="text-xl font-poppins font-bold" v-pre>
                                 @lang('shop::app.components.layouts.header.desktop.bottom.welcome')’
                                 {{ auth()->guard('customer')->user()->first_name }}
                             </p>
@@ -287,7 +200,99 @@
             </x-shop::dropdown>
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.profile.after') !!}
-        </div>
+    </div>
+</div>
+
+<!-- Slide-down Search Panel -->
+<div
+    id="uf-search-panel"
+    class="invisible absolute left-0 right-0 top-full z-30 -translate-y-3 border-b border-white/[0.08] bg-uf-bg/95 opacity-0 shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-2xl transition-all duration-300 ease-out data-[open=true]:visible data-[open=true]:translate-y-0 data-[open=true]:opacity-100"
+    data-open="false"
+    role="region"
+    aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
+>
+    <div class="mx-auto max-w-3xl px-10 py-10 xl:px-14">
+        <form
+            action="{{ route('shop.search.index') }}"
+            class="relative"
+            role="search"
+            id="desktop-search-form"
+        >
+            <label for="desktop-search-input" class="sr-only">
+                @lang('shop::app.components.layouts.header.desktop.bottom.search')
+            </label>
+
+            <span class="icon-search pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-2xl text-uf-accent"></span>
+
+            <input
+                type="text"
+                name="query"
+                id="desktop-search-input"
+                value="{{ request('query') }}"
+                placeholder="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
+                aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.search-text')"
+                aria-required="true"
+                minlength="{{ core()->getConfigData('catalog.products.search.min_query_length') }}"
+                maxlength="{{ core()->getConfigData('catalog.products.search.max_query_length') }}"
+                pattern="[^\\]+"
+                autocomplete="off"
+                required
+                class="block w-full rounded-2xl border border-white/10 bg-white/[0.04] px-14 py-4 font-poppins text-base font-medium text-white placeholder:font-normal placeholder:tracking-wide placeholder:text-white/40 transition-all focus:border-uf-accent/60 focus:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-uf-accent/30"
+            >
+
+            <button
+                type="button"
+                id="uf-search-close"
+                aria-label="Close search"
+                class="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-white/60 transition-all hover:bg-white/10 hover:text-uf-accent"
+            >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+
+            <button
+                type="submit"
+                class="hidden"
+                aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.submit')"
+            ></button>
+
+            @if (core()->getConfigData('catalog.products.settings.image_search'))
+                @include('shop::search.images.index')
+            @endif
+        </form>
+
+        @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
+            <div
+                id="desktop-autocomplete-dropdown"
+                class="mt-5 hidden overflow-hidden rounded-2xl border border-white/10 bg-uf-surface/95 shadow-[0_20px_40px_rgba(0,0,0,0.5)] backdrop-blur"
+                role="listbox"
+            >
+                <ul id="desktop-autocomplete-list" class="max-h-[60vh] divide-y divide-white/[0.06] overflow-auto py-1"></ul>
+
+                <div class="border-t border-white/[0.08] px-4 py-3">
+                    <a
+                        id="desktop-autocomplete-viewall"
+                        href="#"
+                        class="block text-center text-xs font-semibold uppercase tracking-[2px] text-uf-accent hover:text-uf-accentHover"
+                    >
+                        @lang('shop::app.components.layouts.header.desktop.bottom.search-text') &rarr;
+                    </a>
+                </div>
+            </div>
+        @endif
+
+        @if (core()->getConfigData('catalog.products.search.trending_searches') !== '0')
+            <div
+                id="desktop-trending-dropdown"
+                class="mt-5 hidden overflow-hidden rounded-2xl border border-white/10 bg-uf-surface/95 shadow-[0_20px_40px_rgba(0,0,0,0.5)] backdrop-blur"
+                role="listbox"
+            >
+                <div class="flex items-center gap-2 border-b border-white/[0.08] px-4 py-3">
+                    <span class="icon-trend text-sm text-uf-accent"></span>
+                    <span class="text-[11px] font-semibold uppercase tracking-[2px] text-white/60">Trending Searches</span>
+                </div>
+                <ul id="desktop-trending-list" class="py-1"></ul>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -336,7 +341,7 @@
             /* ---- Autocomplete ---- */
             function highlight(text, query) {
                 const esc = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                return text.replace(new RegExp('(' + esc + ')', 'gi'), '<mark class="bg-yellow-100 font-semibold not-italic">$1</mark>');
+                return text.replace(new RegExp('(' + esc + ')', 'gi'), '<mark class="bg-uf-accent/20 text-uf-accent font-semibold not-italic px-0.5 rounded-sm">$1</mark>');
             }
 
             function renderAutocomplete(results, query, p) {
@@ -349,17 +354,17 @@
                 results.forEach(function (product) {
                     const li = document.createElement('li');
                     li.setAttribute('role', 'option');
-                    li.className = 'flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors';
+                    li.className = 'flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-white/[0.04] transition-colors';
 
                     const img = product.image
-                        ? '<img src="' + product.image + '" alt="" class="h-10 w-10 flex-shrink-0 rounded object-cover border border-gray-100">'
-                        : '<div class="h-10 w-10 flex-shrink-0 rounded bg-gray-100 flex items-center justify-center"><span class="icon-image text-gray-400 text-lg"></span></div>';
+                        ? '<img src="' + product.image + '" alt="" class="h-11 w-11 flex-shrink-0 rounded-lg object-cover border border-white/10">'
+                        : '<div class="h-11 w-11 flex-shrink-0 rounded-lg bg-white/[0.04] flex items-center justify-center border border-white/10"><span class="icon-image text-white/40 text-lg"></span></div>';
 
                     const priceHtml = product.original_price
-                        ? '<span class="font-semibold text-navyBlue">' + product.price + '</span><span class="ml-1 text-xs text-gray-400 line-through">' + product.original_price + '</span>'
-                        : '<span class="font-semibold text-navyBlue">' + product.price + '</span>';
+                        ? '<span class="font-bold text-uf-accent">' + product.price + '</span><span class="ml-1.5 text-xs text-white/40 line-through">' + product.original_price + '</span>'
+                        : '<span class="font-bold text-uf-accent">' + product.price + '</span>';
 
-                    li.innerHTML = img + '<div class="min-w-0 flex-1"><p class="truncate text-sm text-gray-800">' + highlight(product.name, query) + '</p><p class="text-xs mt-0.5">' + priceHtml + '</p></div>';
+                    li.innerHTML = img + '<div class="min-w-0 flex-1"><p class="truncate text-sm font-medium text-white">' + highlight(product.name, query) + '</p><p class="text-xs mt-1">' + priceHtml + '</p></div>';
 
                     li.addEventListener('mousedown', function (ev) {
                         ev.preventDefault();
@@ -386,10 +391,10 @@
                 if (te.list.children.length === 0) {
                     data.forEach(function (item) {
                         const li = document.createElement('li');
-                        li.className = 'flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors';
-                        li.innerHTML = '<span class="icon-search text-gray-400 text-xs flex-shrink-0"></span>'
-                            + '<span class="text-sm text-gray-700">' + item.term + '</span>'
-                            + '<span class="ml-auto text-xs text-gray-300">' + item.count + '</span>';
+                        li.className = 'flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-white/[0.04] transition-colors';
+                        li.innerHTML = '<span class="icon-search text-uf-accent/70 text-xs flex-shrink-0"></span>'
+                            + '<span class="text-sm text-white/85">' + item.term + '</span>'
+                            + '<span class="ml-auto text-xs text-white/40">' + item.count + '</span>';
 
                         li.addEventListener('mousedown', function (ev) {
                             ev.preventDefault();
@@ -494,6 +499,84 @@
     </script>
     @endif
 
+    <!-- Sticky header: scroll-shrink + search-panel toggle (delegated, mount-safe) -->
+    <script>
+        (function () {
+            /* --- Scroll-shrink (header element is rendered statically, exists immediately) --- */
+            const header = document.getElementById('uf-header');
+            if (header) {
+                let ticking = false;
+                const updateHeader = function () {
+                    header.dataset.scrolled = (window.scrollY > 24).toString();
+                    ticking = false;
+                };
+                window.addEventListener('scroll', function () {
+                    if (! ticking) {
+                        window.requestAnimationFrame(updateHeader);
+                        ticking = true;
+                    }
+                }, { passive: true });
+                updateHeader();
+            }
+
+            /* --- Search panel toggle: delegated because the toggle/panel live inside a
+                   Vue x-template that only renders after the header switcher mounts. --- */
+            function getPanel()  { return document.getElementById('uf-search-panel'); }
+            function getToggle() { return document.getElementById('uf-search-toggle'); }
+            function getInput()  { return document.getElementById('desktop-search-input'); }
+
+            function openPanel() {
+                const p = getPanel(); const t = getToggle();
+                if (! p) return;
+                p.dataset.open = 'true';
+                if (t) t.setAttribute('aria-expanded', 'true');
+                setTimeout(function () {
+                    const i = getInput();
+                    if (i) i.focus();
+                }, 60);
+            }
+
+            function closePanel() {
+                const p = getPanel(); const t = getToggle();
+                if (! p) return;
+                p.dataset.open = 'false';
+                if (t) t.setAttribute('aria-expanded', 'false');
+                ['desktop-autocomplete-dropdown', 'desktop-trending-dropdown'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+            }
+
+            document.addEventListener('click', function (ev) {
+                if (ev.target.closest('#uf-search-toggle')) {
+                    ev.preventDefault();
+                    const p = getPanel();
+                    if (p && p.dataset.open === 'true') closePanel();
+                    else openPanel();
+                    return;
+                }
+                if (ev.target.closest('#uf-search-close')) {
+                    ev.preventDefault();
+                    closePanel();
+                }
+            });
+
+            document.addEventListener('keydown', function (ev) {
+                if (ev.key !== 'Escape') return;
+                const p = getPanel();
+                if (p && p.dataset.open === 'true') closePanel();
+            });
+
+            document.addEventListener('mousedown', function (ev) {
+                const p = getPanel(); const t = getToggle();
+                if (! p || p.dataset.open !== 'true') return;
+                if (p.contains(ev.target)) return;
+                if (t && t.contains(ev.target)) return;
+                closePanel();
+            });
+        })();
+    </script>
+
     <script
         type="text/x-template"
         id="v-desktop-category-template"
@@ -525,20 +608,20 @@
             v-else-if="'{{ core()->getConfigData('general.design.categories.category_view') }}' !== 'sidebar'"
         >
             <div
-                class="group relative flex h-[77px] items-center border-b-4 border-transparent hover:border-b-4 hover:border-navyBlue"
+                class="group relative flex h-full min-h-[60px] items-center border-b-2 border-transparent transition-all duration-200 hover:border-uf-accent"
                 v-for="category in categories"
             >
                 <span>
                     <a
                         :href="category.url"
-                        class="inline-block px-5 uppercase"
+                        class="inline-block px-4 font-poppins text-[13px] font-semibold uppercase tracking-[2px] text-white transition-colors hover:text-uf-accent xl:px-5 xl:text-sm xl:tracking-[2.5px]"
                     >
                         @{{ category.name }}
                     </a>
                 </span>
 
                 <div
-                    class="pointer-events-none absolute top-[78px] z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-1 overflow-auto overflow-x-auto border border-b-0 border-l-0 border-r-0 border-t border-[#F3F3F3] bg-white p-9 opacity-0 shadow-[0_6px_6px_1px_rgba(0,0,0,.3)] transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
+                    class="pointer-events-none absolute top-full z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-2 overflow-auto border-t border-white/10 bg-uf-surface/95 p-9 opacity-0 shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-xl transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
                     v-if="category.children && category.children.length"
                 >
                     <div class="flex justify-between gap-x-[70px]">
@@ -547,7 +630,7 @@
                             v-for="pairCategoryChildren in pairCategoryChildren(category)"
                         >
                             <template v-for="secondLevelCategory in pairCategoryChildren">
-                                <p class="font-medium text-navyBlue">
+                                <p class="font-poppins text-[13px] font-semibold uppercase tracking-[1.5px] text-uf-accent">
                                     <a :href="secondLevelCategory.url">
                                         @{{ secondLevelCategory.name }}
                                     </a>
@@ -558,7 +641,7 @@
                                     v-if="secondLevelCategory.children && secondLevelCategory.children.length"
                                 >
                                     <li
-                                        class="text-sm font-medium text-zinc-500"
+                                        class="text-sm font-medium text-white/65 transition-colors hover:text-white"
                                         v-for="thirdLevelCategory in secondLevelCategory.children"
                                     >
                                         <a :href="thirdLevelCategory.url">
@@ -579,11 +662,11 @@
             <div class="flex items-center">
                 <!-- "All" button for opening the category drawer -->
                 <div
-                    class="flex h-[77px] cursor-pointer items-center border-b-4 border-transparent hover:border-b-4 hover:border-navyBlue"
+                    class="flex h-full min-h-[60px] cursor-pointer items-center border-b-2 border-transparent transition-all duration-200 hover:border-uf-accent"
                     @click="toggleCategoryDrawer"
                 >
-                    <span class="flex items-center gap-1 px-5 uppercase">
-                        <span class="text-xl icon-hamburger"></span>
+                    <span class="flex items-center gap-1.5 px-4 font-poppins text-[13px] font-semibold uppercase tracking-[2px] text-white transition-colors hover:text-uf-accent xl:px-5 xl:text-sm xl:tracking-[2.5px]">
+                        <span class="text-lg icon-hamburger"></span>
 
                         @lang('shop::app.components.layouts.header.desktop.bottom.all')
                     </span>
@@ -591,13 +674,13 @@
 
                 <!-- Show only first 4 categories in main navigation -->
                 <div
-                    class="group relative flex h-[77px] items-center border-b-4 border-transparent hover:border-b-4 hover:border-navyBlue"
+                    class="group relative flex h-full min-h-[60px] items-center border-b-2 border-transparent transition-all duration-200 hover:border-uf-accent"
                     v-for="category in categories.slice(0, 4)"
                 >
                     <span>
                         <a
                             :href="category.url"
-                            class="inline-block px-5 uppercase"
+                            class="inline-block px-4 font-poppins text-[13px] font-semibold uppercase tracking-[2px] text-white transition-colors hover:text-uf-accent xl:px-5 xl:text-sm xl:tracking-[2.5px]"
                         >
                             @{{ category.name }}
                         </a>
@@ -605,7 +688,7 @@
 
                     <!-- Dropdown for each category -->
                     <div
-                        class="pointer-events-none absolute top-[78px] z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-1 overflow-auto overflow-x-auto border border-b-0 border-l-0 border-r-0 border-t border-[#F3F3F3] bg-white p-9 opacity-0 shadow-[0_6px_6px_1px_rgba(0,0,0,.3)] transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
+                        class="pointer-events-none absolute top-full z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-2 overflow-auto border-t border-white/10 bg-uf-surface/95 p-9 opacity-0 shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-xl transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
                         v-if="category.children && category.children.length"
                     >
                         <div class="flex justify-between gap-x-[70px]">
@@ -614,7 +697,7 @@
                                 v-for="pairCategoryChildren in pairCategoryChildren(category)"
                             >
                                 <template v-for="secondLevelCategory in pairCategoryChildren">
-                                    <p class="font-medium text-navyBlue">
+                                    <p class="font-poppins text-[13px] font-semibold uppercase tracking-[1.5px] text-uf-accent">
                                         <a :href="secondLevelCategory.url">
                                             @{{ secondLevelCategory.name }}
                                         </a>
@@ -625,7 +708,7 @@
                                         v-if="secondLevelCategory.children && secondLevelCategory.children.length"
                                     >
                                         <li
-                                            class="text-sm font-medium text-zinc-500"
+                                            class="text-sm font-medium text-white/65 transition-colors hover:text-white"
                                             v-for="thirdLevelCategory in secondLevelCategory.children"
                                         >
                                             <a :href="thirdLevelCategory.url">

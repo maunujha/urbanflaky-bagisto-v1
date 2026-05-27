@@ -7,13 +7,19 @@ use Webkul\Shop\Http\Controllers\API\TrendingSearchController;
 use Webkul\Shop\Http\Controllers\API\CartController;
 use Webkul\Shop\Http\Controllers\API\CategoryController;
 use Webkul\Shop\Http\Controllers\API\CheckoutOtpController;
+use Webkul\Shop\Http\Controllers\API\ContactOtpController;
 use Webkul\Shop\Http\Controllers\API\CompareController;
 use Webkul\Shop\Http\Controllers\API\CoreController;
 use Webkul\Shop\Http\Controllers\API\CustomerController;
 use Webkul\Shop\Http\Controllers\API\OnepageController;
 use Webkul\Shop\Http\Controllers\API\ProductController;
 use Webkul\Shop\Http\Controllers\API\ReviewController;
+use Webkul\Shop\Http\Controllers\API\ShiprocketWebhookController;
 use Webkul\Shop\Http\Controllers\API\WishlistController;
+
+// Shiprocket webhook — no CSRF, no throttle, token-verified in controller
+Route::post('api/webhooks/shiprocket', [ShiprocketWebhookController::class, 'handle'])
+    ->name('api.webhooks.shiprocket');
 
 Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () {
     Route::controller(CoreController::class)->prefix('core')->group(function () {
@@ -97,6 +103,15 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
         ->group(function () {
             Route::post('send', 'send')->name('shop.api.checkout.otp.send');
             Route::post('verify', 'verify')->name('shop.api.checkout.otp.verify');
+        });
+
+    // Contact-form OTP
+    Route::controller(ContactOtpController::class)
+        ->prefix('contact/otp')
+        ->middleware('throttle:api-otp')
+        ->group(function () {
+            Route::post('send', 'send')->name('shop.api.contact.otp.send');
+            Route::post('verify', 'verify')->name('shop.api.contact.otp.verify');
         });
 
     Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {

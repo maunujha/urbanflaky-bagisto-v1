@@ -168,6 +168,11 @@
                             />
                         </div>
                     </div>
+
+                    {{-- Urbanflaky: Card Background (used by the "Shop by Gender" home carousel) --}}
+                    @include('admin::catalog.categories.partials.card-background', [
+                        'currentCardBg' => old('card_background') ?? '',
+                    ])
                 </div>
 
                 {!! view_render_event('bagisto.admin.catalog.categories.create.card.description_images.after') !!}

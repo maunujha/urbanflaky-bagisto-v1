@@ -1,0 +1,337 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - generic: 
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Bagisto" [ref=e8] [cursor=pointer]:
+            - /url: http://urbanflaky.test
+            - img "Urbanflaky" [ref=e9]
+          - generic [ref=e10]:
+            - generic [ref=e11]:
+              - generic [ref=e13] [cursor=pointer]:
+                - generic [ref=e14]: 
+                - text: All
+              - link "Mens" [ref=e17] [cursor=pointer]:
+                - /url: http://urbanflaky.test/mens
+              - link "Womens" [ref=e20] [cursor=pointer]:
+                - /url: http://urbanflaky.test/womens
+              - link "Casual Wear" [ref=e23] [cursor=pointer]:
+                - /url: http://urbanflaky.test/casual-wear-men
+              - link "Combo's" [ref=e26] [cursor=pointer]:
+                - /url: http://urbanflaky.test/combos
+            - generic: 
+        - generic [ref=e27]:
+          - button "Search products here" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29]: 
+          - generic [ref=e31]:
+            - button "Shopping Cart" [ref=e34] [cursor=pointer]: 
+            - text: 
+          - button "Profile" [ref=e37] [cursor=pointer]: 
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - img "Get Ready For New Collection" [ref=e43] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e46] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e49] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e52] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e55] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e58] [cursor=pointer]
+        - button "shop::components.carousel.previous" [ref=e59] [cursor=pointer]:
+          - generic [ref=e60]: 
+        - button "shop::components.carousel.next" [ref=e61] [cursor=pointer]:
+          - generic [ref=e62]: 
+        - generic [ref=e63]:
+          - button "Go to slide 1" [ref=e64] [cursor=pointer]
+          - button "Go to slide 2" [ref=e66] [cursor=pointer]
+          - button "Go to slide 3" [ref=e67] [cursor=pointer]
+          - button "Go to slide 4" [ref=e68] [cursor=pointer]
+          - button "Go to slide 5" [ref=e69] [cursor=pointer]
+          - button "Go to slide 6" [ref=e70] [cursor=pointer]
+      - heading "Get UPTO 40% OFF on your 1st order SHOP NOW" [level=1] [ref=e72]
+      - generic [ref=e91]:
+        - generic [ref=e95]:
+          - paragraph [ref=e96]
+          - paragraph [ref=e97]
+        - generic [ref=e101]:
+          - paragraph [ref=e102]
+          - paragraph [ref=e103]
+        - generic [ref=e107]:
+          - paragraph [ref=e108]
+          - paragraph [ref=e109]
+        - generic [ref=e113]:
+          - paragraph [ref=e114]
+          - paragraph [ref=e115]
+      - generic [ref=e124]:
+        - generic [ref=e128]:
+          - paragraph [ref=e129]
+          - paragraph [ref=e130]
+        - generic [ref=e134]:
+          - paragraph [ref=e135]
+          - paragraph [ref=e136]
+        - generic [ref=e140]:
+          - paragraph [ref=e141]
+          - paragraph [ref=e142]
+        - generic [ref=e146]:
+          - paragraph [ref=e147]
+          - paragraph [ref=e148]
+      - generic [ref=e150]:
+        - generic [ref=e151]:
+          - generic [ref=e152]: New Arrivals
+          - heading "Step Up Your Game with Our Latest Drops" [level=2] [ref=e153]
+        - generic [ref=e154]:
+          - generic [ref=e155]:
+            - link [ref=e156] [cursor=pointer]:
+              - /url: combo
+            - generic [ref=e157]: Featured
+            - generic [ref=e158]:
+              - generic [ref=e159]: Bundle & Save
+              - heading "Combo Collections" [level=3] [ref=e160]:
+                - link "Combo Collections" [ref=e161] [cursor=pointer]:
+                  - /url: combo
+              - link "Shop now →" [ref=e162] [cursor=pointer]:
+                - /url: combo
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - link [ref=e165] [cursor=pointer]:
+                - /url: womens
+              - generic [ref=e166]:
+                - generic [ref=e167]: For Her
+                - heading "Womens Collections" [level=3] [ref=e168]:
+                  - link "Womens Collections" [ref=e169] [cursor=pointer]:
+                    - /url: womens
+                - link "Shop now →" [ref=e170] [cursor=pointer]:
+                  - /url: womens
+            - generic [ref=e171]:
+              - link [ref=e172] [cursor=pointer]:
+                - /url: mens
+              - generic [ref=e173]:
+                - generic [ref=e174]: For Him
+                - heading "Mens Collections" [level=3] [ref=e175]:
+                  - link "Mens Collections" [ref=e176] [cursor=pointer]:
+                    - /url: mens
+                - link "Shop now →" [ref=e177] [cursor=pointer]:
+                  - /url: mens
+      - generic [ref=e179]:
+        - generic [ref=e181]: New Drop
+        - generic [ref=e182]:
+          - generic [ref=e183]: Bold Collections
+          - heading "Get Ready for our new Bold Collections!" [level=2] [ref=e184]
+          - paragraph [ref=e185]: Introducing Our New Bold Collections! Elevate your style with daring designs and vibrant statements. Explore striking patterns and bold colors that redefine your wardrobe. Get ready to embrace the extraordinary!
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]: 200+
+              - generic [ref=e189]: New Styles
+            - generic [ref=e190]:
+              - generic [ref=e191]: 50+
+              - generic [ref=e192]: Bold Prints
+            - generic [ref=e193]:
+              - generic [ref=e194]: 100%
+              - generic [ref=e195]: Fresh Drops
+          - link "View Collections →" [ref=e196] [cursor=pointer]:
+            - /url: wellness
+            - text: View Collections
+            - generic [ref=e197]: →
+      - generic [ref=e205]:
+        - generic [ref=e209]:
+          - paragraph [ref=e210]
+          - paragraph [ref=e211]
+        - generic [ref=e215]:
+          - paragraph [ref=e216]
+          - paragraph [ref=e217]
+        - generic [ref=e221]:
+          - paragraph [ref=e222]
+          - paragraph [ref=e223]
+        - generic [ref=e227]:
+          - paragraph [ref=e228]
+          - paragraph [ref=e229]
+      - generic [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]: New Additions
+          - heading "The game with our new additions!" [level=2] [ref=e234]
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - link [ref=e238] [cursor=pointer]:
+              - /url: active-wear
+            - generic [ref=e239]: Active Wear
+            - generic [ref=e240]: "01"
+            - generic [ref=e241]:
+              - generic [ref=e242]: Men's Drop
+              - heading "Our Collections" [level=3] [ref=e243]
+              - link "Shop now →" [ref=e244] [cursor=pointer]:
+                - /url: active-wear
+                - text: Shop now
+                - generic [ref=e245]: →
+          - generic [ref=e246]:
+            - link [ref=e247] [cursor=pointer]:
+              - /url: active-wear-female
+            - generic [ref=e248]: Active Wear
+            - generic [ref=e249]: "02"
+            - generic [ref=e250]:
+              - generic [ref=e251]: Women's Drop
+              - heading "Our Collections" [level=3] [ref=e252]
+              - link "Shop now →" [ref=e253] [cursor=pointer]:
+                - /url: active-wear-female
+                - text: Shop now
+                - generic [ref=e254]: →
+      - generic [ref=e262]:
+        - generic [ref=e266]:
+          - paragraph [ref=e267]
+          - paragraph [ref=e268]
+        - generic [ref=e272]:
+          - paragraph [ref=e273]
+          - paragraph [ref=e274]
+        - generic [ref=e278]:
+          - paragraph [ref=e279]
+          - paragraph [ref=e280]
+        - generic [ref=e284]:
+          - paragraph [ref=e285]
+          - paragraph [ref=e286]
+      - generic [ref=e289]:
+        - generic [ref=e291]: New Drop
+        - generic [ref=e292]:
+          - generic [ref=e293]: Streetwear Drop
+          - heading "Wear the Streets, Own the Game" [level=2] [ref=e294]
+          - paragraph [ref=e295]: Urban Flaky's new streetwear drop is here — oversized fits, bold graphics, and fearless colorways built for the ones who move different. This isn't just clothing, it's a statement. Drop your old drip and step into something real.
+          - generic [ref=e296]:
+            - generic [ref=e297]:
+              - generic [ref=e298]: 150+
+              - generic [ref=e299]: Street Styles
+            - generic [ref=e300]:
+              - generic [ref=e301]: 40+
+              - generic [ref=e302]: Bold Graphics
+            - generic [ref=e303]:
+              - generic [ref=e304]: 100%
+              - generic [ref=e305]: Urban Vibes
+          - link "Shop the Drop →" [ref=e306] [cursor=pointer]:
+            - /url: mens
+            - text: Shop the Drop
+            - generic [ref=e307]: →
+      - generic [ref=e315]:
+        - generic [ref=e319]:
+          - paragraph [ref=e320]
+          - paragraph [ref=e321]
+        - generic [ref=e325]:
+          - paragraph [ref=e326]
+          - paragraph [ref=e327]
+        - generic [ref=e331]:
+          - paragraph [ref=e332]
+          - paragraph [ref=e333]
+        - generic [ref=e337]:
+          - paragraph [ref=e338]
+          - paragraph [ref=e339]
+    - generic [ref=e343]:
+      - generic [ref=e344]:
+        - text: 
+        - generic [ref=e345]:
+          - paragraph [ref=e346]: Free Shipping
+          - paragraph [ref=e347]: Enjoy free shipping on all orders
+      - generic [ref=e348]:
+        - text: 
+        - generic [ref=e349]:
+          - paragraph [ref=e350]: Product Replace
+          - paragraph [ref=e351]: Easy Product Replacement Available!
+      - generic [ref=e352]:
+        - text: 
+        - generic [ref=e353]:
+          - paragraph [ref=e354]: Emi Available
+          - paragraph [ref=e355]: No cost EMI available on all major credit cards
+      - generic [ref=e356]:
+        - text: 
+        - generic [ref=e357]:
+          - paragraph [ref=e358]: 24/7 Support
+          - paragraph [ref=e359]: Dedicated 24/7 support via chat and email
+    - generic [ref=e360]:
+      - generic [ref=e361]:
+        - generic [ref=e362]:
+          - img [ref=e364]
+          - generic [ref=e366]:
+            - generic [ref=e367]: Drop Your Email. Stay Fresh.
+            - generic [ref=e368]: New drops, exclusive deals & streetwear news — no spam, ever.
+        - generic [ref=e369]:
+          - textbox "Email" [ref=e370]:
+            - /placeholder: your@email.com
+          - button "Subscribe" [ref=e371] [cursor=pointer]
+          - status [ref=e372]
+      - contentinfo [ref=e373]:
+        - generic [ref=e374]:
+          - generic [ref=e375]:
+            - link "Urbanflaky" [ref=e376] [cursor=pointer]:
+              - /url: http://urbanflaky.test
+              - generic [ref=e377]: UF
+              - generic [ref=e378]:
+                - generic [ref=e379]: Urban Flaky
+                - generic [ref=e380]: Premium Streetwear
+            - paragraph [ref=e381]: Bold threads for bold people. We make streetwear that hits different — designed in India, worn everywhere.
+            - generic [ref=e382]:
+              - link "Instagram" [ref=e383] [cursor=pointer]:
+                - /url: https://instagram.com/urbanflaky
+                - img [ref=e384]
+              - link "Facebook" [ref=e386] [cursor=pointer]:
+                - /url: https://facebook.com/urbanflaky
+                - img [ref=e387]
+              - link "X / Twitter" [ref=e389] [cursor=pointer]:
+                - /url: https://x.com/urbanflaky
+                - img [ref=e390]
+          - generic [ref=e392]:
+            - generic [ref=e393]: About Us
+            - list [ref=e394]:
+              - listitem [ref=e395]:
+                - link "Contact Us" [ref=e396] [cursor=pointer]:
+                  - /url: /contact-us
+              - listitem [ref=e397]:
+                - link "Customer Service" [ref=e398] [cursor=pointer]:
+                  - /url: /page/customer-service
+              - listitem [ref=e399]:
+                - link "What's New" [ref=e400] [cursor=pointer]:
+                  - /url: /page/whats-new
+              - listitem [ref=e401]:
+                - link "Terms of Use" [ref=e402] [cursor=pointer]:
+                  - /url: /page/terms-of-use
+              - listitem [ref=e403]:
+                - link "Terms & Conditions" [ref=e404] [cursor=pointer]:
+                  - /url: /page/terms-conditions
+          - generic [ref=e405]:
+            - generic [ref=e406]: Privacy Policy
+            - list [ref=e407]:
+              - listitem [ref=e408]:
+                - link "Payment Policy" [ref=e409] [cursor=pointer]:
+                  - /url: /page/payment-policy
+              - listitem [ref=e410]:
+                - link "Shipping Policy" [ref=e411] [cursor=pointer]:
+                  - /url: /page/shipping-policy
+              - listitem [ref=e412]:
+                - link "Refund Policy" [ref=e413] [cursor=pointer]:
+                  - /url: /page/refund-policy
+              - listitem [ref=e414]:
+                - link "Return Policy" [ref=e415] [cursor=pointer]:
+                  - /url: /page/return-policy
+          - generic [ref=e416]:
+            - generic [ref=e417]: Contact
+            - generic [ref=e418]:
+              - img [ref=e420]
+              - generic [ref=e422]:
+                - generic [ref=e423]: Address
+                - generic [ref=e424]:
+                  - text: H.No. 402, Krishna Colony, Bari road
+                  - text: Dholpur, RJ 328001
+            - generic [ref=e425]:
+              - img [ref=e427]
+              - generic [ref=e429]:
+                - generic [ref=e430]: Email
+                - link "support@urbanflaky.in" [ref=e432] [cursor=pointer]:
+                  - /url: mailto:support@urbanflaky.in
+        - generic [ref=e433]:
+          - paragraph [ref=e434]: © 2026 Urban Flaky™ · Gabha Enterprise · All rights reserved.
+          - generic:
+            - generic [ref=e435]: Made in India
+            - generic [ref=e436]: Secure Checkout
+          - generic [ref=e437]:
+            - link "Privacy" [ref=e438] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/privacy-policy
+            - link "Terms" [ref=e439] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/terms-conditions
+            - link "Sitemap" [ref=e440] [cursor=pointer]:
+              - /url: http://urbanflaky.test/sitemap.xml
