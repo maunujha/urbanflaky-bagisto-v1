@@ -33,7 +33,7 @@
                             <button
                                 v-if="attribute.label.toLowerCase().includes('size')"
                                 type="button"
-                                style="font-size:13px;color:#666;text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
+                                style="font-size:13px;color:var(--uf-accent);text-decoration:underline;text-underline-offset:3px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
                                 @click="openSizeGuide(attribute)"
                             >Size Guide ↗</button>
                         </div>
@@ -42,7 +42,7 @@
                         <v-field
                             as="select"
                             :name="'super_attribute[' + attribute.id + ']'"
-                            class="custom-select mb-3 block w-full cursor-pointer rounded-lg border border-zinc-200 bg-white px-5 py-3 text-base text-zinc-500 focus:border-blue-500 focus:ring-blue-500"
+                            class="custom-select mb-3 block w-full cursor-pointer rounded-lg border border-white/10 bg-uf-surface px-5 py-3 text-base text-zinc-500 focus:border-blue-500 focus:ring-blue-500"
                             :class="[errors['super_attribute[' + attribute.id + ']'] ? 'border border-red-500' : '']"
                             :id="'attribute_' + attribute.id"
                             v-model="attribute.selectedValue"
@@ -71,7 +71,7 @@
                             <button
                                 v-if="attribute.label.toLowerCase().includes('size')"
                                 type="button"
-                                style="font-size:13px;color:#666;text-decoration:underline;text-underline-offset:2px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
+                                style="font-size:13px;color:var(--uf-accent);text-decoration:underline;text-underline-offset:3px;background:none;border:none;cursor:pointer;padding:0;line-height:1;"
                                 @click="openSizeGuide(attribute)"
                             >Size Guide ↗</button>
                         </div>
@@ -82,8 +82,8 @@
                                 <template v-if="option.id">
                                     <!-- Color Swatch Options -->
                                     <label
-                                        class="relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 focus:outline-none"
-                                        :class="{'ring-2 ring-gray-900' : option.id == attribute.selectedValue}"
+                                        class="relative -m-0.5 flex cursor-pointer items-center justify-center rounded-full p-0.5 transition-shadow focus:outline-none"
+                                        :class="{'ring-2 ring-offset-2 ring-offset-[#0a0a0a] ring-[#c7eb31]' : option.id == attribute.selectedValue}"
                                         :title="option.label"
                                         v-if="attribute.swatch_type == 'color'"
                                     >
@@ -91,6 +91,7 @@
                                             type="radio"
                                             :name="'super_attribute[' + attribute.id + ']'"
                                             :value="option.id"
+                                            v-model="attribute.selectedValue"
                                             v-slot="{ field }"
                                             rules="required"
                                             :label="attribute.label"
@@ -117,7 +118,7 @@
 
                                     <!-- Image Swatch Options -->
                                     <label 
-                                        class="group relative flex h-[60px] w-[60px] cursor-pointer items-center justify-center overflow-hidden rounded-md border bg-white font-medium uppercase text-gray-900 hover:bg-gray-50 sm:py-6"
+                                        class="group relative flex h-[60px] w-[60px] cursor-pointer items-center justify-center overflow-hidden rounded-md border bg-uf-surface font-medium uppercase text-white hover:bg-white/[0.06] sm:py-6"
                                         :class="{'border-navyBlue' : option.id == attribute.selectedValue }"
                                         :title="option.label"
                                         v-if="attribute.swatch_type == 'image'"
@@ -152,8 +153,8 @@
 
                                     <!-- Text Swatch Options -->
                                     <label 
-                                        class="group relative flex h-fit min-w-fit cursor-pointer items-center justify-center rounded-full border border-gray-300 bg-white px-5 py-3 font-medium uppercase text-gray-900 hover:bg-gray-50 max-sm:h-fit max-sm:w-fit max-sm:px-3.5 max-sm:py-2"
-                                        :class="{'border-transparent !bg-navyBlue text-white' : option.id == attribute.selectedValue }"
+                                        class="group relative flex h-fit min-w-fit cursor-pointer items-center justify-center rounded-full border border-white/15 bg-uf-surface px-5 py-3 font-medium uppercase text-white hover:bg-white/[0.06] max-sm:h-fit max-sm:w-fit max-sm:px-3.5 max-sm:py-2"
+                                        :class="{'border-transparent !bg-uf-accent !text-black' : option.id == attribute.selectedValue }"
                                         :title="option.label"
                                         v-if="attribute.swatch_type == 'text'"
                                     >
@@ -193,7 +194,7 @@
                             </template>
 
                             <span
-                                class="text-sm text-gray-600 max-sm:text-xs"
+                                class="text-sm text-zinc-400 max-sm:text-xs"
                                 v-if="! attribute.options.length"
                             >
                                 @lang('shop::app.products.view.type.configurable.select-above-options')
@@ -215,45 +216,50 @@
                 <teleport to="body">
                     <div
                         v-if="sizeGuideOpen"
-                        style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;"
+                        style="position:fixed;inset:0;background:rgba(0,0,0,0.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;"
                         @click.self="closeSizeGuide"
                     >
-                        <div style="background:#fff;border-radius:12px;max-width:480px;width:100%;padding:28px 24px 24px;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+                        <div style="background:var(--uf-surface);color:var(--uf-text);border:1px solid var(--uf-border);border-radius:16px;max-width:480px;width:100%;padding:26px 24px 22px;position:relative;max-height:90vh;overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,0.6);">
                             <!-- Close button -->
                             <button
                                 type="button"
-                                style="position:absolute;top:14px;right:16px;font-size:20px;line-height:1;background:none;border:none;cursor:pointer;color:#888;padding:4px;"
+                                style="position:absolute;top:14px;right:14px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:17px;line-height:1;background:var(--uf-surface-2);border:1px solid var(--uf-border);border-radius:50%;cursor:pointer;color:var(--uf-white);transition:border-color .2s ease,color .2s ease;"
                                 aria-label="Close size guide"
+                                @mouseover="$event.currentTarget.style.borderColor='var(--uf-accent)';$event.currentTarget.style.color='var(--uf-accent)'"
+                                @mouseout="$event.currentTarget.style.borderColor='var(--uf-border)';$event.currentTarget.style.color='var(--uf-white)'"
                                 @click="closeSizeGuide"
                             >✕</button>
 
-                            <h3 style="font-size:17px;font-weight:700;margin-bottom:4px;color:#111;">Size Guide</h3>
-                            <p style="font-size:12px;color:#888;margin-bottom:16px;">All measurements in centimetres (cm)</p>
+                            <span style="display:inline-block;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--uf-accent);margin-bottom:8px;">Urbanflaky Fit</span>
+                            <h3 style="font-size:20px;font-weight:700;margin-bottom:4px;color:var(--uf-white);letter-spacing:-.01em;">Size Guide</h3>
+                            <p style="font-size:12px;color:var(--uf-muted);margin-bottom:18px;">All measurements in centimetres (cm)</p>
 
-                            <table style="width:100%;border-collapse:collapse;font-size:14px;">
-                                <thead>
-                                    <tr style="background:#f5f5f5;">
-                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Size</th>
-                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Chest</th>
-                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Shoulder</th>
-                                        <th style="padding:10px 12px;text-align:left;border-bottom:2px solid #e0e0e0;font-weight:600;color:#333;">Length</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr
-                                        v-for="row in sizeChartRows"
-                                        :key="row.size"
-                                        :style="isSelectedSize(row.size) ? 'background:#c7eb31;font-weight:600;' : 'background:#fff;'"
-                                    >
-                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.size }}</td>
-                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.chest }}</td>
-                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.shoulder }}</td>
-                                        <td style="padding:10px 12px;border-bottom:1px solid #f0f0f0;">@{{ row.length }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div style="border:1px solid var(--uf-border);border-radius:12px;overflow:hidden;">
+                                <table style="width:100%;border-collapse:collapse;font-size:14px;">
+                                    <thead>
+                                        <tr style="background:var(--uf-surface-2);">
+                                            <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--uf-muted);">Size</th>
+                                            <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--uf-muted);">Chest</th>
+                                            <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--uf-muted);">Shoulder</th>
+                                            <th style="padding:11px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--uf-muted);">Length</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="row in sizeChartRows"
+                                            :key="row.size"
+                                            :style="isSelectedSize(row.size) ? 'background:rgba(199,235,49,0.16);font-weight:700;color:var(--uf-accent);' : ''"
+                                        >
+                                            <td style="padding:11px 14px;border-top:1px solid var(--uf-border);">@{{ row.size }}</td>
+                                            <td style="padding:11px 14px;border-top:1px solid var(--uf-border);">@{{ row.chest }}</td>
+                                            <td style="padding:11px 14px;border-top:1px solid var(--uf-border);">@{{ row.shoulder }}</td>
+                                            <td style="padding:11px 14px;border-top:1px solid var(--uf-border);">@{{ row.length }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                            <p style="font-size:11px;color:#aaa;margin-top:14px;line-height:1.5;">Measurements are approximate and may vary slightly by style.</p>
+                            <p style="font-size:11px;color:var(--uf-muted);margin-top:14px;line-height:1.5;">Measurements are approximate and may vary slightly by style.</p>
                         </div>
                     </div>
                 </teleport>
@@ -264,6 +270,9 @@
             let galleryImages = @json(product_image()->getGalleryImages($product));
 
             const defaultProductImages = Object.freeze(@json(product_image()->getGalleryImages($product)));
+
+            // Per-variant on-hand stock { variantId: qty } — powers the live "Only X left" badge.
+            const variantStock = @json($product->variants->mapWithKeys(fn ($v) => [$v->id => (int) $v->inventories->sum('qty')]));
 
             app.component('v-product-configurable-options', {
                 template: '#v-product-configurable-options-template',
@@ -329,10 +338,24 @@
                     }
 
                     this.preloadVariantImages();
+
+                    // Pre-select a default variant on load so price, gallery and the
+                    // low-stock badge reflect a concrete variant immediately.
+                    this.$nextTick(() => {
+                        this.selectDefaultVariant();
+                    });
                 },
 
                 methods: {
                     configure(attribute, optionId) {
+                        // Re-selecting the already-active option is a no-op so it doesn't
+                        // needlessly reset the dependent attributes (e.g. size/sleeve).
+                        if (optionId && attribute.configuredValue === optionId) {
+                            return;
+                        }
+
+                        attribute.configuredValue = optionId;
+
                         this.possibleOptionVariant = this.getPossibleOptionVariant(attribute, optionId);
 
                         if (optionId) {
@@ -418,6 +441,8 @@
                         attribute.childAttributes.forEach(function (set) {
                             set.selectedValue = null;
 
+                            set.configuredValue = null;
+
                             set.disabled = true;
                         });
                     },
@@ -428,6 +453,8 @@
                         }
 
                         attribute.selectedValue = null;
+
+                        attribute.configuredValue = null;
 
                         this.selectedOptionVariant = null;
                     },
@@ -468,6 +495,8 @@
                                 price:     displayPrice,
                                 variantId: this.possibleOptionVariant,
                             });
+
+                            this.updateStockBadge(this.possibleOptionVariant);
                         } else {
                             if (priceLabel) priceLabel.style.display = 'inline-block';
 
@@ -481,6 +510,44 @@
                                 price:     null,
                                 variantId: null,
                             });
+
+                            this.updateStockBadge(0);
+                        }
+                    },
+
+                    selectDefaultVariant () {
+                        // Walk attributes in cascade order, choosing the first available
+                        // option at each level until a complete variant is resolved.
+                        for (let i = 0; i < this.childAttributes.length; i++) {
+                            let attribute = this.childAttributes[i];
+
+                            let option = attribute.options.find(o => o.id);
+
+                            if (! option) {
+                                break;
+                            }
+
+                            attribute.selectedValue = option.id;
+
+                            this.configure(attribute, option.id);
+                        }
+                    },
+
+                    updateStockBadge (variantId) {
+                        let badge = document.getElementById('low-stock-badge');
+                        let text  = document.getElementById('low-stock-text');
+
+                        if (! badge || ! text) {
+                            return;
+                        }
+
+                        let qty = variantId ? (variantStock[variantId] ?? 0) : 0;
+
+                        if (qty >= 1 && qty <= 15) {
+                            text.textContent = 'Only ' + qty + ' left in stock';
+                            badge.style.display = 'inline-flex';
+                        } else {
+                            badge.style.display = 'none';
                         }
                     },
 

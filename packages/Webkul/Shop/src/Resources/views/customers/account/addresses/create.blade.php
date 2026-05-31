@@ -325,7 +325,7 @@
                         >
 
                         <label
-                            class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-navyBlue peer-checked:text-navyBlue"
+                            class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-uf-accent peer-checked:text-uf-accent"
                             for="default_address"
                         >
                         </label>

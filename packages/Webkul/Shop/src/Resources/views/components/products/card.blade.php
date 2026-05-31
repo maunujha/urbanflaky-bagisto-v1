@@ -83,63 +83,6 @@
                     </button>
                 </div>
 
-                <!-- Bottom overlay: variants + CTA (desktop hover only) -->
-                <div class="uf-hover-panel">
-
-                    <!-- Variants: only rendered for configurable products with actual options -->
-                    <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
-                        <template v-for="attribute in product.super_attributes" :key="attribute.id">
-                            <div class="uf-swatch-row" v-if="attribute.swatch_type === 'color'">
-                                <span
-                                    v-for="opt in attribute.options"
-                                    :key="opt.id"
-                                    class="uf-color-dot"
-                                    :style="{ background: opt.swatch_value || '#ccc' }"
-                                    :class="{ 'uf-color-dot-active': selectedAttributes[attribute.id] == opt.id }"
-                                    :title="opt.label"
-                                    @click.stop="selectAttribute(attribute.id, opt.id)"
-                                ></span>
-                            </div>
-                            <div class="uf-size-row" v-else>
-                                <span
-                                    v-for="opt in attribute.options"
-                                    :key="opt.id"
-                                    class="uf-size-pill"
-                                    :class="{ 'uf-size-active': selectedAttributes[attribute.id] == opt.id }"
-                                    @click.stop="selectAttribute(attribute.id, opt.id)"
-                                >@{{ opt.label }}</span>
-                            </div>
-                        </template>
-                    </template>
-                    <!-- No fallback pills — simple products show no variants -->
-
-                    <!-- Inline error — shows below variants, above CTAs -->
-                    <p class="uf-variant-error" v-if="variantError">@{{ variantError }}</p>
-
-                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.before') !!}
-
-                        <div class="uf-cta-row">
-                            <button
-                                type="button"
-                                class="uf-btn-atc"
-                                :disabled="! product.is_saleable || isAddingToCart"
-                                @click.stop="addToCart()"
-                            >
-                                <span v-if="isAddingToCart">···</span>
-                                <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="uf-btn-buy"
-                                :disabled="! product.is_saleable || isAddingToCart"
-                                @click.stop="buyNow()"
-                            >Buy Now</button>
-                        </div>
-
-                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.after') !!}
-                    @endif
-                </div>
                 <div class="card-rating">
                 <!-- Ratings badge (bottom-left) -->
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.before') !!}
@@ -200,17 +143,93 @@
                 <!-- Subtle trust strip (single line, minimal) -->
                 <div class="uf-delivery-strip">
                     <span class="uf-ds-item">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="1" y="6" width="13" height="11" rx="1"/>
+                            <path d="M14 9h4l3 3v5h-7"/>
+                            <circle cx="6" cy="19" r="2"/>
+                            <circle cx="17" cy="19" r="2"/>
+                        </svg>
                         Free Delivery
                     </span>
                     <span class="uf-ds-sep">|</span>
                     <span class="uf-ds-item">
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.86"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="1 4 1 10 7 10"/>
+                            <path d="M3.51 15a9 9 0 1 0 .49-3.86"/>
+                        </svg>
                         7-Day Returns
                     </span>
                 </div>
             </div>
             <!-- /uf-card-content -->
+
+            <!-- Desktop Hover Drawer (variants + CTAs) — sits over the card on hover -->
+            <div class="uf-hover-panel">
+                <div class="uf-drawer-body">
+                    <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
+                        <template v-for="attribute in product.super_attributes" :key="attribute.id">
+                            <div class="uf-variant-section">
+                                <p class="uf-variant-label" v-text="attribute.label"></p>
+                                <div class="uf-swatch-row" v-if="attribute.swatch_type === 'color'">
+                                    <span
+                                        v-for="opt in attribute.options"
+                                        :key="opt.id"
+                                        class="uf-color-dot"
+                                        :style="{ background: opt.swatch_value || '#ccc' }"
+                                        :class="{ 'uf-color-dot-active': selectedAttributes[attribute.id] == opt.id }"
+                                        :title="opt.label"
+                                        @click.stop="selectAttribute(attribute.id, opt.id)"
+                                    ></span>
+                                </div>
+                                <div class="uf-size-row" v-else>
+                                    <span
+                                        v-for="opt in attribute.options"
+                                        :key="opt.id"
+                                        class="uf-size-pill"
+                                        :class="{ 'uf-size-active': selectedAttributes[attribute.id] == opt.id }"
+                                        @click.stop="selectAttribute(attribute.id, opt.id)"
+                                    >@{{ opt.label }}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </template>
+
+                    <p class="uf-variant-error" v-if="variantError">@{{ variantError }}</p>
+
+                    <div class="uf-drawer-divider"></div>
+
+                    <div class="uf-drawer-price" v-html="product.price_html"></div>
+
+                    @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.before') !!}
+
+                        <div class="uf-cta-row">
+                            <button
+                                type="button"
+                                class="uf-btn-atc"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click.stop="addToCart()"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                    <line x1="3" y1="6" x2="21" y2="6"/>
+                                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                                </svg>
+                                <span v-if="isAddingToCart">···</span>
+                                <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                            </button>
+                            <button
+                                type="button"
+                                class="uf-btn-buy"
+                                :disabled="! product.is_saleable || isAddingToCart"
+                                @click.stop="buyNow()"
+                            >Buy Now</button>
+                        </div>
+
+                        {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.after') !!}
+                    @endif
+                </div>
+            </div>
 
             <!-- Mobile Variant Bottom Sheet -->
             <teleport to="body" v-if="variantSheetOpen">
@@ -419,7 +438,7 @@
                     </p>
 
                     <p
-                        class="absolute top-5 inline-block rounded-[44px] bg-navyBlue px-2.5 text-sm text-white ltr:left-5 max-sm:ltr:left-2 rtl:right-5"
+                        class="absolute top-5 inline-block rounded-[44px] bg-uf-accent px-2.5 text-sm font-semibold text-black ltr:left-5 max-sm:ltr:left-2 rtl:right-5"
                         v-else-if="product.is_new"
                     >
                         @lang('shop::app.components.products.card.new')

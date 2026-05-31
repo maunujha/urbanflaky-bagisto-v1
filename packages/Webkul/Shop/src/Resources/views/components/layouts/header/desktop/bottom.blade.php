@@ -106,7 +106,7 @@
                             </p>
                         </div>
 
-                        <p class="w-full mt-3 border border-zinc-200"></p>
+                        <p class="w-full mt-3 border-t border-white/10"></p>
 
                         {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.customers_action.before') !!}
 
@@ -148,20 +148,20 @@
                             </p>
                         </div>
 
-                        <p class="w-full mt-3 border border-zinc-200"></p>
+                        <p class="w-full mt-3 border-t border-white/10"></p>
 
                         <div class="mt-2.5 grid gap-1 pb-2.5">
                             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.profile_dropdown.links.before') !!}
 
                             <a
-                                class="px-5 py-2 text-base cursor-pointer hover:bg-gray-100"
+                                class="px-5 py-2 text-base cursor-pointer rounded-sm transition-colors hover:bg-white/5 hover:text-uf-accent"
                                 href="{{ route('shop.customers.account.profile.index') }}"
                             >
                                 @lang('shop::app.components.layouts.header.desktop.bottom.profile')
                             </a>
 
                             <a
-                                class="px-5 py-2 text-base cursor-pointer hover:bg-gray-100"
+                                class="px-5 py-2 text-base cursor-pointer rounded-sm transition-colors hover:bg-white/5 hover:text-uf-accent"
                                 href="{{ route('shop.customers.account.orders.index') }}"
                             >
                                 @lang('shop::app.components.layouts.header.desktop.bottom.orders')
@@ -169,7 +169,7 @@
 
                             @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
                                 <a
-                                    class="px-5 py-2 text-base cursor-pointer hover:bg-gray-100"
+                                    class="px-5 py-2 text-base cursor-pointer rounded-sm transition-colors hover:bg-white/5 hover:text-uf-accent"
                                     href="{{ route('shop.customers.account.wishlist.index') }}"
                                 >
                                     @lang('shop::app.components.layouts.header.desktop.bottom.wishlist')
@@ -185,7 +185,7 @@
                                 />
 
                                 <a
-                                    class="px-5 py-2 text-base cursor-pointer hover:bg-gray-100"
+                                    class="px-5 py-2 text-base cursor-pointer rounded-sm transition-colors hover:bg-white/5 hover:text-uf-accent"
                                     href="{{ route('shop.customer.session.destroy') }}"
                                     onclick="event.preventDefault(); document.getElementById('customerLogout').submit();"
                                 >
@@ -733,7 +733,7 @@
             >
                 <x-slot:toggle></x-slot>
 
-                <x-slot:header class="border-b border-gray-200">
+                <x-slot:header class="border-b border-white/10">
                     <div class="flex items-center justify-between w-full">
                         <p class="text-xl font-medium">
                             @lang('shop::app.components.layouts.header.desktop.bottom.categories')
@@ -760,10 +760,10 @@
                                         :key="category.id"
                                         :class="{'mb-2': category.children && category.children.length}"
                                     >
-                                        <div class="flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-gray-100">
+                                        <div class="group flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-white/5">
                                             <a
                                                 :href="category.url"
-                                                class="text-base font-medium text-black"
+                                                class="text-base font-medium text-white transition-colors group-hover:text-uf-accent"
                                             >
                                                 @{{ category.name }}
                                             </a>
@@ -776,19 +776,19 @@
                                                 :key="secondLevelCategory.id"
                                             >
                                                 <div
-                                                    class="flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-gray-100"
+                                                    class="group flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-white/5"
                                                     @click="showThirdLevel(secondLevelCategory, category, $event)"
                                                 >
                                                     <a
                                                         :href="secondLevelCategory.url"
-                                                        class="text-sm font-normal"
+                                                        class="text-sm font-normal text-zinc-300 transition-colors group-hover:text-uf-accent"
                                                     >
                                                         @{{ secondLevelCategory.name }}
                                                     </a>
 
                                                     <span
                                                         v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                                        class="icon-arrow-right rtl:icon-arrow-left"
+                                                        class="icon-arrow-right rtl:icon-arrow-left text-zinc-500 transition-colors group-hover:text-uf-accent"
                                                     ></span>
                                                 </div>
                                             </div>
@@ -802,15 +802,15 @@
                                 class="flex-shrink-0 w-full h-full"
                                 v-if="currentViewLevel === 'third'"
                             >
-                                <div class="px-6 py-4 border-b border-gray-200">
+                                <div class="px-6 py-4 border-b border-white/10">
                                     <button
                                         @click="goBackToMainView"
-                                        class="flex items-center justify-center gap-2 focus:outline-none"
+                                        class="flex items-center justify-center gap-2 text-white transition-colors hover:text-uf-accent focus:outline-none"
                                         aria-label="Go back"
                                     >
                                         <span class="text-lg icon-arrow-left rtl:icon-arrow-right"></span>
 
-                                        <p class="text-base font-medium text-black">
+                                        <p class="text-base font-medium">
                                             @lang('shop::app.components.layouts.header.desktop.bottom.back-button')
                                         </p>
                                     </button>
@@ -825,7 +825,7 @@
                                     >
                                         <a
                                             :href="thirdLevelCategory.url"
-                                            class="block px-6 py-2 text-sm transition-colors duration-200 hover:bg-gray-100"
+                                            class="block px-6 py-2 text-sm text-zinc-300 transition-colors duration-200 hover:bg-white/5 hover:text-uf-accent"
                                         >
                                             @{{ thirdLevelCategory.name }}
                                         </a>

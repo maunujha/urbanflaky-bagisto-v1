@@ -62,7 +62,7 @@
                                     aria-label="{{ $review->title }}"
                                 >
                                     <!-- For Desktop View -->
-                                    <div class="flex gap-5 rounded-xl border border-zinc-200 p-6 max-md:hidden max-md:gap-1.5">
+                                    <div class="flex gap-5 rounded-xl border border-white/10 p-6 max-md:hidden max-md:gap-1.5">
                                         {!! view_render_event('bagisto.shop.customers.account.reviews.image.before', ['reviews' => $reviews]) !!}
 
                                         <x-shop::media.images.lazy
@@ -123,7 +123,7 @@
                                     </div>
 
                                     <!-- For Mobile View -->
-                                    <div class="flex gap-5 rounded-xl border border-zinc-200 p-6 max-md:grid max-md:gap-2.5 max-md:p-4 md:hidden">
+                                    <div class="flex gap-5 rounded-xl border border-white/10 p-6 max-md:grid max-md:gap-2.5 max-md:p-4 md:hidden">
                                         <div class="flex gap-2.5">
                                             {!! view_render_event('bagisto.shop.customers.account.reviews.image.before', ['reviews' => $reviews]) !!}
     

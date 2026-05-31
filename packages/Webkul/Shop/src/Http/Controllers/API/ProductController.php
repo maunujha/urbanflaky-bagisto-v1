@@ -101,9 +101,12 @@ class ProductController extends APIController
     {
         $product = $this->productRepository->findOrFail($id);
 
-        $relatedProducts = $product->related_products()
-            ->take(core()->getConfigData('catalog.products.product_view_page.no_of_related_products'))
-            ->get();
+        /**
+         * Paginate so the storefront grid can progressively load related
+         * products in batches (4 rows × 4 cards = 16 per page) via "Load More",
+         * instead of fetching the whole dataset at once.
+         */
+        $relatedProducts = $product->related_products()->paginate(16);
 
         return ProductResource::collection($relatedProducts);
     }

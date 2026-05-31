@@ -105,7 +105,7 @@
             </x-shop::datagrid.toolbar.pagination>                
 
             <div class="hidden max-md:block ltr:pl-2.5 rtl:pr-2.5">
-                <p class="text-sm font-light text-gray-800 max-md:w-full">
+                <p class="text-sm font-light text-zinc-300 max-md:w-full">
                     @{{ "@lang('shop::app.components.datagrid.toolbar.results')".replace(':total', available.meta.total) }}
                 </p>
             </div>

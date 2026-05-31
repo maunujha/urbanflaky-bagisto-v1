@@ -62,7 +62,7 @@
     
                     <template v-else>
                         <template v-for="record in available.records">
-                            <div class="mb-4 w-full rounded-lg border p-4 transition-all last:mb-0 hover:bg-gray-50">
+                            <div class="mb-4 w-full rounded-lg border p-4 transition-all last:mb-0 hover:bg-white/[0.03]">
                                 <div class="block space-y-3">
                                     <!-- Row 1 -->
                                     <div class="flex items-start justify-between">
@@ -71,7 +71,7 @@
                                                 @lang('shop::app.customers.account.rma.index.datagrid.id')
                                             </span>
                                             
-                                            <span class="text-sm font-semibold text-gray-900">
+                                            <span class="text-sm font-semibold text-white">
                                                 #@{{ record.id }}
                                             </span>
                                         </div>
@@ -81,7 +81,7 @@
                                                 @lang('shop::app.customers.account.rma.index.datagrid.order-ref')
                                             </span>
                                             
-                                            <span class="text-sm font-semibold text-gray-900"
+                                            <span class="text-sm font-semibold text-white"
                                                 v-html="record.order_id">
                                             </span>
                                         </div>
@@ -94,7 +94,7 @@
                                                 @lang('shop::app.customers.account.rma.index.datagrid.rma-status')
                                             </span>
                                             
-                                            <span class="text-sm font-semibold text-gray-900"
+                                            <span class="text-sm font-semibold text-white"
                                                 v-html="record.title">
                                             </span>
                                         </div>
@@ -104,7 +104,7 @@
                                                 @lang('shop::app.customers.account.rma.index.datagrid.quantity')
                                             </span>
 
-                                            <span class="text-sm font-semibold text-gray-900"
+                                            <span class="text-sm font-semibold text-white"
                                                 v-html="record.total_quantity">
                                             </span>
                                         </div>
@@ -117,7 +117,7 @@
                                                 @lang('shop::app.customers.account.rma.index.datagrid.create')
                                             </span>
                                             
-                                            <p class="text-sm text-gray-900">
+                                            <p class="text-sm text-white">
                                                 @{{ record.created_at }}
                                             </p>
                                         </div>

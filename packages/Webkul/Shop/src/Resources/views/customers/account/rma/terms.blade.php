@@ -28,7 +28,7 @@
                     />
 
                     <span 
-                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl peer-checked:text-navyBlue"
+                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl peer-checked:text-uf-accent"
                     >
                     </span>
 
@@ -68,10 +68,10 @@
             <!-- Modal Content -->
             <x-slot:content>
                 <div 
-                    class="overflow-y-auto rounded border border-gray-200 bg-gray-50 p-4" 
+                    class="overflow-y-auto rounded border border-white/10 bg-white/[0.03] p-4" 
                     style="min-height: 400px; max-height: 500px;"
                 >
-                    <div class="prose prose-sm max-w-none text-gray-700">
+                    <div class="prose prose-sm max-w-none text-zinc-300">
                         {{ core()->getConfigData('sales.rma.setting.return_policy') }}
                     </div>
                 </div>

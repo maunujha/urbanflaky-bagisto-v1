@@ -143,6 +143,15 @@
                 />
 
                 @break
+            @case ($customization::INSTAGRAM_LOOKBOOK)
+                <!-- Urbanflaky Looks — Instagram Brand Lookbook -->
+                <x-shop::looks.grid
+                    :title="$data['title'] ?? trans('lookbook::app.shop.title')"
+                    :subtitle="$data['subtitle'] ?? trans('lookbook::app.shop.subtitle')"
+                    :src="route('shop.api.lookbook.index', ! empty($data['limit']) ? ['limit' => $data['limit']] : [])"
+                />
+
+                @break
         @endswitch
     @endforeach
 </x-shop::layouts>

@@ -1,4 +1,5 @@
-{{-- Recently Viewed Products — section injected via JS into #main after fetch resolves --}}
+{{-- Recently Viewed Products — section injected via JS into #main after fetch resolves.
+     Styling lives in urbanflaky.css under the `.rv-*` classes (dark theme + responsive). --}}
 @push('scripts')
 <script>
 (function () {
@@ -36,27 +37,26 @@
         a.href      = url;
         a.className = 'rv-card';
         a.setAttribute('aria-label', name);
-        a.style.cssText = 'flex-shrink:0;width:160px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;';
 
         var wrap = document.createElement('div');
-        wrap.style.cssText = 'width:160px;height:213px;border-radius:12px;overflow:hidden;background:#f5f5f5;';
+        wrap.className = 'rv-card-media';
 
         var imgEl = document.createElement('img');
-        imgEl.src           = img;
-        imgEl.alt           = name;
-        imgEl.loading       = 'lazy';
-        imgEl.width         = 160;
-        imgEl.height        = 213;
-        imgEl.style.cssText = 'width:100%;height:100%;object-fit:cover;transition:opacity .2s;';
+        imgEl.src       = img;
+        imgEl.alt       = name;
+        imgEl.loading   = 'lazy';
+        imgEl.width     = 170;
+        imgEl.height    = 226;
+        imgEl.className = 'rv-card-img';
         wrap.appendChild(imgEl);
 
         var nameEl = document.createElement('p');
-        nameEl.textContent   = name;
-        nameEl.style.cssText = 'font-size:13px;font-weight:500;color:#111;line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;';
+        nameEl.textContent = name;
+        nameEl.className   = 'rv-card-name';
 
         var priceEl = document.createElement('p');
-        priceEl.textContent   = price;
-        priceEl.style.cssText = 'font-size:14px;font-weight:700;color:#111;';
+        priceEl.textContent = price;
+        priceEl.className   = 'rv-card-price';
 
         a.appendChild(wrap);
         a.appendChild(nameEl);
@@ -68,20 +68,15 @@
         var main = document.getElementById('main');
         if (!main) return;
 
-        var css = document.createElement('style');
-        css.textContent = '#rv-scroll::-webkit-scrollbar{display:none}.rv-card img{transition:opacity .2s}.rv-card:hover img{opacity:.85}';
-        document.head.appendChild(css);
-
         var section = document.createElement('section');
-        section.style.cssText = 'max-width:1180px;margin:56px auto 0;padding:0 20px 40px;';
+        section.className = 'rv-section';
 
         var heading = document.createElement('h2');
-        heading.textContent  = 'Recently Viewed';
-        heading.style.cssText = 'font-size:1.25rem;font-weight:600;color:#111;margin-bottom:24px;';
+        heading.textContent = 'Recently Viewed';
+        heading.className   = 'rv-heading';
 
         var scroll = document.createElement('div');
-        scroll.id = 'rv-scroll';
-        scroll.style.cssText = 'display:flex;gap:16px;overflow-x:auto;padding-bottom:12px;-webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;';
+        scroll.className = 'rv-scroll';
 
         products.forEach(function (p) { scroll.appendChild(buildCard(p)); });
 

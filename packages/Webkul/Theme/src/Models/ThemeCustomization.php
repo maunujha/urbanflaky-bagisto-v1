@@ -71,6 +71,13 @@ class ThemeCustomization extends TranslatableModel implements ThemeCustomization
     public const SERVICES_CONTENT = 'services_content';
 
     /**
+     * Instagram brand lookbook precision.
+     *
+     * @var string
+     */
+    public const INSTAGRAM_LOOKBOOK = 'instagram_lookbook';
+
+    /**
      * Cast options field to array.
      *
      * @var array

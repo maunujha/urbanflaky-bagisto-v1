@@ -10,6 +10,7 @@ use Webkul\Core\Repositories\CountryRepository;
 use Webkul\Core\Repositories\CountryStateRepository;
 use Webkul\MagicAI\Facades\MagicAI;
 use Webkul\Sales\Repositories\OrderRepository;
+use Webkul\Shop\Http\Resources\AddressResource;
 
 class OnepageController extends Controller
 {
@@ -63,13 +64,19 @@ class OnepageController extends Controller
         $shippingMethods = [];
         $paymentMethods  = [];
 
+        /* Saved addresses for the address-book selection UI (logged-in customers only). */
+        $addresses = auth()->guard('customer')->check()
+            ? AddressResource::collection(auth()->guard('customer')->user()->addresses)->resolve()
+            : [];
+
         return view('shop::checkout.onepage.index', compact(
             'cart',
             'cartItems',
             'countries',
             'states',
             'shippingMethods',
-            'paymentMethods'
+            'paymentMethods',
+            'addresses'
         ));
     }
 

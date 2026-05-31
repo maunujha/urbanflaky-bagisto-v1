@@ -40,11 +40,9 @@
     <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
     <meta property="og:url" content="{{ $productCanonical }}">
 
-    @if (core()->getConfigData('catalog.rich_snippets.products.enable'))
-        <script type="application/ld+json">
-            {!! app('Webkul\Product\Helpers\SEO')->getProductJsonLd($product) !!}
-        </script>
-    @endif
+    {{-- Product structured data lives in the @push('structured_data') block below.
+         The core rich-snippets generator is intentionally NOT invoked here to avoid
+         emitting a second, conflicting Product schema on the same page. --}}
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $product->name }}">
@@ -53,48 +51,10 @@
     <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}">
 @endpush
 
-<!-- Product Structured Data -->
+<!-- Product Structured Data (single source of truth: Webkul\Shop\Helpers\StructuredData) -->
 @push('structured_data')
 <script type="application/ld+json">
-{
-  "@@context": "https://schema.org",
-  "@type": "Product",
-  "name": "{{ addslashes($product->name) }}",
-  "description": "{{ addslashes(\Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 200)) }}",
-  "sku": "{{ $product->sku }}",
-  "image": "{{ $productBaseImage['medium_image_url'] }}",
-  "url": "{{ route('shop.product_or_category.index', $product->url_key) }}",
-  "brand": {
-    "@type": "Brand",
-    "name": "Urbanflaky"
-  },
-  "seller": {
-    "@type": "Organization",
-    "name": "Gabha Enterprise"
-  },
-  "offers": {
-    "@type": "Offer",
-    "priceCurrency": "INR",
-    "price": "{{ $product->price }}",
-    "priceValidUntil": "{{ now()->addYear()->format('Y-m-d') }}",
-    "availability": "{{ $product->isSaleable(1) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock' }}",
-    "itemCondition": "https://schema.org/NewCondition",
-    "url": "{{ route('shop.product_or_category.index', $product->url_key) }}",
-    "seller": {
-      "@type": "Organization",
-      "name": "Gabha Enterprise"
-    }
-  }
-  @if ($avgRatings && $reviewCount > 0)
-  ,"aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "{{ number_format($avgRatings, 1) }}",
-    "reviewCount": "{{ $reviewCount }}",
-    "bestRating": "5",
-    "worstRating": "1"
-  }
-  @endif
-}
+{!! app(\Webkul\Shop\Helpers\StructuredData::class)->getProductGraph($product) !!}
 </script>
 @endpush
 
@@ -127,7 +87,7 @@
     </v-product>
 
     <!-- Information Section -->
-    <div class="1180:mt-20">
+    <div class="1180:mt-20 1180:pb-24">
         <div class="max-1180:hidden">
             <x-shop::tabs
                 position="center"
@@ -143,7 +103,7 @@
                     :is-selected="true"
                 >
                     <div class="container mt-[60px] max-1180:px-5">
-                        <p class="text-md text-zinc-500 max-1180:text-sm">
+                        <p class="uf-rte text-md text-zinc-300 max-1180:text-sm">
                             {!! $product->description !!}
                         </p>
                     </div>
@@ -164,7 +124,7 @@
                                 @foreach ($customAttributeValues as $customAttributeValue)
                                     @if (! empty($customAttributeValue['value']))
                                         <div class="grid">
-                                            <p class="text-base text-black">
+                                            <p class="text-base text-white">
                                                 {!! $customAttributeValue['label'] !!}
                                             </p>
                                         </div>
@@ -188,7 +148,7 @@
                                             </a>
                                         @else
                                             <div class="grid">
-                                                <p class="text-base text-zinc-500">
+                                                <p class="text-base text-zinc-400">
                                                     {!! $customAttributeValue['value'] !!}
                                                 </p>
                                             </div>
@@ -218,7 +178,7 @@
                     :is-selected="false"
                 >
                     <div class="container mt-[60px] max-1180:px-5">
-                        <div class="text-md text-zinc-500 max-1180:text-sm">
+                        <div class="uf-rte text-md text-zinc-300 max-1180:text-sm">
                             @if ($shippingReturnsPage?->html_content)
                                 {!! $shippingReturnsPage->html_content !!}
                             @else
@@ -232,20 +192,20 @@
     </div>
 
     <!-- Information Section -->
-    <div class="container mt-6 grid gap-3 !p-0 max-1180:px-5 1180:hidden">
+    <div class="container mt-6 grid gap-3 !p-0 pb-14 max-1180:px-5 1180:hidden">
         <!-- Description Accordion -->
         <x-shop::accordion
             class="max-md:border-none"
             :is-active="true"
         >
-            <x-slot:header class="bg-gray-100 max-md:!py-3 max-sm:!py-2">
+            <x-slot:header class="bg-white/5 text-white max-md:!py-3 max-sm:!py-2">
                 <p class="text-base font-medium 1180:hidden">
                     @lang('shop::app.products.view.description')
                 </p>
             </x-slot>
 
             <x-slot:content class="max-sm:px-0">
-                <div class="mb-5 text-md text-zinc-500 max-1180:text-sm max-md:mb-1 max-md:px-4">
+                <div class="uf-rte mb-5 text-md text-zinc-300 max-1180:text-sm max-md:mb-1 max-md:px-4">
                     {!! $product->description !!}
                 </div>
             </x-slot>
@@ -257,7 +217,7 @@
                 class="max-md:border-none"
                 :is-active="false"
             >
-                <x-slot:header class="bg-gray-100 max-md:!py-3 max-sm:!py-2">
+                <x-slot:header class="bg-white/5 text-white max-md:!py-3 max-sm:!py-2">
                     <p class="text-base font-medium 1180:hidden">
                         @lang('shop::app.products.view.additional-information')
                     </p>
@@ -265,12 +225,12 @@
 
                 <x-slot:content class="max-sm:px-0">
                     <div class="container max-1180:px-5">
-                        <div class="grid max-w-max grid-cols-[auto_1fr] gap-4 text-md text-zinc-500 max-1180:text-sm">
+                        <div class="grid max-w-max grid-cols-[auto_1fr] gap-4 text-md text-zinc-300 max-1180:text-sm">
                             @foreach ($customAttributeValues as $customAttributeValue)
                                 @if (! empty($customAttributeValue['value']))
                                     <div class="grid">
                                         <p
-                                            class="text-base text-black"
+                                            class="text-base text-white"
                                             v-pre
                                         >
                                             {{ $customAttributeValue['label'] }}
@@ -298,7 +258,7 @@
                                     @else
                                         <div class="grid">
                                             <p
-                                                class="text-base text-zinc-500"
+                                                class="text-base text-zinc-400"
                                                 v-pre
                                             >
                                                 {{ $customAttributeValue['value'] ?? '-' }}
@@ -319,7 +279,7 @@
             :is-active="false"
         >
             <x-slot:header
-                class="bg-gray-100 max-md:!py-3 max-sm:!py-2"
+                class="bg-white/5 text-white max-md:!py-3 max-sm:!py-2"
                 id="review-accordian-button"
             >
                 <p class="text-base font-medium">
@@ -337,14 +297,14 @@
             class="max-md:border-none"
             :is-active="false"
         >
-            <x-slot:header class="bg-gray-100 max-md:!py-3 max-sm:!py-2">
+            <x-slot:header class="bg-white/5 text-white max-md:!py-3 max-sm:!py-2">
                 <p class="text-base font-medium 1180:hidden">
                     Shipping &amp; Returns
                 </p>
             </x-slot>
 
             <x-slot:content class="max-sm:px-0">
-                <div class="mb-5 text-md text-zinc-500 max-1180:text-sm max-md:mb-1 max-md:px-4">
+                <div class="uf-rte mb-5 text-md text-zinc-300 max-1180:text-sm max-md:mb-1 max-md:px-4">
                     @if ($shippingReturnsPage?->html_content)
                         {!! $shippingReturnsPage->html_content !!}
                     @else
@@ -372,22 +332,22 @@
 
             <!-- Product Info -->
             <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-semibold text-black max-sm:text-xs" id="sticky-atc-name">{{ $product->name }}</p>
-                <p class="mt-0.5 text-xs text-zinc-500 max-sm:text-[10px]" id="sticky-atc-variant"></p>
+                <p class="truncate text-sm font-semibold text-white max-sm:text-xs" id="sticky-atc-name">{{ $product->name }}</p>
+                <p class="mt-0.5 text-xs text-zinc-400 max-sm:text-[10px]" id="sticky-atc-variant"></p>
             </div>
 
             <!-- Price -->
             <div class="flex-shrink-0 text-right">
-                <p class="text-md font-bold text-black max-sm:text-sm" id="sticky-atc-price"></p>
+                <p class="text-md font-bold text-uf-accent max-sm:text-sm" id="sticky-atc-price"></p>
             </div>
 
             <!-- Add to Cart Button -->
             <button
                 id="sticky-atc-btn"
                 type="button"
-                class="flex-shrink-0 rounded-xl px-6 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 max-sm:rounded-lg max-sm:px-4 max-sm:py-2 max-sm:text-xs"
-                style="background:#c7eb31;"
+                class="flex flex-shrink-0 items-center gap-2 rounded-md bg-gradient-to-b from-[#d4ef4f] to-[#a9da1e] px-6 py-3 text-sm font-bold text-black transition hover:brightness-105 max-sm:px-4 max-sm:py-2 max-sm:text-xs"
             >
+                <span class="icon-cart text-lg max-sm:hidden"></span>
                 Add to Cart
             </button>
         </div>
@@ -440,7 +400,7 @@
 
                                     @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
                                         <div
-                                            class="max-sm:min-h-7 max-sm:min-w-7 flex max-h-[46px] min-h-[46px] min-w-[46px] cursor-pointer items-center justify-center rounded-full border bg-white text-2xl transition-all hover:opacity-[0.8] max-sm:max-h-7 max-sm:text-base"
+                                            class="flex max-h-[44px] min-h-[44px] min-w-[44px] max-sm:max-h-9 max-sm:min-h-9 max-sm:min-w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white backdrop-blur-md transition-all hover:border-[#c7eb31] hover:bg-[#c7eb31] hover:text-black max-sm:text-base"
                                             role="button"
                                             aria-label="@lang('shop::app.products.view.add-to-wishlist')"
                                             tabindex="0"
@@ -501,24 +461,29 @@
                                 {!! view_render_event('bagisto.shop.products.price.after', ['product' => $product]) !!}
 
                                 @php
-                                    $stockQty = $product->type === 'configurable'
-                                        ? $product->variants->sum(fn ($v) => $v->inventories->sum('qty'))
-                                        : $product->inventories->sum('qty');
+                                    $isConfigurable = $product->type === 'configurable';
+
+                                    // Simple products: static stock from the product's own inventory.
+                                    // Configurable products: the badge is driven live by the selected
+                                    // variant via JS (see configurable.blade.php), so it starts hidden
+                                    // and only appears once a complete variant (e.g. size) is chosen.
+                                    $stockQty = $isConfigurable ? 0 : $product->inventories->sum('qty');
+
+                                    $showInitialBadge = ! $isConfigurable && $stockQty >= 1 && $stockQty <= 15;
                                 @endphp
 
-                                @if ($stockQty >= 1 && $stockQty <= 15)
-                                    <div
-                                        class="mt-3 inline-flex items-center gap-2"
-                                        style="background:#FAEEDA; border-radius:20px; padding:5px 12px;"
-                                    >
-                                        <span style="width:8px; height:8px; border-radius:50%; background:#EF9F27; flex-shrink:0; display:inline-block;"></span>
-                                        <span style="font-size:13px; font-weight:500; color:#854F0B;">Only {{ $stockQty }} left in stock</span>
-                                    </div>
-                                @endif
+                                <div
+                                    id="low-stock-badge"
+                                    class="mt-3 inline-flex items-center gap-2"
+                                    style="background:#FAEEDA; border-radius:20px; padding:5px 12px;{{ $showInitialBadge ? '' : ' display:none;' }}"
+                                >
+                                    <span style="width:8px; height:8px; border-radius:50%; background:#EF9F27; flex-shrink:0; display:inline-block;"></span>
+                                    <span id="low-stock-text" style="font-size:13px; font-weight:500; color:#854F0B;">Only {{ $stockQty }} left in stock</span>
+                                </div>
 
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
-                                <p class="mt-6 text-md text-zinc-500 max-sm:mt-1.5 max-sm:text-sm">
+                                <p class="mt-6 text-md text-zinc-300 max-sm:mt-1.5 max-sm:text-sm">
                                     {!! $product->short_description !!}
                                 </p>
 
@@ -601,101 +566,121 @@
                                 @endif
 
                                 <!-- Trust Badges -->
-                                <div class="mt-5 flex max-w-[470px] flex-wrap items-center gap-x-5 gap-y-2 border-zinc-100 pt-4">
-                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                <div class="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 pt-2">
+                                    <span class="flex items-center gap-2 text-sm font-medium text-zinc-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7ed957" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
                                         Free delivery
                                     </span>
-                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
+                                    <span class="flex items-center gap-2 text-sm font-medium text-zinc-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7ed957" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
                                         Easy returns
                                     </span>
-                                    <span class="flex items-center gap-1.5 text-xs font-medium text-zinc-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <span class="flex items-center gap-2 text-sm font-medium text-zinc-200">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                         Secure payment
                                     </span>
                                 </div>
 
                                 <!-- Pincode Delivery Checker -->
-                                <div class="mt-5 w-[455px] max-w-full max-sm:w-full">
+                                <div class="mt-6 w-full rounded-xl border border-white/10 bg-white/[0.02] p-6 max-sm:p-4">
 
-                                    <!-- Input card -->
-                                    <div style="border:0.5px solid #e0e0e0;border-radius:8px;padding:14px;">
+                                    <!-- Heading -->
+                                    <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+                                        <span class="inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-uf-accent/10">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c7eb31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                        </span>
+                                        <h3 class="font-poppins text-xl font-bold uppercase tracking-wide text-white max-sm:text-xl">Check Delivery</h3>
+                                        <span class="rounded-full border border-uf-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-uf-accent">New</span>
+                                    </div>
+                                    <p class="mt-2 text-sm text-zinc-400">Enter your pincode to check delivery availability</p>
 
-                                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
-                                            <span style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#444;">Check Delivery</span>
-                                            <span style="border:1.5px solid #c7eb31;border-radius:20px;padding:1px 8px;font-size:10px;font-weight:700;color:#4a6000;letter-spacing:0.06em;line-height:1.8;">NEW</span>
-                                        </div>
-
-                                        <div style="display:flex;gap:10px;">
+                                    <!-- Input + button -->
+                                    <div class="mt-5 flex gap-4 max-sm:flex-col">
+                                        <div class="relative flex-1">
+                                            <span class="pointer-events-none absolute top-1/2 -translate-y-1/2 text-zinc-500 ltr:left-4 rtl:right-4">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            </span>
                                             <input
                                                 v-model="pincode"
                                                 type="text"
                                                 inputmode="numeric"
                                                 maxlength="6"
                                                 placeholder="Enter pincode"
-                                                style="flex:1;border:1px solid #d8d8d8;border-radius:8px;padding:10px 14px;font-size:14px;outline:none;color:#222;min-width:0;"
+                                                class="h-[60px] w-full rounded-md border border-uf-accent/60 bg-white/[0.02] text-base text-white outline-none transition placeholder:text-zinc-500 focus:border-uf-accent focus:ring-2 focus:ring-uf-accent/20 ltr:pl-12 ltr:pr-4 rtl:pr-12 rtl:pl-4"
                                                 @keyup.enter="checkDelivery"
                                             />
-                                            <button
-                                                type="button"
-                                                style="border:1px solid #d8d8d8;border-radius:8px;padding:10px 20px;font-size:14px;font-weight:600;color:#222;background:white;cursor:pointer;white-space:nowrap;flex-shrink:0;"
-                                                :disabled="checkingDelivery"
-                                                @click="checkDelivery"
-                                            >
-                                                <span v-if="!checkingDelivery">Check</span>
-                                                <span v-else style="opacity:0.45;">···</span>
-                                            </button>
                                         </div>
-
-                                        <!-- Inline result -->
-                                        <div v-if="deliveryResult" style="margin-top:10px;">
-                                            <template v-if="deliveryResult.deliverable">
-                                                <p style="font-size:13px;color:#2e7d32;display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-                                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" style="flex-shrink:0;"><circle cx="7.5" cy="7.5" r="7.5" fill="#c7eb31"/><path d="M4.5 7.5l2 2 4-4" stroke="#2e7d32" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                    Delivery by <strong style="margin-left:2px;">@{{ deliveryResult.days }}</strong>
-                                                    <span v-if="deliveryResult.cod" style="color:#777;font-size:12px;">· COD available</span>
-                                                </p>
-                                                <p v-if="deliveryResult.free" style="font-size:12px;color:#777;margin-top:3px;padding-left:20px;">Free shipping on this order</p>
+                                        <button
+                                            type="button"
+                                            class="flex h-[60px] flex-shrink-0 items-center justify-center gap-2.5 rounded-md bg-gradient-to-b from-[#d4ef4f] to-[#a9da1e] px-9 text-base font-bold text-black transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 max-sm:w-full"
+                                            :disabled="checkingDelivery"
+                                            @click="checkDelivery"
+                                        >
+                                            <template v-if="!checkingDelivery">
+                                                <span>Check</span>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                                             </template>
-                                            <p v-else style="font-size:13px;color:#d32f2f;">Delivery not available to this pincode.</p>
-                                        </div>
-                                        <p v-if="deliveryError" style="font-size:12px;color:#d32f2f;margin-top:8px;">@{{ deliveryError }}</p>
-
-                                        <!-- Trust row -->
-                                        <div style="margin-top:12px;padding-top:11px;border-top:1px solid #f0f0f0;display:flex;gap:14px;flex-wrap:wrap;">
-                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                Free delivery
-                                            </span>
-                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                7-day returns
-                                            </span>
-                                            <span style="font-size:12px;color:#555;display:flex;align-items:center;gap:5px;">
-                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="7" fill="#e8f5e9"/><path d="M4 7l2 2 4-4" stroke="#4caf50" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                                                Easy exchange
-                                            </span>
-                                        </div>
+                                            <span v-else class="opacity-60">···</span>
+                                        </button>
                                     </div>
 
-                                    <!-- Trust badge card -->
-                                    <div style="margin-top:8px;border:0.5px solid #e0e0e0;border-radius:8px;padding:14px 8px;display:grid;grid-template-columns:1fr 1fr 1fr;text-align:center;">
-                                        <div style="padding:0 8px;">
-                                            <div style="margin-bottom:6px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                    <!-- Inline result -->
+                                    <div v-if="deliveryResult" class="mt-3">
+                                        <template v-if="deliveryResult.deliverable">
+                                            <p class="flex flex-wrap items-center gap-1.5 text-sm text-uf-accent">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c7eb31" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+                                                Delivery by <strong class="ltr:ml-0.5 rtl:mr-0.5 text-white">@{{ deliveryResult.days }}</strong>
+                                                <span v-if="deliveryResult.cod" class="text-xs text-zinc-400">· COD available</span>
+                                            </p>
+                                            <p v-if="deliveryResult.free" class="mt-1 text-xs text-zinc-400 ltr:pl-6 rtl:pr-6">Free shipping on this order</p>
+                                        </template>
+                                        <p v-else class="text-sm text-red-400">Delivery not available to this pincode.</p>
+                                    </div>
+                                    <p v-if="deliveryError" class="mt-2 text-xs text-red-400">@{{ deliveryError }}</p>
+
+                                    <!-- Divider -->
+                                    <div class="mt-5 border-t border-white/10"></div>
+
+                                    <!-- Inline checks -->
+                                    <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-300">
+                                        <span class="flex items-center gap-2">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+                                            Free delivery
+                                        </span>
+                                        <span class="h-4 w-px bg-white/10"></span>
+                                        <span class="flex items-center gap-2">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+                                            7-day returns
+                                        </span>
+                                        <span class="h-4 w-px bg-white/10"></span>
+                                        <span class="flex items-center gap-2">
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+                                            Easy exchange
+                                        </span>
+                                    </div>
+
+                                    <!-- Trust feature card -->
+                                    <div class="mt-5 grid grid-cols-1 rounded-lg border border-white/5 bg-black/30 md:grid-cols-3">
+                                        <div class="flex items-center gap-3 p-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#E8872E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                            <div>
+                                                <p class="text-base font-semibold text-white max-sm:text-sm">Secure payment</p>
+                                                <p class="text-xs text-zinc-500">Safe &amp; trusted checkout</p>
                                             </div>
-                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">Secure payment</p>
                                         </div>
-                                        <div style="padding:0 8px;border-left:1px solid #efefef;border-right:1px solid #efefef;">
-                                            <div style="margin-bottom:6px;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
+                                        <div class="flex items-center gap-3 border-white/5 p-4 max-md:border-y md:border-x">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
+                                            <div>
+                                                <p class="text-base font-semibold text-white max-sm:text-sm">Easy 7-day returns</p>
+                                                <p class="text-xs text-zinc-500">Hassle-free returns</p>
                                             </div>
-                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">Easy 7-day returns</p>
                                         </div>
-                                        <div style="padding:0 8px;">
-                                            <div style="margin-bottom:6px;font-size:22px;line-height:1.1;color:#111;">✦</div>
-                                            <p style="font-size:11px;color:#333;font-weight:500;line-height:1.4;">100% genuine</p>
+                                        <div class="flex items-center gap-3 p-4">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0"><path d="M12 2l8 3v6c0 5-3.5 8-8 11-4.5-3-8-6-8-11V5l8-3z"/><path d="M12 8.2l1.8 1.8-1.8 1.8-1.8-1.8z"/></svg>
+                                            <div>
+                                                <p class="text-base font-semibold text-white max-sm:text-sm">100% genuine</p>
+                                                <p class="text-xs text-zinc-500">Original products only</p>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -704,73 +689,82 @@
 
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.before', ['product' => $product]) !!}
 
-                                <!-- Share Buttons -->
-                                <div class="mt-10 flex flex-wrap items-center gap-5 max-md:mt-4 max-sm:justify-center max-sm:gap-4">
-                                    {!! view_render_event('bagisto.shop.products.view.compare.before', ['product' => $product]) !!}
+                                <!-- Share This Product -->
+                                <div class="mt-6 w-full rounded-xl border border-white/10 bg-white/[0.02] p-6 max-sm:p-4">
+                                    <div class="flex items-center justify-between gap-5 max-md:flex-col max-md:items-start max-md:gap-4">
+                                        <!-- Left: icon + text -->
+                                        <div class="flex items-center gap-4">
+                                            <span class="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-purple-500/10 text-purple-400">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                                            </span>
+                                            <div>
+                                                <h3 class="font-poppins text-lg font-bold uppercase tracking-wide text-white">Share this product</h3>
+                                                <p class="mt-1 text-sm text-zinc-400">Know someone who&rsquo;d love this? Share it with them!</p>
+                                            </div>
+                                        </div>
 
-                                    <div
-                                        class="flex cursor-pointer items-center justify-center gap-2.5 max-sm:gap-1.5 max-sm:text-base"
-                                        role="button"
-                                        tabindex="0"
-                                        @click="is_buy_now=0; addToCompare({{ $product->id }})"
-                                    >
-                                        @if (core()->getConfigData('catalog.products.settings.compare_option'))
-                                            <span
-                                                class="icon-compare text-2xl"
-                                                role="presentation"
-                                            ></span>
+                                        <!-- Right: share actions -->
+                                        <div class="flex flex-wrap items-center gap-3 max-md:w-full max-md:justify-start">
+                                            {!! view_render_event('bagisto.shop.products.view.compare.before', ['product' => $product]) !!}
 
-                                            @lang('shop::app.products.view.compare')
-                                        @endif
+                                            @if (core()->getConfigData('catalog.products.settings.compare_option'))
+                                                <button
+                                                    type="button"
+                                                    class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white/5 text-zinc-300 transition-colors hover:bg-white/10 hover:text-uf-accent"
+                                                    aria-label="@lang('shop::app.products.view.compare')"
+                                                    @click="is_buy_now=0; addToCompare({{ $product->id }})"
+                                                >
+                                                    <span class="icon-compare text-xl" role="presentation"></span>
+                                                </button>
+                                            @endif
+
+                                            {!! view_render_event('bagisto.shop.products.view.compare.after', ['product' => $product]) !!}
+
+                                            <!-- Facebook Share -->
+                                            <button
+                                                type="button"
+                                                class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white/5 text-white transition-colors hover:bg-[#1877f2] hover:text-white"
+                                                aria-label="Share on Facebook"
+                                                @click="shareFacebook"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                                </svg>
+                                            </button>
+
+                                            <!-- WhatsApp Share -->
+                                            <a
+                                                href="https://wa.me/?text={{ urlencode($product->name . ' | ' . route('shop.product_or_category.index', $product->url_key)) }}"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white/5 text-white transition-colors hover:bg-[#25d366] hover:text-white"
+                                                aria-label="Share on WhatsApp"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                                </svg>
+                                            </a>
+
+                                            <!-- Copy Link -->
+                                            <button
+                                                type="button"
+                                                class="flex h-11 flex-shrink-0 items-center gap-2 rounded-md border border-purple-500/60 px-5 text-sm font-medium text-purple-300 transition-colors hover:bg-purple-500/10 hover:text-purple-200"
+                                                @click="copyProductLink"
+                                            >
+                                                <svg v-if="!copySuccess" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                                                </svg>
+                                                <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                                </svg>
+                                                <span>
+                                                    <template v-if="copySuccess">Copied!</template>
+                                                    <template v-else>Copy link</template>
+                                                </span>
+                                            </button>
+                                        </div>
                                     </div>
-
-                                    {!! view_render_event('bagisto.shop.products.view.compare.after', ['product' => $product]) !!}
-
-                                    <!-- Facebook Share -->
-                                    <button
-                                        type="button"
-                                        class="flex cursor-pointer items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-blue-600"
-                                        aria-label="Share on Facebook"
-                                        @click="shareFacebook"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                                        </svg>
-                                        <span>Facebook</span>
-                                    </button>
-
-                                    <!-- WhatsApp Share -->
-                                    <a
-                                        href="https://wa.me/?text={{ urlencode($product->name . ' | ' . route('shop.product_or_category.index', $product->url_key)) }}"
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        class="flex cursor-pointer items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-green-600"
-                                        aria-label="Share on WhatsApp"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                        </svg>
-                                        <span>WhatsApp</span>
-                                    </a>
-
-                                    <!-- Copy Link -->
-                                    <button
-                                        type="button"
-                                        class="flex cursor-pointer items-center gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-800"
-                                        @click="copyProductLink"
-                                    >
-                                        <svg v-if="!copySuccess" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                                        </svg>
-                                        <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="20 6 9 17 4 12"></polyline>
-                                        </svg>
-                                        <span>
-                                            <template v-if="copySuccess">Copied!</template>
-                                            <template v-else>Copy link</template>
-                                        </span>
-                                    </button>
                                 </div>
 
                                 {!! view_render_event('bagisto.shop.products.view.additional_actions.after', ['product' => $product]) !!}
@@ -1185,8 +1179,8 @@
         >
             <div ref="carouselWrapper">
                 <template v-if="isVisible">
-                    <!-- Featured Products -->
-                    <x-shop::products.carousel
+                    <!-- Related Products (responsive grid + load more) -->
+                    <x-shop::products.grid
                         :title="trans('shop::app.products.view.related-product-title')"
                         :src="route('shop.api.products.related.index', ['id' => $product->id])"
                     />

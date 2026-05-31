@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Providers\LookbookServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
 use Webkul\Attribute\Providers\AttributeServiceProvider;
 use Webkul\BookingProduct\Providers\BookingProductServiceProvider;
@@ -12,6 +13,7 @@ use Webkul\CMS\Providers\CMSServiceProvider;
 use Webkul\Core\Providers\CoreServiceProvider;
 use Webkul\Core\Providers\EnvValidatorServiceProvider;
 use Webkul\Customer\Providers\CustomerServiceProvider;
+use Webkul\FAQ\Providers\FAQServiceProvider;
 use Webkul\DataGrid\Providers\DataGridServiceProvider;
 use Webkul\DataTransfer\Providers\DataTransferServiceProvider;
 use Webkul\DebugBar\Providers\DebugBarServiceProvider;
@@ -48,6 +50,11 @@ return [
     AppServiceProvider::class,
 
     /**
+     * Custom application service providers.
+     */
+    LookbookServiceProvider::class,
+
+    /**
      * Webkul's service providers.
      */
     AdminServiceProvider::class,
@@ -61,6 +68,7 @@ return [
     CoreServiceProvider::class,
     EnvValidatorServiceProvider::class,
     CustomerServiceProvider::class,
+    FAQServiceProvider::class,
     DataGridServiceProvider::class,
     DataTransferServiceProvider::class,
     DebugBarServiceProvider::class,

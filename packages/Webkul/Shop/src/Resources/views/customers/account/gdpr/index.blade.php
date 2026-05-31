@@ -34,7 +34,7 @@
             <div class="flex gap-4">
                 <a 
                     href="{{ route('shop.customers.account.gdpr.pdf-view') }}"
-                    class="secondary-button border-zinc-200 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
+                    class="secondary-button border-white/10 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
                 >
                     @lang('shop::app.customers.account.gdpr.index.pdf') 
                 </a>
@@ -42,14 +42,14 @@
                 <a
                     href="{{ route('shop.customers.account.gdpr.html-view') }}"
                     target="_blank"
-                    class="secondary-button border-zinc-200 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
+                    class="secondary-button border-white/10 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
                 >
                     @lang('shop::app.customers.account.gdpr.index.html') 
                 </a>
     
                 <button
                     type="button"
-                    class="primary-button border-zinc-200 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
+                    class="primary-button border-white/10 px-5 py-3 font-normal max-md:rounded-lg max-md:py-2 max-sm:py-1.5 max-sm:text-sm"
                     @click="$emitter.emit('open-gdpr-modal')"
                 >
                     @lang('shop::app.customers.account.gdpr.index.create-btn')
@@ -93,7 +93,7 @@
     
                     <template v-else>
                         <template v-for="record in available.records">
-                            <div class="w-full p-4 border rounded-md transition-all hover:bg-gray-50 [&>*]:border-0 mb-4 last:mb-0">
+                            <div class="w-full p-4 border rounded-md transition-all hover:bg-white/[0.03] [&>*]:border-0 mb-4 last:mb-0">
                                 <div class="flex items-center justify-between">
                                     <div class="flex flex-col gap-1">
                                         <div class="flex gap-2">

@@ -54,7 +54,7 @@
                         {!! view_render_event('bagisto.shop.customers.account.compare.remove_all.before') !!}
 
                         <div
-                            class="secondary-button flex items-center gap-x-2.5 whitespace-nowrap border-zinc-200 px-5 py-3 font-normal max-md:rounded-lg max-md:px-3 max-md:text-xs max-sm:py-1.5"
+                            class="secondary-button flex items-center gap-x-2.5 whitespace-nowrap border-white/10 px-5 py-3 font-normal max-md:rounded-lg max-md:px-3 max-md:text-xs max-sm:py-1.5"
                             v-if="items.length"
                             @click="removeAll"
                         >
@@ -73,12 +73,12 @@
                         <template v-for="attribute in comparableAttributes">
                             <!-- Product Card -->
                             <div
-                                class="flex max-w-full items-center border-b border-zinc-200"
+                                class="flex max-w-full items-center border-b border-white/10"
                                 v-if="attribute.code == 'product'"
                             >
                                 {!! view_render_event('bagisto.shop.customers.account.compare.attribute_name.before') !!}
 
-                                <div class="min-w-[304px] max-w-full max-md:grid max-md:h-full max-md:min-w-40 max-md:items-center max-md:bg-gray-200 max-sm:min-w-[110px]">
+                                <div class="min-w-[304px] max-w-full max-md:grid max-md:h-full max-md:min-w-40 max-md:items-center max-md:bg-white/5 max-sm:min-w-[110px]">
                                     <p class="text-sm font-medium max-md:pl-4">
                                         @{{ attribute.name ?? attribute.admin_name }}
                                     </p>
@@ -86,13 +86,13 @@
 
                                 {!! view_render_event('bagisto.shop.customers.account.compare.attribute_name.after') !!}
 
-                                <div class="flex gap-3 border-zinc-200 max-md:gap-0 max-md:border-0 ltr:border-l-[1px] rtl:border-r-[1px]">
+                                <div class="flex gap-3 border-white/10 max-md:gap-0 max-md:border-0 ltr:border-l-[1px] rtl:border-r-[1px]">
                                     <div
                                         class="relative w-[311px] max-w-[311px] px-5 max-md:w-60 max-md:px-2.5 max-sm:w-[190px]"
                                         v-for="product in items"
                                     >
                                         <span
-                                            class="icon-cancel absolute top-5 z-[1] flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-md border border-zinc-200 bg-white text-2xl max-md:top-10 max-md:h-6 max-md:w-6 max-md:rounded-full max-md:text-sm ltr:right-10 max-md:ltr:right-4 rtl:left-10 max-md:rtl:left-4"
+                                            class="icon-cancel absolute top-5 z-[1] flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-md border border-white/10 bg-uf-surface text-2xl text-white transition-colors hover:border-uf-accent hover:text-uf-accent max-md:top-10 max-md:h-6 max-md:w-6 max-md:rounded-full max-md:text-sm ltr:right-10 max-md:ltr:right-4 rtl:left-10 max-md:rtl:left-4"
                                             @click="remove(product.id)"
                                         ></span>
 
@@ -105,16 +105,16 @@
 
                             <!-- Comparable Attributes -->
                             <div
-                                class="flex max-w-full items-center border-b border-zinc-200"
+                                class="flex max-w-full items-center border-b border-white/10"
                                 v-else
                             >
-                                <div class="min-w-[304px] max-w-full max-md:grid max-md:h-full max-md:min-w-40 max-md:items-center max-md:bg-gray-200 max-sm:min-w-[110px]">
+                                <div class="min-w-[304px] max-w-full max-md:grid max-md:h-full max-md:min-w-40 max-md:items-center max-md:bg-white/5 max-sm:min-w-[110px]">
                                     <p class="text-sm font-medium max-md:pl-4">
                                         @{{ attribute.name ?? attribute.admin_name }}
                                     </p>
                                 </div>
 
-                                <div class="flex gap-3 border-zinc-200 max-md:gap-0 max-md:border-0 ltr:border-l-[1px] rtl:border-r-[1px]">
+                                <div class="flex gap-3 border-white/10 max-md:gap-0 max-md:border-0 ltr:border-l-[1px] rtl:border-r-[1px]">
                                     <div
                                         class="w-[311px] max-w-[311px] p-5 max-md:w-60 max-md:px-2.5 max-sm:w-[190px]"
                                         v-for="(product, index) in items"

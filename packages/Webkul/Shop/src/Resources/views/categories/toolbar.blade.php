@@ -23,11 +23,11 @@
                 >
                     <x-slot:toggle>
                         <!-- Dropdown Toggler -->
-                        <button class="hover:uf-border-accent flex w-full max-w-[220px] cursor-pointer items-center justify-between gap-4 rounded-sm border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-normal tracking-wide text-white transition max-md:w-[110px] max-md:border-0 max-md:bg-transparent">
+                        <button class="group flex w-full max-w-[220px] cursor-pointer items-center justify-between gap-4 rounded-sm border border-white/[0.12] bg-uf-surface/40 px-4 py-3 text-xs font-normal tracking-wide text-uf-text transition hover:border-uf-accent hover:bg-uf-accent/5 max-md:w-[110px]">
                             @{{ sortLabel ?? "@lang('shop::app.products.sort-by.title')" }}
 
                             <span
-                                class="icon-arrow-down text-lg text-zinc-400"
+                                class="icon-arrow-down text-lg text-uf-muted transition group-hover:text-uf-accent"
                                 role="presentation"
                             ></span>
                         </button>
@@ -37,7 +37,7 @@
                     <x-slot:menu>
                         <x-shop::dropdown.menu.item
                             v-for="(sort, key) in filters.available.sort"
-                            ::class="{'bg-gray-100': sort.value == filters.applied.sort}"
+                            ::class="{'bg-white/5 text-uf-accent': sort.value == filters.applied.sort}"
                             @click="apply('sort', sort.value)"
                         >
                             @{{ sort.title }}
@@ -55,11 +55,11 @@
                     <x-shop::dropdown position="bottom-right">
                         <x-slot:toggle>
                             <!-- Dropdown Toggler -->
-                            <button class="hover:uf-border-accent flex w-full cursor-pointer items-center justify-between gap-3 rounded-sm border border-white/10 bg-white/[0.04] px-4 py-3 text-xs font-normal tracking-wide text-white transition max-md:w-[80px] max-md:border-0 max-md:bg-transparent">
+                            <button class="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-sm border border-white/[0.12] bg-uf-surface/40 px-4 py-3 text-xs font-normal tracking-wide text-uf-text transition hover:border-uf-accent hover:bg-uf-accent/5 max-md:w-[80px]">
                                 @{{ filters.applied.limit ?? "@lang('shop::app.categories.toolbar.show')" }}
 
                                 <span
-                                    class="icon-arrow-down text-lg text-zinc-400"
+                                    class="icon-arrow-down text-lg text-uf-muted transition group-hover:text-uf-accent"
                                     role="presentation"
                                 ></span>
                             </button>
@@ -69,7 +69,7 @@
                         <x-slot:menu>
                             <x-shop::dropdown.menu.item
                                 v-for="(limit, key) in filters.available.limit"
-                                ::class="{'bg-gray-100': limit == filters.applied.limit}"
+                                ::class="{'bg-white/5 text-uf-accent': limit == filters.applied.limit}"
                                 @click="apply('limit', limit)"
                             >
                                 @{{ limit }}
@@ -84,7 +84,7 @@
                             role="button"
                             aria-label="@lang('shop::app.categories.toolbar.list')"
                             tabindex="0"
-                            :class="(filters.applied.mode === 'list') ? 'icon-listing-fill uf-text-accent uf-bg-accent-soft' : 'icon-listing text-zinc-500 hover:text-white'"
+                            :class="(filters.applied.mode === 'list') ? 'icon-listing-fill text-uf-accent bg-uf-accent/10' : 'icon-listing text-uf-muted hover:text-white'"
                             @click="changeMode('list')"
                         >
                         </span>
@@ -94,7 +94,7 @@
                             role="button"
                             aria-label="@lang('shop::app.categories.toolbar.grid')"
                             tabindex="0"
-                            :class="(filters.applied.mode === 'grid') ? 'icon-grid-view-fill uf-text-accent uf-bg-accent-soft' : 'icon-grid-view text-zinc-500 hover:text-white'"
+                            :class="(filters.applied.mode === 'grid') ? 'icon-grid-view-fill text-uf-accent bg-uf-accent/10' : 'icon-grid-view text-uf-muted hover:text-white'"
                             @click="changeMode('grid')"
                         >
                         </span>

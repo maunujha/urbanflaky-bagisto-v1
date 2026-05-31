@@ -51,7 +51,7 @@
                 leave-to-class="scale-95 transform opacity-0"
             >
                 <div
-                    class="absolute z-20 w-max rounded-[20px] bg-white shadow-[0px_10px_84px_rgba(0,0,0,0.1)] max-md:rounded-lg"
+                    class="absolute z-[60] w-max rounded-[20px] border border-white/10 bg-uf-surface text-uf-text shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-xl max-md:rounded-lg"
                     :style="positionStyles"
                     v-show="isActive"
                 >

@@ -43,9 +43,9 @@ return [
         'default' => [
             'Core.Encoding' => 'utf-8',
             'HTML.Doctype' => 'HTML 4.01 Transitional',
-            'HTML.Allowed' => 'h1,h2,h3,h4,h5,h6,b,u,strong,i,em,s,del,a[href|title],ul,ol,li,p[style],br,span[style],img[width|height|alt|src],blockquote',
+            'HTML.Allowed' => 'div[class|id|style],h1[class|style],h2[class|style],h3[class|style],h4[class|style],h5[class|style],h6[class|style],b,u,strong,i,em,s,del,a[href|title|class|style|target|rel],ul[class|style],ol[class|style],li[class|style],p[class|style],br,hr,span[class|style],img[width|height|alt|src|class|style],blockquote[class|style],table[class|style],thead,tbody,tr[class|style],td[class|style|colspan|rowspan],th[class|style|colspan|rowspan]',
             'HTML.ForbiddenElements' => '',
-            'CSS.AllowedProperties' => 'font,font-size,font-weight,font-style,font-family,text-decoration,padding-left,color,background-color,text-align',
+            'CSS.AllowedProperties' => 'font,font-size,font-weight,font-style,font-family,text-decoration,line-height,padding,padding-left,padding-right,padding-top,padding-bottom,margin,margin-left,margin-right,margin-top,margin-bottom,color,background-color,text-align,vertical-align,width,height',
             'AutoFormat.AutoParagraph' => false,
             'AutoFormat.RemoveEmpty' => false,
         ],

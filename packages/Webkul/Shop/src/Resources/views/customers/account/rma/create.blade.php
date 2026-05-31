@@ -73,21 +73,21 @@
 
                             <template v-else>
                                 <div
-                                    class="row grid items-center gap-2.5 border-b border-zinc-200 bg-zinc-100 px-6 py-4 text-sm font-medium text-black max-md:p-4"
+                                    class="row grid items-center gap-2.5 border-b border-white/10 bg-white/5 px-6 py-4 text-sm font-medium text-white max-md:p-4"
                                     style="grid-template-columns: repeat(6, minmax(0, 1fr));"
                                 >
                                     <div
                                         class="flex gap-2.5 items-center select-none"
                                         v-for="(columnGroup, index) in [['increment_id'], ['status'], ['grand_total'], ['method_title'], ['created_at']]"
                                     >
-                                        <p class="text-gray-600">
+                                        <p class="text-zinc-400">
                                             <span class="[&>*]:after:content-['_/_']">
                                                 <template v-for="column in columnGroup">
                                                     <span
                                                         class="after:content-[''] last:after:content-['']"
                                                         :class="{
-                                                            'text-gray-800 font-medium': applied.sort.column == column,
-                                                            'cursor-pointer hover:text-gray-800': available.columns.find(columnTemp => columnTemp.index === column)?.sortable,
+                                                            'text-zinc-100 font-medium': applied.sort.column == column,
+                                                            'cursor-pointer hover:text-zinc-100': available.columns.find(columnTemp => columnTemp.index === column)?.sortable,
                                                         }"
                                                         @click="
                                                             available.columns.find(columnTemp => columnTemp.index === column)?.sortable ? sort(available.columns.find(columnTemp => columnTemp.index === column)): {}
@@ -99,14 +99,14 @@
                                             </span>
 
                                             <i
-                                                class="align-text-bottom text-base text-gray-800 ltr:ml-1.5 rtl:mr-1.5"
+                                                class="align-text-bottom text-base text-zinc-100 ltr:ml-1.5 rtl:mr-1.5"
                                                 :class="[applied.sort.order === 'asc' ? 'icon-down-stat': 'icon-up-stat']"
                                                 v-if="columnGroup.includes(applied.sort.column)"
                                             ></i>
                                         </p>
                                     </div>
 
-                                    <p class="flex justify-end text-gray-600 cursor-pointer">
+                                    <p class="flex justify-end text-zinc-400 cursor-pointer">
                                         @lang('shop::app.customers.account.rma.create.action')
                                     </p>
                                 </div>
@@ -127,13 +127,13 @@
 
                             <template v-else>
                                 <div
-                                    class="row grid px-4 py-2.5 border-b transition-all hover:bg-gray-50"
+                                    class="row grid px-4 py-2.5 border-b transition-all hover:bg-white/[0.03]"
                                     style="grid-template-columns: repeat(6, minmax(0, 1fr));"
                                     v-for="record in available.records"
                                 >
                                         <!-- Order Id, Created -->
                                         <p
-                                            class="text-base text-gray-800 "
+                                            class="text-base text-zinc-100 "
                                             v-html="record.increment_id"
                                         >
                                         </p>
@@ -142,19 +142,19 @@
 
                                         <!--  Grand Total, Method Title -->
                                         <p
-                                            class="text-base text-gray-800 font-semibold"
+                                            class="text-base text-zinc-100 font-semibold"
                                             v-html="record.grand_total"
                                         >
                                         </p>
 
                                         <p
-                                            class="text-gray-600 "
+                                            class="text-zinc-400 "
                                             v-html="record.method_title"
                                         >
                                         </p>
 
                                         <p
-                                            class="text-gray-600"
+                                            class="text-zinc-400"
                                             v-html="record.created_at"
                                         >
                                         </p>
@@ -190,21 +190,21 @@
 
                             <template v-else>
                                 <div
-                                    class="row grid items-center gap-2.5 border-b border-zinc-200 bg-zinc-100 px-6 py-4 text-sm font-medium text-black max-md:p-4"
+                                    class="row grid items-center gap-2.5 border-b border-white/10 bg-white/5 px-6 py-4 text-sm font-medium text-white max-md:p-4"
                                     style="grid-template-columns: repeat(2, minmax(0, 1fr));"
                                 >
                                     <div
                                         class="flex gap-2.5 items-center select-none"
                                         v-for="(columnGroup, index) in [['increment_id', 'created_at', 'grand_total'], ['method_title', 'status']]"
                                     >
-                                        <p class="text-gray-600">
+                                        <p class="text-zinc-400">
                                             <span class="[&>*]:after:content-['_/_']">
                                                 <template v-for="column in columnGroup">
                                                     <span
                                                         class="after:content-['/'] last:after:content-['']"
                                                         :class="{
-                                                            'text-gray-800 font-medium': applied.sort.column == column,
-                                                            'cursor-pointer hover:text-gray-800': available.columns.find(columnTemp => columnTemp.index === column)?.sortable,
+                                                            'text-zinc-100 font-medium': applied.sort.column == column,
+                                                            'cursor-pointer hover:text-zinc-100': available.columns.find(columnTemp => columnTemp.index === column)?.sortable,
                                                         }"
                                                         @click="
                                                             available.columns.find(columnTemp => columnTemp.index === column)?.sortable ? sort(available.columns.find(columnTemp => columnTemp.index === column)): {}
@@ -216,7 +216,7 @@
                                             </span>
 
                                             <i
-                                                class="align-text-bottom text-base text-gray-800 ltr:ml-1.5 rtl:mr-1.5"
+                                                class="align-text-bottom text-base text-zinc-100 ltr:ml-1.5 rtl:mr-1.5"
                                                 :class="[applied.sort.order === 'asc' ? 'icon-down-stat': 'icon-up-stat']"
                                                 v-if="columnGroup.includes(applied.sort.column)"
                                             ></i>
@@ -240,26 +240,26 @@
 
                             <template v-else>
                                 <div
-                                    class="row grid px-4 py-2.5 border-b transition-all hover:bg-gray-50"
+                                    class="row grid px-4 py-2.5 border-b transition-all hover:bg-white/[0.03]"
                                     style="grid-template-columns: repeat(2, minmax(0, 1fr));"
                                     v-for="record in available.records"
                                 >
                                     <div class="flex gap-x-4 justify-between items-center">
                                         <div class="flex flex-col gap-1.5">
                                             <p
-                                                class="text-gray-600"
+                                                class="text-zinc-400"
                                                 v-html="record.increment_id ?? 'N/A'"
                                             >
                                             </p>
 
                                             <p
-                                                class="text-gray-600"
+                                                class="text-zinc-400"
                                                 v-html="record.created_at"
                                             >
                                             </p>
 
                                             <p
-                                                class="text-gray-600"
+                                                class="text-zinc-400"
                                                 v-html="record.grand_total"
                                             >
                                             </p>
@@ -270,7 +270,7 @@
                                         <div class="flex flex-col gap-1.5">
 
                                         <p
-                                            class="text-gray-600 "
+                                            class="text-zinc-400 "
                                             v-html="record.method_title"
                                         >
                                         </p>
@@ -310,7 +310,7 @@
                             </x-slot>
 
                             <!-- Modal Content -->
-                            <x-slot:content class="bg-white p-4 max-sm:p-3">
+                            <x-slot:content class="bg-white/[0.03] p-4 max-sm:p-3">
                                 <div class="overflow-auto" style="min-height: 400px; max-height: 400px;">
                                     <v-order-items-list :key="refreshComponent" :order-id="isSelect"></v-order-items-list>
                                 </div>
@@ -831,7 +831,7 @@
                                             </v-field>
 
                                             <label
-                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-base peer-checked:text-navyBlue"
+                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-base peer-checked:text-uf-accent"
                                                 for="{{ $attribute->id }}-{{ $index }}"
                                             >
                                                 {{ $option->name }}
@@ -869,7 +869,7 @@
                                             </v-field>
 
                                             <label
-                                                class="icon-radio-unselect text-base peer-checked:icon-radio-select peer-checked:text-navyBlue cursor-pointer"
+                                                class="icon-radio-unselect text-base peer-checked:icon-radio-select peer-checked:text-uf-accent cursor-pointer"
                                                 for="option_{{ $loop->index }}"
                                             >
                                                 {{ $option->name }}
@@ -917,7 +917,7 @@
 
                         <x-shop::form.control-group.control
                             type="image"
-                            class="!p-0 rounded-xl text-gray-700 mb-0"
+                            class="!p-0 rounded-xl text-zinc-300 mb-0"
                             name="images[]"
                             :label="trans('shop::app.customers.account.rma.create.images')"
                             :is-multiple="true"

@@ -28,7 +28,7 @@
                 />
 
                 <a
-                    class="flex items-center justify-center gap-1.5 text-base hover:bg-gray-100"
+                    class="flex items-center justify-center gap-1.5 text-base hover:bg-white/5"
                     href="{{ route('shop.customer.session.destroy') }}"
                     onclick="event.preventDefault(); document.getElementById('customerLogout').submit();"
                 >

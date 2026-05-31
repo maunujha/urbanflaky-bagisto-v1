@@ -122,12 +122,12 @@
                 @if (core()->getConfigData('catalog.products.search.autocomplete') !== '0')
                     <div
                         id="mobile-autocomplete-dropdown"
-                        class="absolute left-0 z-50 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                        class="absolute left-0 z-50 w-full rounded-lg border border-white/10 bg-uf-surface/95 shadow-[0_20px_40px_rgba(0,0,0,0.5)] backdrop-blur hidden"
                         role="listbox"
                     >
                         <ul id="mobile-autocomplete-list" class="py-1"></ul>
-                        <div class="border-t border-gray-100 px-4 py-2.5">
-                            <a id="mobile-autocomplete-viewall" href="#" class="block text-center text-xs font-medium text-navyBlue hover:underline"></a>
+                        <div class="border-t border-white/10 px-4 py-2.5">
+                            <a id="mobile-autocomplete-viewall" href="#" class="block text-center text-xs font-medium text-uf-accent hover:underline"></a>
                         </div>
                     </div>
                 @endif
@@ -135,12 +135,12 @@
                 @if (core()->getConfigData('catalog.products.search.trending_searches') !== '0')
                     <div
                         id="mobile-trending-dropdown"
-                        class="absolute left-0 z-50 w-full rounded-lg border border-gray-200 bg-white shadow-lg hidden"
+                        class="absolute left-0 z-50 w-full rounded-lg border border-white/10 bg-uf-surface/95 shadow-[0_20px_40px_rgba(0,0,0,0.5)] backdrop-blur hidden"
                         role="listbox"
                     >
-                        <div class="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5">
-                            <span class="icon-trend text-navyBlue text-sm"></span>
-                            <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Trending Searches</span>
+                        <div class="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">
+                            <span class="icon-trend text-uf-accent text-sm"></span>
+                            <span class="text-xs font-semibold uppercase tracking-wide text-white/60">Trending Searches</span>
                         </div>
                         <ul id="mobile-trending-list" class="py-1"></ul>
                     </div>
@@ -310,7 +310,7 @@
 
             <x-slot:footer>
                 @if(core()->getCurrentChannel()->locales()->count() > 1 || core()->getCurrentChannel()->currencies()->count() > 1 )
-                    <div class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-zinc-200 bg-white px-5 ltr:left-0 rtl:right-0">
+                    <div class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0">
                         <x-shop::drawer position="bottom" width="100%">
                             <x-slot:toggle>
                                 <div class="flex cursor-pointer items-center gap-x-2.5 px-2.5 py-3.5 text-lg font-medium uppercase max-md:py-3 max-sm:text-base" role="button" v-pre>
@@ -329,7 +329,7 @@
                             </x-slot>
                         </x-shop::drawer>
 
-                        <span class="h-5 w-0.5 bg-zinc-200"></span>
+                        <span class="h-5 w-0.5 bg-white/15"></span>
 
                         <x-shop::drawer position="bottom" width="100%">
                             <x-slot:toggle>
@@ -377,8 +377,8 @@
                             :key="category.id"
                             :class="{'mb-2': category.children && category.children.length}"
                         >
-                            <div class="flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer">
-                                <a :href="category.url" class="text-base font-medium text-black">
+                            <div class="group flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer">
+                                <a :href="category.url" class="text-base font-medium text-white transition-colors group-hover:text-uf-accent">
                                     @{{ category.name }}
                                 </a>
                             </div>
@@ -386,15 +386,15 @@
                             <div v-if="category.children && category.children.length">
                                 <div v-for="secondLevelCategory in category.children" :key="secondLevelCategory.id">
                                     <div
-                                        class="flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer"
+                                        class="group flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer"
                                         @click="showThirdLevel(secondLevelCategory, category, $event)"
                                     >
-                                        <a :href="secondLevelCategory.url" class="text-sm font-normal">
+                                        <a :href="secondLevelCategory.url" class="text-sm font-normal text-zinc-300 transition-colors group-hover:text-uf-accent">
                                             @{{ secondLevelCategory.name }}
                                         </a>
                                         <span
                                             v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                            class="icon-arrow-right rtl:icon-arrow-left"
+                                            class="icon-arrow-right rtl:icon-arrow-left text-zinc-500 transition-colors group-hover:text-uf-accent"
                                         ></span>
                                     </div>
                                 </div>
@@ -404,14 +404,14 @@
                 </div>
 
                 <div class="flex-shrink-0 w-full h-full" v-if="currentViewLevel === 'third'">
-                    <div class="px-6 py-4 border-b border-gray-200">
+                    <div class="px-6 py-4 border-b border-white/10">
                         <button
                             @click="goBackToMainView"
-                            class="flex items-center justify-center gap-2 focus:outline-none"
+                            class="flex items-center justify-center gap-2 text-white transition-colors hover:text-uf-accent focus:outline-none"
                             aria-label="Go back"
                         >
                             <span class="text-lg icon-arrow-left rtl:icon-arrow-right"></span>
-                            <div class="text-base font-medium text-black">
+                            <div class="text-base font-medium">
                                 @lang('shop::app.components.layouts.header.mobile.back-button')
                             </div>
                         </button>
@@ -422,7 +422,7 @@
                             :key="thirdLevelCategory.id"
                             class="mb-2"
                         >
-                            <a :href="thirdLevelCategory.url" class="block py-2 text-sm transition-colors duration-200">
+                            <a :href="thirdLevelCategory.url" class="block py-2 text-sm text-zinc-300 transition-colors duration-200 hover:text-uf-accent">
                                 @{{ thirdLevelCategory.name }}
                             </a>
                         </div>

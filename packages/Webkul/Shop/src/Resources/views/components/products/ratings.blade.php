@@ -17,7 +17,7 @@
         id="v-product-ratings-template"
     >
         <div>
-            <span class="text-sm font-medium text-black max-sm:text-xs">
+            <span class="text-sm font-medium max-sm:text-xs">
                 @{{ average }}
             </span>
         
@@ -27,7 +27,7 @@
             >
             </span>
             
-            <span class="border-l border-zinc-300 text-sm font-medium text-black max-sm:border-zinc-300 max-sm:text-xs ltr:pl-1 rtl:pr-1">
+            <span class="border-l border-zinc-300 text-sm font-medium max-sm:border-zinc-300 max-sm:text-xs ltr:pl-1 rtl:pr-1">
                 @{{ abbreviatedTotal }}
 
                 <span v-if="rating">@lang('shop::app.components.products.ratings.title')</span>

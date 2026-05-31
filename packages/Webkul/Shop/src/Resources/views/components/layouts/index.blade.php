@@ -80,7 +80,7 @@
             href="{{ core()->getCurrentChannel()->favicon_url ?? bagisto_asset('images/favicon.ico') }}"
         />
 
-        @bagistoVite(['src/Resources/assets/css/app.css', 'src/Resources/assets/js/app.js'])
+        @bagistoVite(['src/Resources/assets/css/app.css', 'src/Resources/assets/css/urbanflaky.css', 'src/Resources/assets/js/app.js'])
 
         <link
             rel="preconnect"
@@ -105,8 +105,6 @@
         />
 
         @stack('styles')
-
-        <link rel="stylesheet" href="{{ asset('css/urbanflaky.css') }}">
 
         <style>
             {!! core()->getConfigData('general.content.custom_scripts.custom_css') !!}

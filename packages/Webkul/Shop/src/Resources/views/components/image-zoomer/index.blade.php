@@ -23,7 +23,7 @@
             >
                 <!-- Close -->
                 <span
-                    class="icon-cancel absolute top-3 z-[1000] cursor-pointer text-3xl ltr:right-3 rtl:left-3"
+                    class="icon-cancel fixed top-4 z-[1000] flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-[rgba(0,0,0,0.8)] text-2xl font-bold text-white opacity-60 transition-all hover:opacity-100 ltr:right-4 rtl:left-4"
                     @click="toggle"
                 >
                 </span>

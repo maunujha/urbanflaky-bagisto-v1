@@ -198,10 +198,45 @@
         <x-shop::layouts.header.desktop />
     </script>
 
-    <script 
-        type="text/x-template" 
+    <script
+        type="text/x-template"
         id="v-mobile-header-template"
     >
         <x-shop::layouts.header.mobile />
+    </script>
+
+    <!-- Auto-hide header on scroll-down, reveal on scroll-up (desktop + mobile) -->
+    <script>
+        (function () {
+            var header = document.getElementById('uf-header');
+            if (! header) return;
+
+            var lastY      = window.scrollY || 0;
+            var ticking    = false;
+            var REVEAL_TOP = 80;  /* always show near the very top of the page */
+            var THRESHOLD  = 6;   /* ignore tiny scroll jitters */
+
+            function update() {
+                var y = window.scrollY || 0;
+
+                if (y <= REVEAL_TOP) {
+                    header.dataset.hidden = 'false';
+                } else if (y > lastY + THRESHOLD) {
+                    header.dataset.hidden = 'true';   /* scrolling down → hide */
+                } else if (y < lastY - THRESHOLD) {
+                    header.dataset.hidden = 'false';  /* scrolling up → show */
+                }
+
+                lastY   = y;
+                ticking = false;
+            }
+
+            window.addEventListener('scroll', function () {
+                if (! ticking) {
+                    window.requestAnimationFrame(update);
+                    ticking = true;
+                }
+            }, { passive: true });
+        })();
     </script>
 @endPushOnce

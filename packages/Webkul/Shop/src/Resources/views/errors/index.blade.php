@@ -33,13 +33,69 @@
                     }}
                 </p>
 
-                <a 
+                <a
                     href="{{ route('shop.home.index') }}"
-                    class="m-auto mt-8 block w-max cursor-pointer rounded-[45px] bg-navyBlue px-10 py-4 text-center text-base font-medium text-white max-sm:mb-10 max-sm:px-6 max-sm:text-sm"
+                    class="m-auto mt-8 block w-max cursor-pointer rounded-[45px] bg-uf-accent px-10 py-4 text-center text-base font-semibold text-black transition hover:brightness-105 max-sm:mb-10 max-sm:px-6 max-sm:text-sm"
                 >
-                    @lang('shop::app.errors.go-to-home') 
+                    @lang('shop::app.errors.go-to-home')
                 </a>
+
+                @if ($errorCode === 500)
+                    <p
+                        id="uf-500-countdown"
+                        class="mt-6 hidden text-sm text-zinc-400 max-md:text-xs"
+                    ></p>
+                @endif
             </div>
 		</div>
 	</div>
+
+    @if ($errorCode === 500)
+        <script>
+            (function () {
+                var MAX_RETRIES = 3;     // stop after this many auto-reloads
+                var DELAY_MS    = 3000;  // wait before reloading
+                var WINDOW_MS   = 30000; // reset the counter if last retry was older than this
+                var key = 'uf-500-retries:' + window.location.pathname;
+
+                var now   = Date.now();
+                var state = {};
+                try { state = JSON.parse(sessionStorage.getItem(key)) || {}; } catch (e) {}
+
+                // Fresh burst of 500s? Start counting again.
+                if (!state.last || (now - state.last) > WINDOW_MS) {
+                    state = { count: 0 };
+                }
+
+                if (state.count < MAX_RETRIES) {
+                    sessionStorage.setItem(key, JSON.stringify({ count: state.count + 1, last: now }));
+
+                    var el        = document.getElementById('uf-500-countdown');
+                    var remaining = Math.ceil(DELAY_MS / 1000);
+
+                    var render = function () {
+                        if (!el) return;
+                        el.classList.remove('hidden');
+                        el.textContent = remaining > 0
+                            ? 'Retrying in ' + remaining + 's…'
+                            : 'Reloading…';
+                    };
+
+                    render();
+                    var ticker = setInterval(function () {
+                        remaining -= 1;
+                        render();
+                        if (remaining <= 0) clearInterval(ticker);
+                    }, 1000);
+
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, DELAY_MS);
+                } else {
+                    // Hit the cap — stop reloading so we don't loop forever.
+                    sessionStorage.removeItem(key);
+                }
+            })();
+        </script>
+    @endif
 </x-shop::layouts>

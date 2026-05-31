@@ -18,6 +18,40 @@
     $storeState     = core()->getConfigData('sales.shipping.origin.state');
     $storePhone     = core()->getConfigData('sales.shipping.origin.telephone');
     $storeEmail     = env('CONTACT_MAIL_ADDRESS', 'support@urbanflaky.in');
+
+    /*
+     | Footer columns are driven by the CMS pages created in
+     | admin → Content → Pages. Each slug below resolves to its CMS page
+     | (correct title + /page/{slug} link). Edit the slug lists to choose
+     | which pages appear in each column; missing slugs are skipped.
+     */
+    $cmsLocale = app()->getLocale();
+
+    $cmsPages = \Webkul\CMS\Models\Page::with('translations')->get()
+        ->mapWithKeys(function ($page) use ($cmsLocale) {
+            $t = $page->translations->firstWhere('locale', $cmsLocale)
+                ?? $page->translations->first();
+
+            return $t && $t->url_key
+                ? [$t->url_key => ['title' => $t->page_title, 'url_key' => $t->url_key]]
+                : [];
+        });
+
+    /*
+     | Non-CMS footer links: built-in Bagisto routes (e.g. contact-us) that
+     | are NOT pages in Content → Pages. Merge them so they can be referenced
+     | in $footerColumns by the same slug key.
+     */
+    $cmsPages = $cmsPages->merge([
+        'contact-us' => ['title' => 'Contact Us', 'url_key' => 'contact-us'],
+        'faqs'       => ['title' => 'FAQs', 'url_key' => 'faqs'],
+    ]);
+
+    $footerColumns = [
+        'Company' => ['about-us', 'our-story', 'whats-new', 'customer-service', 'wholesale'],
+        'Help'    => ['contact-us', 'faqs', 'track-order', 'size-guide', 'care-instructions'],
+        'Policies'=> ['privacy-policy', 'terms-conditions', 'refund-policy', 'return-policy', 'shipping-policy', 'payment-policy'],
+    ];
 @endphp
 
 <div class="uf-footer-wrap">
@@ -96,44 +130,29 @@
                 </div>
             </div>
 
-            {{-- Footer Link Sections (from admin) --}}
-            @if ($customization?->options)
+            {{-- Footer Link Sections — driven by CMS pages (admin → Content → Pages) --}}
+            @foreach ($footerColumns as $heading => $slugs)
                 @php
-                    $sections = array_slice($customization->options, 0, 2);
+                    $links = collect($slugs)
+                        ->map(fn ($slug) => $cmsPages[$slug] ?? null)
+                        ->filter();
                 @endphp
 
-                @foreach ($sections as $sectionIdx => $footerLinkSection)
-                    @php usort($footerLinkSection, fn($a, $b) => $a['sort_order'] - $b['sort_order']); @endphp
+                @if ($links->isNotEmpty())
                     <div>
-                        <div class="uf-col-heading">
-                            {{ $footerLinkSection[0]['title'] ?? ($sectionIdx === 0 ? 'Company' : 'Policies') }}
-                        </div>
-                        <ul class="uf-col-list" v-pre>
-                            @foreach (array_slice($footerLinkSection, 1) as $link)
-                                <li><a href="{{ $link['url'] }}">{{ $link['title'] }}</a></li>
+                        <div class="uf-col-heading">{{ $heading }}</div>
+                        <ul class="uf-col-list">
+                            @foreach ($links as $link)
+                                <li>
+                                    <a href="{{ url($link['url_key']) }}">
+                                        {{ $link['title'] }}
+                                    </a>
+                                </li>
                             @endforeach
                         </ul>
                     </div>
-                @endforeach
-            @else
-                {{-- Fallback if no admin links configured --}}
-                <div>
-                    <div class="uf-col-heading">Company</div>
-                    <ul class="uf-col-list">
-                        <li><a href="{{ url('about-us') }}">About Us</a></li>
-                        <li><a href="{{ url('contact-us') }}">Contact Us</a></li>
-                        <li><a href="{{ route('shop.customer.session.index') }}">My Account</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <div class="uf-col-heading">Policies</div>
-                    <ul class="uf-col-list">
-                        <li><a href="{{ url('privacy-policy') }}">Privacy Policy</a></li>
-                        <li><a href="{{ url('refund-policy') }}">Refund Policy</a></li>
-                        <li><a href="{{ url('shipping-policy') }}">Shipping Policy</a></li>
-                    </ul>
-                </div>
-            @endif
+                @endif
+            @endforeach
 
             {{-- Contact Column --}}
             <div>
@@ -196,8 +215,12 @@
             </div>
 
             <div class="uf-policy-links">
-                <a href="{{ url('page/privacy-policy') }}">Privacy</a>
-                <a href="{{ url('page/terms-conditions') }}">Terms</a>
+                @if (isset($cmsPages['privacy-policy']))
+                    <a href="{{ url('privacy-policy') }}">Privacy</a>
+                @endif
+                @if (isset($cmsPages['terms-conditions']))
+                    <a href="{{ url('terms-conditions') }}">Terms</a>
+                @endif
                 <a href="{{ url('sitemap.xml') }}">Sitemap</a>
             </div>
 

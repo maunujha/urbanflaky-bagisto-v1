@@ -6,6 +6,9 @@ use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Http\Response;
 use Webkul\CartRule\Exceptions\CouponUsageLimitExceededException;
 use Webkul\Checkout\Facades\Cart;
+use Webkul\Customer\Facades\Captcha;
+use Webkul\Customer\Models\CustomerAddress;
+use Webkul\Customer\Repositories\CustomerAddressRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Payment\Facades\Payment;
 use Webkul\Sales\Repositories\OrderRepository;
@@ -23,7 +26,8 @@ class OnepageController extends APIController
      */
     public function __construct(
         protected OrderRepository $orderRepository,
-        protected CustomerRepository $customerRepository
+        protected CustomerRepository $customerRepository,
+        protected CustomerAddressRepository $customerAddressRepository
     ) {}
 
     /**
@@ -147,6 +151,21 @@ class OnepageController extends APIController
      */
     public function storeOrder()
     {
+        /*
+         * Bot protection (fail-open): when reCAPTCHA is enabled, block the order
+         * only if Google actively confirms a low (bot) score. Any inability to
+         * evaluate the token lets the order through so a reCAPTCHA outage can
+         * never stop legitimate checkouts — SMS OTP remains the primary gate.
+         */
+        if (
+            Captcha::isActive()
+            && ! Captcha::isLikelyHuman(request('recaptcha_token'))
+        ) {
+            return response()->json([
+                'message' => trans('shop::app.checkout.cart.bot-detected'),
+            ], 422);
+        }
+
         if (Cart::hasError()) {
             return new JsonResource([
                 'redirect' => true,
@@ -188,6 +207,13 @@ class OnepageController extends APIController
             ]);
         }
 
+        /* Save the order's address to the customer's address book (never break checkout). */
+        try {
+            $this->saveOrderAddressToBook($order);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         Cart::deActivateCart();
 
         session()->flash('order_id', $order->id);
@@ -195,6 +221,53 @@ class OnepageController extends APIController
         return new JsonResource([
             'redirect' => true,
             'redirect_url' => route('shop.checkout.onepage.success'),
+        ]);
+    }
+
+    /**
+     * Persist the order's billing address into the logged-in customer's address book,
+     * so addresses used at checkout show up under My Account → Addresses.
+     * Guests are skipped, and a duplicate of an already-saved address is not re-added.
+     */
+    protected function saveOrderAddressToBook($order): void
+    {
+        $customer = auth()->guard('customer')->user();
+
+        if (! $customer || ! ($address = $order->billing_address)) {
+            return;
+        }
+
+        $alreadySaved = $this->customerAddressRepository->findWhere([
+            'customer_id'  => $customer->id,
+            'address_type' => CustomerAddress::ADDRESS_TYPE,
+            'address'      => $address->address,
+            'city'         => $address->city,
+            'postcode'     => $address->postcode,
+        ])->isNotEmpty();
+
+        if ($alreadySaved) {
+            return;
+        }
+
+        $isFirstAddress = $this->customerAddressRepository->findWhere([
+            'customer_id'  => $customer->id,
+            'address_type' => CustomerAddress::ADDRESS_TYPE,
+        ])->isEmpty();
+
+        $this->customerAddressRepository->create([
+            'customer_id'     => $customer->id,
+            'address_type'    => CustomerAddress::ADDRESS_TYPE,
+            'first_name'      => $address->first_name,
+            'last_name'       => $address->last_name,
+            'company_name'    => $address->company_name,
+            'address'         => $address->address,
+            'city'            => $address->city,
+            'state'           => $address->state,
+            'country'         => $address->country,
+            'postcode'        => $address->postcode,
+            'phone'           => $address->phone,
+            'email'           => $address->email,
+            'default_address' => $isFirstAddress,
         ]);
     }
 

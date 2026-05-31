@@ -5,6 +5,7 @@ namespace Webkul\Shop\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Webkul\Category\Repositories\CategoryRepository;
+use Webkul\CMS\Repositories\PageRepository;
 use Webkul\Marketing\Repositories\URLRewriteRepository;
 use Webkul\Product\Repositories\ProductRepository;
 use Webkul\Theme\Repositories\ThemeCustomizationRepository;
@@ -27,7 +28,8 @@ class ProductsCategoriesProxyController extends Controller
         protected CategoryRepository $categoryRepository,
         protected ProductRepository $productRepository,
         protected ThemeCustomizationRepository $themeCustomizationRepository,
-        protected URLRewriteRepository $urlRewriteRepository
+        protected URLRewriteRepository $urlRewriteRepository,
+        protected PageRepository $pageRepository
     ) {}
 
     /**
@@ -120,6 +122,23 @@ class ProductsCategoriesProxyController extends Controller
 
         if ($urlRewrite) {
             return redirect()->to($urlRewrite->target_path, $urlRewrite->redirect_type);
+        }
+
+        /**
+         * If nothing else matched, try to resolve a CMS page by its url key so
+         * static pages are reachable at the root (e.g. /whats-new instead of
+         * /page/whats-new). Products/categories keep priority, so there is no
+         * collision risk.
+         */
+        $page = $this->pageRepository
+            ->whereHas('channels', function ($query) {
+                $query->where('id', core()->getCurrentChannel()->id);
+            })
+            ->whereTranslation('url_key', $slugOrURLKey)
+            ->first();
+
+        if ($page) {
+            return view('shop::cms.page')->with('page', $page);
         }
 
         abort(404);

@@ -182,11 +182,11 @@
                         v-if="filter.type !== 'boolean'"
                     >
                         <div class="relative">
-                            <div class="icon-search pointer-events-none absolute top-1/2 -translate-y-1/2 flex items-center text-base text-zinc-500 ltr:left-3 rtl:right-3"></div>
+                            <div class="icon-search pointer-events-none absolute top-1/2 -translate-y-1/2 flex items-center text-base text-[#666] ltr:left-3 rtl:right-3"></div>
 
                             <input
                                 type="text"
-                                class="uf-ring-accent block w-full rounded-sm border border-white/10 px-10 py-2.5 text-xs font-normal placeholder:text-zinc-500 transition"
+                                class="uf-ring-accent block w-full rounded-sm border border-white/10 bg-uf-bg/70 px-10 py-2.5 text-xs font-normal text-uf-text placeholder:text-[#666] transition focus:border-uf-accent focus:bg-uf-bg/85"
                                 placeholder="@lang('shop::app.categories.filters.search.title')"
                                 v-model="searchQuery"
                                 v-debounce:500="searchOptions"
@@ -234,7 +234,7 @@
                                     </label>
 
                                     <label
-                                        class="w-full cursor-pointer py-1.5 text-sm font-normal transition max-sm:text-xs ltr:pl-0 rtl:pr-0"
+                                        class="w-full cursor-pointer py-1.5 text-sm font-normal transition group-hover:text-uf-accent max-sm:text-xs ltr:pl-0 rtl:pr-0"
                                         :id="'label_option_' + option.id"
                                         :for="`filter_${filter.id}_option_ ${option.id}`"
                                         role="button"

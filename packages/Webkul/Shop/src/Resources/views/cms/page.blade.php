@@ -5,6 +5,8 @@
     <meta name="description" content="{{ $page->meta_description }}" />
 
     <meta name="keywords" content="{{ $page->meta_keywords }}" />
+
+    <link rel="canonical" href="{{ url($page->url_key) }}" />
 @endPush
 
 <!-- Page Layout -->
@@ -15,7 +17,7 @@
     </x-slot>
 
     <!-- Page Content -->
-    <div class="container mt-8 px-[60px] max-lg:px-8">
+    <div class="uf-rte container mt-8 mb-16 px-[60px] text-zinc-300 max-lg:px-8">
         {!! $page->html_content !!}
     </div>
 </x-shop::layouts>

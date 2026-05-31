@@ -15,8 +15,13 @@
     "name": "vue"
   },
   "src/Resources/assets/css/app.css": {
-    "file": "assets/app-BI_Iu6df.css",
+    "file": "assets/app-DJyBmylQ.css",
     "src": "src/Resources/assets/css/app.css",
+    "isEntry": true
+  },
+  "src/Resources/assets/css/urbanflaky.css": {
+    "file": "assets/urbanflaky-B5SRXihV.css",
+    "src": "src/Resources/assets/css/urbanflaky.css",
     "isEntry": true
   },
   "src/Resources/assets/fonts/bagisto-shop.woff": {

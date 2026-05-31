@@ -3,7 +3,7 @@
 @endPush
 
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('css/otp-signup.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/otp-signup.css') }}?v={{ @filemtime(public_path('css/otp-signup.css')) ?: '1' }}">
 @endpush
 
 <x-shop::layouts
@@ -15,8 +15,25 @@
 
     @php $showOtp = (bool) session('show_login_otp'); @endphp
 
-    <div class="su-wrap">
-        <div class="su-outer">
+    <div class="su-wrap su-login-wrap">
+
+        <!-- Left · Fashion banner -->
+        <aside class="su-banner">
+            <div class="su-brand-bottom">
+                <p class="su-brand-eyebrow">Premium Streetwear</p>
+                <h2 class="su-brand-title">Wear the <span>culture.</span></h2>
+                <p class="su-brand-text">Curated polos &amp; slim-fit essentials, dropped fresh for the bold — sign in to track orders, save your fits and check out faster.</p>
+                <div class="su-brand-feats">
+                    <span>Free Delivery</span>
+                    <span>7-Day Returns</span>
+                    <span>100% Genuine</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right · Form panel -->
+        <div class="su-panel">
+            <div class="su-outer">
 
             <div class="su-card">
 
@@ -126,7 +143,7 @@
                         $maskedLogin = $loginPhone ? '+91 ••••••' . substr($loginPhone, -4) : '';
                     @endphp
 
-                    <p class="su-sub">Sent to <strong style="color:#111827;">{{ $maskedLogin }}</strong></p>
+                    <p class="su-sub">Sent to <strong>{{ $maskedLogin }}</strong></p>
 
                     @if (session('error') && $showOtp)
                         <div class="su-error">{{ session('error') }}</div>
@@ -168,11 +185,12 @@
 
             </div>{{-- /card --}}
 
-            <p class="su-footer">
-                @lang('shop::app.customers.login-form.footer', ['current_year' => date('Y')])
-            </p>
-        </div>
-    </div>
+                <p class="su-footer">
+                    @lang('shop::app.customers.login-form.footer', ['current_year' => date('Y')])
+                </p>
+            </div>{{-- /su-outer --}}
+        </div>{{-- /su-panel --}}
+    </div>{{-- /su-wrap --}}
 
     @push('scripts')
     {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}

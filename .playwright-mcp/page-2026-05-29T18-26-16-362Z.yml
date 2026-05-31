@@ -1,0 +1,1195 @@
+- generic [active] [ref=e1]:
+  - link "Skip to main content" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - generic [ref=e3]:
+    - generic: 
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "Bagisto" [ref=e8] [cursor=pointer]:
+            - /url: http://urbanflaky.test
+            - img "Urbanflaky" [ref=e9]
+          - generic [ref=e11]:
+            - generic [ref=e13] [cursor=pointer]:
+              - generic [ref=e14]: 
+              - text: All
+            - link "Mens" [ref=e17] [cursor=pointer]:
+              - /url: http://urbanflaky.test/mens
+            - link "Womens" [ref=e20] [cursor=pointer]:
+              - /url: http://urbanflaky.test/womens
+            - link "Casual Wear" [ref=e23] [cursor=pointer]:
+              - /url: http://urbanflaky.test/casual-wear-men
+            - link "Combo's" [ref=e26] [cursor=pointer]:
+              - /url: http://urbanflaky.test/combos
+        - generic [ref=e27]:
+          - button "Search products here" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29]: 
+          - button "Shopping Cart" [ref=e34] [cursor=pointer]: 
+          - button "Profile" [ref=e37] [cursor=pointer]: 
+    - main [ref=e38]:
+      - generic [ref=e39]:
+        - generic [ref=e40]:
+          - img "Get Ready For New Collection" [ref=e43] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e46] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e49] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e52] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e55] [cursor=pointer]
+          - img "Get Ready For New Collection" [ref=e58] [cursor=pointer]
+        - button "shop::components.carousel.previous" [ref=e59] [cursor=pointer]:
+          - generic [ref=e60]: 
+        - button "shop::components.carousel.next" [ref=e61] [cursor=pointer]:
+          - generic [ref=e62]: 
+        - generic [ref=e63]:
+          - button "Go to slide 1" [ref=e64] [cursor=pointer]
+          - button "Go to slide 2" [ref=e66] [cursor=pointer]
+          - button "Go to slide 3" [ref=e67] [cursor=pointer]
+          - button "Go to slide 4" [ref=e68] [cursor=pointer]
+          - button "Go to slide 5" [ref=e69] [cursor=pointer]
+          - button "Go to slide 6" [ref=e70] [cursor=pointer]
+      - heading "Get UPTO 40% OFF on your 1st order SHOP NOW" [level=1] [ref=e72]
+      - region "Shop by category" [ref=e441]:
+        - generic [ref=e442]:
+          - generic [ref=e443]:
+            - link "Mens" [ref=e444] [cursor=pointer]:
+              - /url: mens
+              - img "Mens" [ref=e446]
+              - generic:
+                - generic: Mens
+                - generic:
+                  - text: Explore Now
+                  - generic: ›
+            - link "Womens" [ref=e447] [cursor=pointer]:
+              - /url: womens
+              - img "Womens" [ref=e449]
+              - generic:
+                - generic: Womens
+                - generic:
+                  - text: Explore Now
+                  - generic: ›
+            - link "Casual Wear" [ref=e450] [cursor=pointer]:
+              - /url: casual-wear-men
+              - img "Casual Wear" [ref=e452]
+              - generic:
+                - generic: Casual Wear
+                - generic:
+                  - text: Explore Now
+                  - generic: ›
+            - link "Combo's" [ref=e453] [cursor=pointer]:
+              - /url: combos
+              - img "Combo's" [ref=e455]
+              - generic:
+                - generic: Combo's
+                - generic:
+                  - text: Explore Now
+                  - generic: ›
+          - button "shop::components.carousel.previous" [disabled]:
+            - generic: 
+          - button "shop::components.carousel.next" [ref=e456] [cursor=pointer]:
+            - generic [ref=e457]: 
+      - generic [ref=e459]:
+        - generic [ref=e460]:
+          - heading "Latest Collection" [level=2] [ref=e461]
+          - generic [ref=e462]:
+            - text: 
+            - generic [ref=e463]:
+              - button "shop::components.carousel.previous" [ref=e464] [cursor=pointer]:
+                - generic [ref=e465]: 
+              - button "shop::components.carousel.next" [ref=e466] [cursor=pointer]:
+                - generic [ref=e467]: 
+        - generic [ref=e468]:
+          - generic [ref=e469]:
+            - generic [ref=e470]:
+              - link "Bundle Pack of t-shirt" [ref=e471] [cursor=pointer]:
+                - /url: http://urbanflaky.test/bundle-pack-of-t-shirt
+                - img "Bundle Pack of t-shirt" [ref=e472]
+              - paragraph [ref=e473]: Sale
+              - generic [ref=e474]:
+                - button "Add To Wishlist" [ref=e475] [cursor=pointer]: 
+                - button "Quick view" [ref=e476] [cursor=pointer]:
+                  - img [ref=e477]
+            - generic [ref=e480]:
+              - paragraph [ref=e481]: Bundle Pack of t-shirt
+              - paragraph [ref=e482]: Sleeve Half Sleeve Fabric Polyester Neck Type Round...
+              - paragraph [ref=e486]:
+                - generic "Rs 799.00" [ref=e487]
+                - text: Rs 499.00
+              - generic [ref=e488]:
+                - generic [ref=e489]:
+                  - img [ref=e490]
+                  - text: Free Delivery
+                - generic [ref=e495]: "|"
+                - generic [ref=e496]:
+                  - img [ref=e497]
+                  - text: 7-Day Returns
+            - generic [ref=e501]:
+              - paragraph [ref=e505]:
+                - generic "Rs 799.00" [ref=e506]
+                - text: Rs 499.00
+              - generic [ref=e507]:
+                - button "Add To Cart" [ref=e508] [cursor=pointer]:
+                  - img [ref=e509]
+                  - generic [ref=e512]: Add To Cart
+                - button "Buy Now" [ref=e513] [cursor=pointer]
+          - generic [ref=e514]:
+            - generic [ref=e515]:
+              - link "Multicolor Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e516] [cursor=pointer]:
+                - /url: http://urbanflaky.test/multicolor-polo-tshirt-for-men-with-pocket-in-matty-fabric
+                - img "Multicolor Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e517]
+              - paragraph [ref=e518]: New
+              - generic [ref=e519]:
+                - button "Add To Wishlist" [ref=e520] [cursor=pointer]: 
+                - button "Quick view" [ref=e521] [cursor=pointer]:
+                  - img [ref=e522]
+              - generic [ref=e525]:
+                - generic [ref=e526]: "5.0"
+                - text: 
+                - generic [ref=e527]: "5"
+            - generic [ref=e528]:
+              - paragraph [ref=e529]: Multicolor Polo Tshirt for Men with Pocket in Matty Fabric
+              - paragraph [ref=e530]: Premium 100% Cotton Fabric for all-day comfort Bold...
+              - generic [ref=e532]:
+                - paragraph [ref=e533]: As low as
+                - paragraph
+                - paragraph [ref=e534]: Rs 399.00
+              - generic [ref=e535]:
+                - generic [ref=e536]:
+                  - img [ref=e537]
+                  - text: Free Delivery
+                - generic [ref=e542]: "|"
+                - generic [ref=e543]:
+                  - img [ref=e544]
+                  - text: 7-Day Returns
+            - generic [ref=e548]:
+              - generic [ref=e549]:
+                - paragraph [ref=e550]: Color
+                - generic [ref=e551]:
+                  - generic "Red" [ref=e552] [cursor=pointer]
+                  - generic "Yellow" [ref=e553] [cursor=pointer]
+                  - generic "Black" [ref=e554] [cursor=pointer]
+              - generic [ref=e555]:
+                - paragraph [ref=e556]: Size
+                - generic [ref=e557]:
+                  - generic [ref=e558] [cursor=pointer]: S
+                  - generic [ref=e559] [cursor=pointer]: XL
+              - generic [ref=e560]:
+                - paragraph [ref=e561]: Sleeve
+                - generic [ref=e562]:
+                  - generic [ref=e563] [cursor=pointer]: Full
+                  - generic [ref=e564] [cursor=pointer]: Half
+              - generic [ref=e566]:
+                - paragraph [ref=e567]: As low as
+                - paragraph
+                - paragraph [ref=e568]: Rs 399.00
+              - generic [ref=e569]:
+                - button "Add To Cart" [ref=e570] [cursor=pointer]:
+                  - img [ref=e571]
+                  - generic [ref=e574]: Add To Cart
+                - button "Buy Now" [ref=e575] [cursor=pointer]
+          - generic [ref=e576]:
+            - generic [ref=e577]:
+              - link "Beige" [ref=e578] [cursor=pointer]:
+                - /url: http://urbanflaky.test/Aku-b3caabq-variant-2-6-24
+                - img "Beige" [ref=e579]
+              - paragraph [ref=e580]: New
+              - generic [ref=e581]:
+                - button "Add To Wishlist" [ref=e582] [cursor=pointer]: 
+                - button "Quick view" [ref=e583] [cursor=pointer]:
+                  - img [ref=e584]
+            - generic [ref=e587]:
+              - paragraph [ref=e588]: Beige
+              - paragraph [ref=e589]: Aku-b3caabq-variant-2-6-24
+              - paragraph [ref=e592]: Rs 439.00
+              - generic [ref=e593]:
+                - generic [ref=e594]:
+                  - img [ref=e595]
+                  - text: Free Delivery
+                - generic [ref=e600]: "|"
+                - generic [ref=e601]:
+                  - img [ref=e602]
+                  - text: 7-Day Returns
+            - generic [ref=e606]:
+              - paragraph [ref=e609]: Rs 439.00
+              - generic [ref=e610]:
+                - button "Add To Cart" [disabled] [ref=e611]:
+                  - img [ref=e612]
+                  - generic [ref=e615]: Add To Cart
+                - button "Buy Now" [disabled] [ref=e616]
+          - generic [ref=e617]:
+            - generic [ref=e618]:
+              - link "Variant 3 6 24" [ref=e619] [cursor=pointer]:
+                - /url: http://urbanflaky.test/Aku-b3caabq-variant-3-6-24
+                - img "Variant 3 6 24" [ref=e620]
+              - paragraph [ref=e621]: New
+              - generic [ref=e622]:
+                - button "Add To Wishlist" [ref=e623] [cursor=pointer]: 
+                - button "Quick view" [ref=e624] [cursor=pointer]:
+                  - img [ref=e625]
+            - generic [ref=e628]:
+              - paragraph [ref=e629]: Variant 3 6 24
+              - paragraph [ref=e630]: Aku-b3caabq-variant-3-6-24
+              - paragraph [ref=e633]: Rs 399.00
+              - generic [ref=e634]:
+                - generic [ref=e635]:
+                  - img [ref=e636]
+                  - text: Free Delivery
+                - generic [ref=e641]: "|"
+                - generic [ref=e642]:
+                  - img [ref=e643]
+                  - text: 7-Day Returns
+            - generic [ref=e647]:
+              - paragraph [ref=e650]: Rs 399.00
+              - generic [ref=e651]:
+                - button "Add To Cart" [ref=e652] [cursor=pointer]:
+                  - img [ref=e653]
+                  - generic [ref=e656]: Add To Cart
+                - button "Buy Now" [ref=e657] [cursor=pointer]
+          - generic [ref=e658]:
+            - generic [ref=e659]:
+              - link "Urban style 100% cotton unisex tee" [ref=e660] [cursor=pointer]:
+                - /url: http://urbanflaky.test/urban-style-100-cotton-unisex-tee
+                - img "Urban style 100% cotton unisex tee" [ref=e661]
+              - paragraph [ref=e662]: New
+              - generic [ref=e663]:
+                - button "Add To Wishlist" [ref=e664] [cursor=pointer]: 
+                - button "Quick view" [ref=e665] [cursor=pointer]:
+                  - img [ref=e666]
+            - generic [ref=e669]:
+              - paragraph [ref=e670]: Urban style 100% cotton unisex tee
+              - paragraph [ref=e671]: We’ve seen men going crazy over trendy t-shirts. And, t...
+              - paragraph [ref=e674]: Rs 349.00
+              - generic [ref=e675]:
+                - generic [ref=e676]:
+                  - img [ref=e677]
+                  - text: Free Delivery
+                - generic [ref=e682]: "|"
+                - generic [ref=e683]:
+                  - img [ref=e684]
+                  - text: 7-Day Returns
+            - generic [ref=e688]:
+              - paragraph [ref=e691]: Rs 349.00
+              - generic [ref=e692]:
+                - button "Add To Cart" [ref=e693] [cursor=pointer]:
+                  - img [ref=e694]
+                  - generic [ref=e697]: Add To Cart
+                - button "Buy Now" [ref=e698] [cursor=pointer]
+          - generic [ref=e699]:
+            - generic [ref=e700]:
+              - link "Unisex Terry Shorts | MT45 Black" [ref=e701] [cursor=pointer]:
+                - /url: http://urbanflaky.test/unisex-terry-shorts-mt45-black
+                - img "Unisex Terry Shorts | MT45 Black" [ref=e702]
+              - paragraph [ref=e703]: New
+              - generic [ref=e704]:
+                - button "Add To Wishlist" [ref=e705] [cursor=pointer]: 
+                - button "Quick view" [ref=e706] [cursor=pointer]:
+                  - img [ref=e707]
+            - generic [ref=e710]:
+              - paragraph [ref=e711]: Unisex Terry Shorts | MT45 Black
+              - paragraph [ref=e712]: Stay cool, comfortable, and effortlessly stylish with o...
+              - paragraph [ref=e715]: Rs 599.00
+              - generic [ref=e716]:
+                - generic [ref=e717]:
+                  - img [ref=e718]
+                  - text: Free Delivery
+                - generic [ref=e723]: "|"
+                - generic [ref=e724]:
+                  - img [ref=e725]
+                  - text: 7-Day Returns
+            - generic [ref=e729]:
+              - paragraph [ref=e732]: Rs 599.00
+              - generic [ref=e733]:
+                - button "Add To Cart" [ref=e734] [cursor=pointer]:
+                  - img [ref=e735]
+                  - generic [ref=e738]: Add To Cart
+                - button "Buy Now" [ref=e739] [cursor=pointer]
+          - generic [ref=e740]:
+            - generic [ref=e741]:
+              - link "Unisex Acid Wash Oversized Tee | UC61" [ref=e742] [cursor=pointer]:
+                - /url: http://urbanflaky.test/unisex-acid-wash-oversized-tee-uc61
+                - img "Unisex Acid Wash Oversized Tee | UC61" [ref=e743]
+              - paragraph [ref=e744]: New
+              - generic [ref=e745]:
+                - button "Add To Wishlist" [ref=e746] [cursor=pointer]: 
+                - button "Quick view" [ref=e747] [cursor=pointer]:
+                  - img [ref=e748]
+            - generic [ref=e751]:
+              - paragraph [ref=e752]: Unisex Acid Wash Oversized Tee | UC61
+              - paragraph [ref=e753]: Non-Returnable Item Make a bold statement with the UC61...
+              - paragraph [ref=e756]: Rs 499.00
+              - generic [ref=e757]:
+                - generic [ref=e758]:
+                  - img [ref=e759]
+                  - text: Free Delivery
+                - generic [ref=e764]: "|"
+                - generic [ref=e765]:
+                  - img [ref=e766]
+                  - text: 7-Day Returns
+            - generic [ref=e770]:
+              - paragraph [ref=e773]: Rs 499.00
+              - generic [ref=e774]:
+                - button "Add To Cart" [ref=e775] [cursor=pointer]:
+                  - img [ref=e776]
+                  - generic [ref=e779]: Add To Cart
+                - button "Buy Now" [ref=e780] [cursor=pointer]
+          - generic [ref=e781]:
+            - generic [ref=e782]:
+              - link "Male Classic Crew Premium T-Shirt" [ref=e783] [cursor=pointer]:
+                - /url: http://urbanflaky.test/male-classic-crew-premium-t-shirt
+                - img "Male Classic Crew Premium T-Shirt" [ref=e784]
+              - paragraph [ref=e785]: New
+              - generic [ref=e786]:
+                - button "Add To Wishlist" [ref=e787] [cursor=pointer]: 
+                - button "Quick view" [ref=e788] [cursor=pointer]:
+                  - img [ref=e789]
+            - generic [ref=e792]:
+              - paragraph [ref=e793]: Male Classic Crew Premium T-Shirt
+              - paragraph [ref=e794]: Upgrade your wardrobe with our Men's Premium Printed Ur...
+              - paragraph [ref=e797]: Rs 349.00
+              - generic [ref=e798]:
+                - generic [ref=e799]:
+                  - img [ref=e800]
+                  - text: Free Delivery
+                - generic [ref=e805]: "|"
+                - generic [ref=e806]:
+                  - img [ref=e807]
+                  - text: 7-Day Returns
+            - generic [ref=e811]:
+              - paragraph [ref=e814]: Rs 349.00
+              - generic [ref=e815]:
+                - button "Add To Cart" [ref=e816] [cursor=pointer]:
+                  - img [ref=e817]
+                  - generic [ref=e820]: Add To Cart
+                - button "Buy Now" [ref=e821] [cursor=pointer]
+          - generic [ref=e822]:
+            - generic [ref=e823]:
+              - link "Men's Quick Dry Fit Regular Fit T-shirt" [ref=e824] [cursor=pointer]:
+                - /url: http://urbanflaky.test/mens-quick-dry-fit-regular-fit-t-shirt
+                - img "Men's Quick Dry Fit Regular Fit T-shirt" [ref=e825]
+              - paragraph [ref=e826]: Sale
+              - generic [ref=e827]:
+                - button "Add To Wishlist" [ref=e828] [cursor=pointer]: 
+                - button "Quick view" [ref=e829] [cursor=pointer]:
+                  - img [ref=e830]
+            - generic [ref=e833]:
+              - paragraph [ref=e834]: Men's Quick Dry Fit Regular Fit T-shirt
+              - paragraph [ref=e835]: Urban Flacky Regular T-Shirt for Men is the perfect ble...
+              - generic [ref=e837]:
+                - paragraph [ref=e838]: Rs 499.00
+                - paragraph [ref=e839]: Rs 199.00
+              - generic [ref=e840]:
+                - generic [ref=e841]:
+                  - img [ref=e842]
+                  - text: Free Delivery
+                - generic [ref=e847]: "|"
+                - generic [ref=e848]:
+                  - img [ref=e849]
+                  - text: 7-Day Returns
+            - generic [ref=e853]:
+              - generic [ref=e855]:
+                - paragraph [ref=e856]: Rs 499.00
+                - paragraph [ref=e857]: Rs 199.00
+              - generic [ref=e858]:
+                - button "Add To Cart" [ref=e859] [cursor=pointer]:
+                  - img [ref=e860]
+                  - generic [ref=e863]: Add To Cart
+                - button "Buy Now" [ref=e864] [cursor=pointer]
+          - generic [ref=e865]:
+            - generic [ref=e866]:
+              - link "Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men" [ref=e867] [cursor=pointer]:
+                - /url: http://urbanflaky.test/oversized-half-sleeves-round-neck-solid-pure-100-cotton-t-shirt-for-men
+                - img "Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men" [ref=e868]
+              - paragraph [ref=e869]: New
+              - generic [ref=e870]:
+                - button "Add To Wishlist" [ref=e871] [cursor=pointer]: 
+                - button "Quick view" [ref=e872] [cursor=pointer]:
+                  - img [ref=e873]
+            - generic [ref=e876]:
+              - paragraph [ref=e877]: Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men
+              - paragraph [ref=e878]: Elevate your casual wardrobe with our Oversized Baggy F...
+              - paragraph [ref=e881]: Rs 499.00
+              - generic [ref=e882]:
+                - generic [ref=e883]:
+                  - img [ref=e884]
+                  - text: Free Delivery
+                - generic [ref=e889]: "|"
+                - generic [ref=e890]:
+                  - img [ref=e891]
+                  - text: 7-Day Returns
+            - generic [ref=e895]:
+              - paragraph [ref=e898]: Rs 499.00
+              - generic [ref=e899]:
+                - button "Add To Cart" [ref=e900] [cursor=pointer]:
+                  - img [ref=e901]
+                  - generic [ref=e904]: Add To Cart
+                - button "Buy Now" [ref=e905] [cursor=pointer]
+          - generic [ref=e906]:
+            - generic [ref=e907]:
+              - link "Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric" [ref=e908] [cursor=pointer]:
+                - /url: http://urbanflaky.test/polo-t-shirt-with-double-cool-techno-fit-fabric
+                - img "Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric" [ref=e909]
+              - paragraph [ref=e910]: Sale
+              - generic [ref=e911]:
+                - button "Add To Wishlist" [ref=e912] [cursor=pointer]: 
+                - button "Quick view" [ref=e913] [cursor=pointer]:
+                  - img [ref=e914]
+            - generic [ref=e917]:
+              - paragraph [ref=e918]: Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric
+              - paragraph [ref=e919]: "Comfortable fabric: Crafted from high-quality Polyester..."
+              - generic [ref=e921]:
+                - paragraph [ref=e922]: Rs 599.00
+                - paragraph [ref=e923]: Rs 299.00
+              - generic [ref=e924]:
+                - generic [ref=e925]:
+                  - img [ref=e926]
+                  - text: Free Delivery
+                - generic [ref=e931]: "|"
+                - generic [ref=e932]:
+                  - img [ref=e933]
+                  - text: 7-Day Returns
+            - generic [ref=e937]:
+              - generic [ref=e939]:
+                - paragraph [ref=e940]: Rs 599.00
+                - paragraph [ref=e941]: Rs 299.00
+              - generic [ref=e942]:
+                - button "Add To Cart" [ref=e943] [cursor=pointer]:
+                  - img [ref=e944]
+                  - generic [ref=e947]: Add To Cart
+                - button "Buy Now" [ref=e948] [cursor=pointer]
+          - generic [ref=e949]:
+            - generic [ref=e950]:
+              - link "Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e951] [cursor=pointer]:
+                - /url: http://urbanflaky.test/polo-tshirt-for-men-with-pocket-in-matty-fabric
+                - img "Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e952]
+              - paragraph [ref=e953]: Sale
+              - generic [ref=e954]:
+                - button "Add To Wishlist" [ref=e955] [cursor=pointer]: 
+                - button "Quick view" [ref=e956] [cursor=pointer]:
+                  - img [ref=e957]
+            - generic [ref=e960]:
+              - paragraph [ref=e961]: Polo Tshirt for Men with Pocket in Matty Fabric
+              - paragraph [ref=e962]: The minimal detailing, flattering fit, and soft, breath...
+              - generic [ref=e964]:
+                - paragraph [ref=e965]: Rs 799.00
+                - paragraph [ref=e966]: Rs 499.00
+              - generic [ref=e967]:
+                - generic [ref=e968]:
+                  - img [ref=e969]
+                  - text: Free Delivery
+                - generic [ref=e974]: "|"
+                - generic [ref=e975]:
+                  - img [ref=e976]
+                  - text: 7-Day Returns
+            - generic [ref=e980]:
+              - generic [ref=e982]:
+                - paragraph [ref=e983]: Rs 799.00
+                - paragraph [ref=e984]: Rs 499.00
+              - generic [ref=e985]:
+                - button "Add To Cart" [ref=e986] [cursor=pointer]:
+                  - img [ref=e987]
+                  - generic [ref=e990]: Add To Cart
+                - button "Buy Now" [ref=e991] [cursor=pointer]
+        - link "Latest Collection" [ref=e992] [cursor=pointer]:
+          - /url: http://urbanflaky.test/search?new=1&sort=created_at-desc&limit=12
+          - text: View All
+      - generic [ref=e994]:
+        - generic [ref=e995]:
+          - heading "Mens Collection" [level=2] [ref=e996]
+          - generic [ref=e997]:
+            - text: 
+            - generic [ref=e998]:
+              - button "shop::components.carousel.previous" [ref=e999] [cursor=pointer]:
+                - generic [ref=e1000]: 
+              - button "shop::components.carousel.next" [ref=e1001] [cursor=pointer]:
+                - generic [ref=e1002]: 
+        - generic [ref=e1003]:
+          - generic [ref=e1004]:
+            - generic [ref=e1005]:
+              - link "Bundle Pack of t-shirt" [ref=e1006] [cursor=pointer]:
+                - /url: http://urbanflaky.test/bundle-pack-of-t-shirt
+                - img "Bundle Pack of t-shirt" [ref=e1007]
+              - paragraph [ref=e1008]: Sale
+              - generic [ref=e1009]:
+                - button "Add To Wishlist" [ref=e1010] [cursor=pointer]: 
+                - button "Quick view" [ref=e1011] [cursor=pointer]:
+                  - img [ref=e1012]
+            - generic [ref=e1015]:
+              - paragraph [ref=e1016]: Bundle Pack of t-shirt
+              - paragraph [ref=e1017]: Sleeve Half Sleeve Fabric Polyester Neck Type Round...
+              - paragraph [ref=e1021]:
+                - generic "Rs 799.00" [ref=e1022]
+                - text: Rs 499.00
+              - generic [ref=e1023]:
+                - generic [ref=e1024]:
+                  - img [ref=e1025]
+                  - text: Free Delivery
+                - generic [ref=e1030]: "|"
+                - generic [ref=e1031]:
+                  - img [ref=e1032]
+                  - text: 7-Day Returns
+            - generic [ref=e1036]:
+              - paragraph [ref=e1040]:
+                - generic "Rs 799.00" [ref=e1041]
+                - text: Rs 499.00
+              - generic [ref=e1042]:
+                - button "Add To Cart" [ref=e1043] [cursor=pointer]:
+                  - img [ref=e1044]
+                  - generic [ref=e1047]: Add To Cart
+                - button "Buy Now" [ref=e1048] [cursor=pointer]
+          - generic [ref=e1049]:
+            - generic [ref=e1050]:
+              - link "Multicolor Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e1051] [cursor=pointer]:
+                - /url: http://urbanflaky.test/multicolor-polo-tshirt-for-men-with-pocket-in-matty-fabric
+                - img "Multicolor Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e1052]
+              - paragraph [ref=e1053]: New
+              - generic [ref=e1054]:
+                - button "Add To Wishlist" [ref=e1055] [cursor=pointer]: 
+                - button "Quick view" [ref=e1056] [cursor=pointer]:
+                  - img [ref=e1057]
+              - generic [ref=e1060]:
+                - generic [ref=e1061]: "5.0"
+                - text: 
+                - generic [ref=e1062]: "5"
+            - generic [ref=e1063]:
+              - paragraph [ref=e1064]: Multicolor Polo Tshirt for Men with Pocket in Matty Fabric
+              - paragraph [ref=e1065]: Premium 100% Cotton Fabric for all-day comfort Bold...
+              - generic [ref=e1067]:
+                - paragraph [ref=e1068]: As low as
+                - paragraph
+                - paragraph [ref=e1069]: Rs 399.00
+              - generic [ref=e1070]:
+                - generic [ref=e1071]:
+                  - img [ref=e1072]
+                  - text: Free Delivery
+                - generic [ref=e1077]: "|"
+                - generic [ref=e1078]:
+                  - img [ref=e1079]
+                  - text: 7-Day Returns
+            - generic [ref=e1083]:
+              - generic [ref=e1084]:
+                - paragraph [ref=e1085]: Color
+                - generic [ref=e1086]:
+                  - generic "Red" [ref=e1087] [cursor=pointer]
+                  - generic "Yellow" [ref=e1088] [cursor=pointer]
+                  - generic "Black" [ref=e1089] [cursor=pointer]
+              - generic [ref=e1090]:
+                - paragraph [ref=e1091]: Size
+                - generic [ref=e1092]:
+                  - generic [ref=e1093] [cursor=pointer]: S
+                  - generic [ref=e1094] [cursor=pointer]: XL
+              - generic [ref=e1095]:
+                - paragraph [ref=e1096]: Sleeve
+                - generic [ref=e1097]:
+                  - generic [ref=e1098] [cursor=pointer]: Full
+                  - generic [ref=e1099] [cursor=pointer]: Half
+              - generic [ref=e1101]:
+                - paragraph [ref=e1102]: As low as
+                - paragraph
+                - paragraph [ref=e1103]: Rs 399.00
+              - generic [ref=e1104]:
+                - button "Add To Cart" [ref=e1105] [cursor=pointer]:
+                  - img [ref=e1106]
+                  - generic [ref=e1109]: Add To Cart
+                - button "Buy Now" [ref=e1110] [cursor=pointer]
+          - generic [ref=e1111]:
+            - generic [ref=e1112]:
+              - link "Beige" [ref=e1113] [cursor=pointer]:
+                - /url: http://urbanflaky.test/Aku-b3caabq-variant-2-6-24
+                - img "Beige" [ref=e1114]
+              - paragraph [ref=e1115]: New
+              - generic [ref=e1116]:
+                - button "Add To Wishlist" [ref=e1117] [cursor=pointer]: 
+                - button "Quick view" [ref=e1118] [cursor=pointer]:
+                  - img [ref=e1119]
+            - generic [ref=e1122]:
+              - paragraph [ref=e1123]: Beige
+              - paragraph [ref=e1124]: Aku-b3caabq-variant-2-6-24
+              - paragraph [ref=e1127]: Rs 439.00
+              - generic [ref=e1128]:
+                - generic [ref=e1129]:
+                  - img [ref=e1130]
+                  - text: Free Delivery
+                - generic [ref=e1135]: "|"
+                - generic [ref=e1136]:
+                  - img [ref=e1137]
+                  - text: 7-Day Returns
+            - generic [ref=e1141]:
+              - paragraph [ref=e1144]: Rs 439.00
+              - generic [ref=e1145]:
+                - button "Add To Cart" [disabled] [ref=e1146]:
+                  - img [ref=e1147]
+                  - generic [ref=e1150]: Add To Cart
+                - button "Buy Now" [disabled] [ref=e1151]
+          - generic [ref=e1152]:
+            - generic [ref=e1153]:
+              - link "Variant 3 6 24" [ref=e1154] [cursor=pointer]:
+                - /url: http://urbanflaky.test/Aku-b3caabq-variant-3-6-24
+                - img "Variant 3 6 24" [ref=e1155]
+              - paragraph [ref=e1156]: New
+              - generic [ref=e1157]:
+                - button "Add To Wishlist" [ref=e1158] [cursor=pointer]: 
+                - button "Quick view" [ref=e1159] [cursor=pointer]:
+                  - img [ref=e1160]
+            - generic [ref=e1163]:
+              - paragraph [ref=e1164]: Variant 3 6 24
+              - paragraph [ref=e1165]: Aku-b3caabq-variant-3-6-24
+              - paragraph [ref=e1168]: Rs 399.00
+              - generic [ref=e1169]:
+                - generic [ref=e1170]:
+                  - img [ref=e1171]
+                  - text: Free Delivery
+                - generic [ref=e1176]: "|"
+                - generic [ref=e1177]:
+                  - img [ref=e1178]
+                  - text: 7-Day Returns
+            - generic [ref=e1182]:
+              - paragraph [ref=e1185]: Rs 399.00
+              - generic [ref=e1186]:
+                - button "Add To Cart" [ref=e1187] [cursor=pointer]:
+                  - img [ref=e1188]
+                  - generic [ref=e1191]: Add To Cart
+                - button "Buy Now" [ref=e1192] [cursor=pointer]
+          - generic [ref=e1193]:
+            - generic [ref=e1194]:
+              - link "Urban style 100% cotton unisex tee" [ref=e1195] [cursor=pointer]:
+                - /url: http://urbanflaky.test/urban-style-100-cotton-unisex-tee
+                - img "Urban style 100% cotton unisex tee" [ref=e1196]
+              - paragraph [ref=e1197]: New
+              - generic [ref=e1198]:
+                - button "Add To Wishlist" [ref=e1199] [cursor=pointer]: 
+                - button "Quick view" [ref=e1200] [cursor=pointer]:
+                  - img [ref=e1201]
+            - generic [ref=e1204]:
+              - paragraph [ref=e1205]: Urban style 100% cotton unisex tee
+              - paragraph [ref=e1206]: We’ve seen men going crazy over trendy t-shirts. And, t...
+              - paragraph [ref=e1209]: Rs 349.00
+              - generic [ref=e1210]:
+                - generic [ref=e1211]:
+                  - img [ref=e1212]
+                  - text: Free Delivery
+                - generic [ref=e1217]: "|"
+                - generic [ref=e1218]:
+                  - img [ref=e1219]
+                  - text: 7-Day Returns
+            - generic [ref=e1223]:
+              - paragraph [ref=e1226]: Rs 349.00
+              - generic [ref=e1227]:
+                - button "Add To Cart" [ref=e1228] [cursor=pointer]:
+                  - img [ref=e1229]
+                  - generic [ref=e1232]: Add To Cart
+                - button "Buy Now" [ref=e1233] [cursor=pointer]
+          - generic [ref=e1234]:
+            - generic [ref=e1235]:
+              - link "Unisex Terry Shorts | MT45 Black" [ref=e1236] [cursor=pointer]:
+                - /url: http://urbanflaky.test/unisex-terry-shorts-mt45-black
+                - img "Unisex Terry Shorts | MT45 Black" [ref=e1237]
+              - paragraph [ref=e1238]: New
+              - generic [ref=e1239]:
+                - button "Add To Wishlist" [ref=e1240] [cursor=pointer]: 
+                - button "Quick view" [ref=e1241] [cursor=pointer]:
+                  - img [ref=e1242]
+            - generic [ref=e1245]:
+              - paragraph [ref=e1246]: Unisex Terry Shorts | MT45 Black
+              - paragraph [ref=e1247]: Stay cool, comfortable, and effortlessly stylish with o...
+              - paragraph [ref=e1250]: Rs 599.00
+              - generic [ref=e1251]:
+                - generic [ref=e1252]:
+                  - img [ref=e1253]
+                  - text: Free Delivery
+                - generic [ref=e1258]: "|"
+                - generic [ref=e1259]:
+                  - img [ref=e1260]
+                  - text: 7-Day Returns
+            - generic [ref=e1264]:
+              - paragraph [ref=e1267]: Rs 599.00
+              - generic [ref=e1268]:
+                - button "Add To Cart" [ref=e1269] [cursor=pointer]:
+                  - img [ref=e1270]
+                  - generic [ref=e1273]: Add To Cart
+                - button "Buy Now" [ref=e1274] [cursor=pointer]
+          - generic [ref=e1275]:
+            - generic [ref=e1276]:
+              - link "Unisex Acid Wash Oversized Tee | UC61" [ref=e1277] [cursor=pointer]:
+                - /url: http://urbanflaky.test/unisex-acid-wash-oversized-tee-uc61
+                - img "Unisex Acid Wash Oversized Tee | UC61" [ref=e1278]
+              - paragraph [ref=e1279]: New
+              - generic [ref=e1280]:
+                - button "Add To Wishlist" [ref=e1281] [cursor=pointer]: 
+                - button "Quick view" [ref=e1282] [cursor=pointer]:
+                  - img [ref=e1283]
+            - generic [ref=e1286]:
+              - paragraph [ref=e1287]: Unisex Acid Wash Oversized Tee | UC61
+              - paragraph [ref=e1288]: Non-Returnable Item Make a bold statement with the UC61...
+              - paragraph [ref=e1291]: Rs 499.00
+              - generic [ref=e1292]:
+                - generic [ref=e1293]:
+                  - img [ref=e1294]
+                  - text: Free Delivery
+                - generic [ref=e1299]: "|"
+                - generic [ref=e1300]:
+                  - img [ref=e1301]
+                  - text: 7-Day Returns
+            - generic [ref=e1305]:
+              - paragraph [ref=e1308]: Rs 499.00
+              - generic [ref=e1309]:
+                - button "Add To Cart" [ref=e1310] [cursor=pointer]:
+                  - img [ref=e1311]
+                  - generic [ref=e1314]: Add To Cart
+                - button "Buy Now" [ref=e1315] [cursor=pointer]
+          - generic [ref=e1316]:
+            - generic [ref=e1317]:
+              - link "Male Classic Crew Premium T-Shirt" [ref=e1318] [cursor=pointer]:
+                - /url: http://urbanflaky.test/male-classic-crew-premium-t-shirt
+                - img "Male Classic Crew Premium T-Shirt" [ref=e1319]
+              - paragraph [ref=e1320]: New
+              - generic [ref=e1321]:
+                - button "Add To Wishlist" [ref=e1322] [cursor=pointer]: 
+                - button "Quick view" [ref=e1323] [cursor=pointer]:
+                  - img [ref=e1324]
+            - generic [ref=e1327]:
+              - paragraph [ref=e1328]: Male Classic Crew Premium T-Shirt
+              - paragraph [ref=e1329]: Upgrade your wardrobe with our Men's Premium Printed Ur...
+              - paragraph [ref=e1332]: Rs 349.00
+              - generic [ref=e1333]:
+                - generic [ref=e1334]:
+                  - img [ref=e1335]
+                  - text: Free Delivery
+                - generic [ref=e1340]: "|"
+                - generic [ref=e1341]:
+                  - img [ref=e1342]
+                  - text: 7-Day Returns
+            - generic [ref=e1346]:
+              - paragraph [ref=e1349]: Rs 349.00
+              - generic [ref=e1350]:
+                - button "Add To Cart" [ref=e1351] [cursor=pointer]:
+                  - img [ref=e1352]
+                  - generic [ref=e1355]: Add To Cart
+                - button "Buy Now" [ref=e1356] [cursor=pointer]
+          - generic [ref=e1357]:
+            - generic [ref=e1358]:
+              - link "Men's Quick Dry Fit Regular Fit T-shirt" [ref=e1359] [cursor=pointer]:
+                - /url: http://urbanflaky.test/mens-quick-dry-fit-regular-fit-t-shirt
+                - img "Men's Quick Dry Fit Regular Fit T-shirt" [ref=e1360]
+              - paragraph [ref=e1361]: Sale
+              - generic [ref=e1362]:
+                - button "Add To Wishlist" [ref=e1363] [cursor=pointer]: 
+                - button "Quick view" [ref=e1364] [cursor=pointer]:
+                  - img [ref=e1365]
+            - generic [ref=e1368]:
+              - paragraph [ref=e1369]: Men's Quick Dry Fit Regular Fit T-shirt
+              - paragraph [ref=e1370]: Urban Flacky Regular T-Shirt for Men is the perfect ble...
+              - generic [ref=e1372]:
+                - paragraph [ref=e1373]: Rs 499.00
+                - paragraph [ref=e1374]: Rs 199.00
+              - generic [ref=e1375]:
+                - generic [ref=e1376]:
+                  - img [ref=e1377]
+                  - text: Free Delivery
+                - generic [ref=e1382]: "|"
+                - generic [ref=e1383]:
+                  - img [ref=e1384]
+                  - text: 7-Day Returns
+            - generic [ref=e1388]:
+              - generic [ref=e1390]:
+                - paragraph [ref=e1391]: Rs 499.00
+                - paragraph [ref=e1392]: Rs 199.00
+              - generic [ref=e1393]:
+                - button "Add To Cart" [ref=e1394] [cursor=pointer]:
+                  - img [ref=e1395]
+                  - generic [ref=e1398]: Add To Cart
+                - button "Buy Now" [ref=e1399] [cursor=pointer]
+          - generic [ref=e1400]:
+            - generic [ref=e1401]:
+              - link "Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men" [ref=e1402] [cursor=pointer]:
+                - /url: http://urbanflaky.test/oversized-half-sleeves-round-neck-solid-pure-100-cotton-t-shirt-for-men
+                - img "Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men" [ref=e1403]
+              - paragraph [ref=e1404]: New
+              - generic [ref=e1405]:
+                - button "Add To Wishlist" [ref=e1406] [cursor=pointer]: 
+                - button "Quick view" [ref=e1407] [cursor=pointer]:
+                  - img [ref=e1408]
+            - generic [ref=e1411]:
+              - paragraph [ref=e1412]: Oversized Half Sleeves Round Neck Solid Pure 100% Cotton T-Shirt for Men
+              - paragraph [ref=e1413]: Elevate your casual wardrobe with our Oversized Baggy F...
+              - paragraph [ref=e1416]: Rs 499.00
+              - generic [ref=e1417]:
+                - generic [ref=e1418]:
+                  - img [ref=e1419]
+                  - text: Free Delivery
+                - generic [ref=e1424]: "|"
+                - generic [ref=e1425]:
+                  - img [ref=e1426]
+                  - text: 7-Day Returns
+            - generic [ref=e1430]:
+              - paragraph [ref=e1433]: Rs 499.00
+              - generic [ref=e1434]:
+                - button "Add To Cart" [ref=e1435] [cursor=pointer]:
+                  - img [ref=e1436]
+                  - generic [ref=e1439]: Add To Cart
+                - button "Buy Now" [ref=e1440] [cursor=pointer]
+          - generic [ref=e1441]:
+            - generic [ref=e1442]:
+              - link "Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric" [ref=e1443] [cursor=pointer]:
+                - /url: http://urbanflaky.test/polo-t-shirt-with-double-cool-techno-fit-fabric
+                - img "Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric" [ref=e1444]
+              - paragraph [ref=e1445]: Sale
+              - generic [ref=e1446]:
+                - button "Add To Wishlist" [ref=e1447] [cursor=pointer]: 
+                - button "Quick view" [ref=e1448] [cursor=pointer]:
+                  - img [ref=e1449]
+            - generic [ref=e1452]:
+              - paragraph [ref=e1453]: Slim Fit Polo T-Shirt with Double Cool Techno Fit Fabric
+              - paragraph [ref=e1454]: "Comfortable fabric: Crafted from high-quality Polyester..."
+              - generic [ref=e1456]:
+                - paragraph [ref=e1457]: Rs 599.00
+                - paragraph [ref=e1458]: Rs 299.00
+              - generic [ref=e1459]:
+                - generic [ref=e1460]:
+                  - img [ref=e1461]
+                  - text: Free Delivery
+                - generic [ref=e1466]: "|"
+                - generic [ref=e1467]:
+                  - img [ref=e1468]
+                  - text: 7-Day Returns
+            - generic [ref=e1472]:
+              - generic [ref=e1474]:
+                - paragraph [ref=e1475]: Rs 599.00
+                - paragraph [ref=e1476]: Rs 299.00
+              - generic [ref=e1477]:
+                - button "Add To Cart" [ref=e1478] [cursor=pointer]:
+                  - img [ref=e1479]
+                  - generic [ref=e1482]: Add To Cart
+                - button "Buy Now" [ref=e1483] [cursor=pointer]
+          - generic [ref=e1484]:
+            - generic [ref=e1485]:
+              - link "Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e1486] [cursor=pointer]:
+                - /url: http://urbanflaky.test/polo-tshirt-for-men-with-pocket-in-matty-fabric
+                - img "Polo Tshirt for Men with Pocket in Matty Fabric" [ref=e1487]
+              - paragraph [ref=e1488]: Sale
+              - generic [ref=e1489]:
+                - button "Add To Wishlist" [ref=e1490] [cursor=pointer]: 
+                - button "Quick view" [ref=e1491] [cursor=pointer]:
+                  - img [ref=e1492]
+            - generic [ref=e1495]:
+              - paragraph [ref=e1496]: Polo Tshirt for Men with Pocket in Matty Fabric
+              - paragraph [ref=e1497]: The minimal detailing, flattering fit, and soft, breath...
+              - generic [ref=e1499]:
+                - paragraph [ref=e1500]: Rs 799.00
+                - paragraph [ref=e1501]: Rs 499.00
+              - generic [ref=e1502]:
+                - generic [ref=e1503]:
+                  - img [ref=e1504]
+                  - text: Free Delivery
+                - generic [ref=e1509]: "|"
+                - generic [ref=e1510]:
+                  - img [ref=e1511]
+                  - text: 7-Day Returns
+            - generic [ref=e1515]:
+              - generic [ref=e1517]:
+                - paragraph [ref=e1518]: Rs 799.00
+                - paragraph [ref=e1519]: Rs 499.00
+              - generic [ref=e1520]:
+                - button "Add To Cart" [ref=e1521] [cursor=pointer]:
+                  - img [ref=e1522]
+                  - generic [ref=e1525]: Add To Cart
+                - button "Buy Now" [ref=e1526] [cursor=pointer]
+        - link "Mens Collection" [ref=e1527] [cursor=pointer]:
+          - /url: http://urbanflaky.test/search?sort=created_at-desc&limit=12&category_id=2
+          - text: View All
+      - generic [ref=e150]:
+        - generic [ref=e151]:
+          - generic [ref=e152]: New Arrivals
+          - heading "Step Up Your Game with Our Latest Drops" [level=2] [ref=e153]
+        - generic [ref=e154]:
+          - generic [ref=e155]:
+            - link [ref=e156] [cursor=pointer]:
+              - /url: combo
+            - generic [ref=e157]: Featured
+            - generic [ref=e158]:
+              - generic [ref=e159]: Bundle & Save
+              - heading "Combo Collections" [level=3] [ref=e160]:
+                - link "Combo Collections" [ref=e161] [cursor=pointer]:
+                  - /url: combo
+              - link "Shop now →" [ref=e162] [cursor=pointer]:
+                - /url: combo
+          - generic [ref=e163]:
+            - generic [ref=e164]:
+              - link [ref=e165] [cursor=pointer]:
+                - /url: womens
+              - generic [ref=e166]:
+                - generic [ref=e167]: For Her
+                - heading "Womens Collections" [level=3] [ref=e168]:
+                  - link "Womens Collections" [ref=e169] [cursor=pointer]:
+                    - /url: womens
+                - link "Shop now →" [ref=e170] [cursor=pointer]:
+                  - /url: mens
+            - generic [ref=e171]:
+              - link [ref=e172] [cursor=pointer]:
+                - /url: mens
+              - generic [ref=e173]:
+                - generic [ref=e174]: For Him
+                - heading "Mens Collections" [level=3] [ref=e175]:
+                  - link "Mens Collections" [ref=e176] [cursor=pointer]:
+                    - /url: mens
+                - link "Shop now →" [ref=e177] [cursor=pointer]:
+                  - /url: womens
+      - generic [ref=e179]:
+        - generic [ref=e181]: New Drop
+        - generic [ref=e182]:
+          - generic [ref=e183]: Bold Collections
+          - heading "Get Ready for our new Bold Collections!" [level=2] [ref=e184]
+          - paragraph [ref=e185]: Introducing Our New Bold Collections! Elevate your style with daring designs and vibrant statements. Explore striking patterns and bold colors that redefine your wardrobe. Get ready to embrace the extraordinary!
+          - generic [ref=e186]:
+            - generic [ref=e187]:
+              - generic [ref=e188]: 200+
+              - generic [ref=e189]: New Styles
+            - generic [ref=e190]:
+              - generic [ref=e191]: 50+
+              - generic [ref=e192]: Bold Prints
+            - generic [ref=e193]:
+              - generic [ref=e194]: 100%
+              - generic [ref=e195]: Fresh Drops
+          - link "View Collections →" [ref=e196] [cursor=pointer]:
+            - /url: wellness
+            - text: View Collections
+            - generic [ref=e197]: →
+      - generic [ref=e1529]:
+        - generic [ref=e1530]:
+          - heading "Womens Collection" [level=2] [ref=e1531]
+          - generic:   
+        - generic [ref=e1532]:
+          - generic [ref=e1533]:
+            - generic [ref=e1534]:
+              - link "Women crop top 100% combed cotton" [ref=e1535] [cursor=pointer]:
+                - /url: http://urbanflaky.test/women-crop-top-100-combed-cotton
+                - img "Women crop top 100% combed cotton" [ref=e1536]
+              - paragraph [ref=e1537]: New
+              - generic [ref=e1538]:
+                - button "Add To Wishlist" [ref=e1539] [cursor=pointer]: 
+                - button "Quick view" [ref=e1540] [cursor=pointer]:
+                  - img [ref=e1541]
+            - generic [ref=e1544]:
+              - paragraph [ref=e1545]: Women crop top 100% combed cotton
+              - paragraph [ref=e1546]: The coolest and ever-stylish crop tops are here! It’s t...
+              - paragraph [ref=e1549]: Rs 219.00
+              - generic [ref=e1550]:
+                - generic [ref=e1551]:
+                  - img [ref=e1552]
+                  - text: Free Delivery
+                - generic [ref=e1557]: "|"
+                - generic [ref=e1558]:
+                  - img [ref=e1559]
+                  - text: 7-Day Returns
+            - generic [ref=e1563]:
+              - paragraph [ref=e1566]: Rs 219.00
+              - generic [ref=e1567]:
+                - button "Add To Cart" [ref=e1568] [cursor=pointer]:
+                  - img [ref=e1569]
+                  - generic [ref=e1572]: Add To Cart
+                - button "Buy Now" [ref=e1573] [cursor=pointer]
+          - generic [ref=e1574]:
+            - generic [ref=e1575]:
+              - link "Women's Rayon Printed Anarkali Kurta and Pant with Dupatta Set" [ref=e1576] [cursor=pointer]:
+                - /url: http://urbanflaky.test/womens-rayon-printed-anarkali-kurta-and-pant-with-dupatta-set
+                - img "Women's Rayon Printed Anarkali Kurta and Pant with Dupatta Set" [ref=e1577]
+              - paragraph [ref=e1578]: New
+              - generic [ref=e1579]:
+                - button "Add To Wishlist" [ref=e1580] [cursor=pointer]: 
+                - button "Quick view" [ref=e1581] [cursor=pointer]:
+                  - img [ref=e1582]
+            - generic [ref=e1585]:
+              - paragraph [ref=e1586]: Women's Rayon Printed Anarkali Kurta and Pant with Dupatta Set
+              - paragraph [ref=e1587]: "Fit Type: Anarkali Kurta; Anarkali Kurta set for wome..."
+              - paragraph [ref=e1590]: Rs 699.00
+              - generic [ref=e1591]:
+                - generic [ref=e1592]:
+                  - img [ref=e1593]
+                  - text: Free Delivery
+                - generic [ref=e1598]: "|"
+                - generic [ref=e1599]:
+                  - img [ref=e1600]
+                  - text: 7-Day Returns
+            - generic [ref=e1604]:
+              - paragraph [ref=e1607]: Rs 699.00
+              - generic [ref=e1608]:
+                - button "Add To Cart" [ref=e1609] [cursor=pointer]:
+                  - img [ref=e1610]
+                  - generic [ref=e1613]: Add To Cart
+                - button "Buy Now" [ref=e1614] [cursor=pointer]
+        - link "Womens Collection" [ref=e1615] [cursor=pointer]:
+          - /url: http://urbanflaky.test/search?sort=created_at-desc&limit=10&category_id=4
+          - text: View All
+      - generic [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]: New Additions
+          - heading "The game with our new additions!" [level=2] [ref=e234]
+        - generic [ref=e236]:
+          - generic [ref=e237]:
+            - link [ref=e238] [cursor=pointer]:
+              - /url: active-wear
+            - generic [ref=e239]: Active Wear
+            - generic [ref=e240]: "01"
+            - generic [ref=e241]:
+              - generic [ref=e242]: Men's Drop
+              - heading "Our Collections" [level=3] [ref=e243]
+              - link "Shop now →" [ref=e244] [cursor=pointer]:
+                - /url: active-wear
+                - text: Shop now
+                - generic [ref=e245]: →
+          - generic [ref=e246]:
+            - link [ref=e247] [cursor=pointer]:
+              - /url: active-wear-female
+            - generic [ref=e248]: Active Wear
+            - generic [ref=e249]: "02"
+            - generic [ref=e250]:
+              - generic [ref=e251]: Women's Drop
+              - heading "Our Collections" [level=3] [ref=e252]
+              - link "Shop now →" [ref=e253] [cursor=pointer]:
+                - /url: active-wear-female
+                - text: Shop now
+                - generic [ref=e254]: →
+      - generic [ref=e289]:
+        - generic [ref=e291]: New Drop
+        - generic [ref=e292]:
+          - generic [ref=e293]: Streetwear Drop
+          - heading "Wear the Streets, Own the Game" [level=2] [ref=e294]
+          - paragraph [ref=e295]: Urban Flaky's new streetwear drop is here — oversized fits, bold graphics, and fearless colorways built for the ones who move different. This isn't just clothing, it's a statement. Drop your old drip and step into something real.
+          - generic [ref=e296]:
+            - generic [ref=e297]:
+              - generic [ref=e298]: 150+
+              - generic [ref=e299]: Street Styles
+            - generic [ref=e300]:
+              - generic [ref=e301]: 40+
+              - generic [ref=e302]: Bold Graphics
+            - generic [ref=e303]:
+              - generic [ref=e304]: 100%
+              - generic [ref=e305]: Urban Vibes
+          - link "Shop the Drop →" [ref=e306] [cursor=pointer]:
+            - /url: mens
+            - text: Shop the Drop
+            - generic [ref=e307]: →
+    - generic [ref=e343]:
+      - generic [ref=e344]:
+        - text: 
+        - generic [ref=e345]:
+          - paragraph [ref=e346]: Free Shipping
+          - paragraph [ref=e347]: Enjoy free shipping on all orders
+      - generic [ref=e348]:
+        - text: 
+        - generic [ref=e349]:
+          - paragraph [ref=e350]: Product Replace
+          - paragraph [ref=e351]: Easy Product Replacement Available!
+      - generic [ref=e352]:
+        - text: 
+        - generic [ref=e353]:
+          - paragraph [ref=e354]: Emi Available
+          - paragraph [ref=e355]: No cost EMI available on all major credit cards
+      - generic [ref=e356]:
+        - text: 
+        - generic [ref=e357]:
+          - paragraph [ref=e358]: 24/7 Support
+          - paragraph [ref=e359]: Dedicated 24/7 support via chat and email
+    - generic [ref=e360]:
+      - generic [ref=e361]:
+        - generic [ref=e362]:
+          - img [ref=e364]
+          - generic [ref=e366]:
+            - generic [ref=e367]: Drop Your Email. Stay Fresh.
+            - generic [ref=e368]: New drops, exclusive deals & streetwear news — no spam, ever.
+        - generic [ref=e369]:
+          - textbox "Email" [ref=e370]:
+            - /placeholder: your@email.com
+          - button "Subscribe" [ref=e371] [cursor=pointer]
+          - status [ref=e372]
+      - contentinfo [ref=e373]:
+        - generic [ref=e374]:
+          - generic [ref=e375]:
+            - link "Urbanflaky" [ref=e376] [cursor=pointer]:
+              - /url: http://urbanflaky.test
+              - generic [ref=e377]: UF
+              - generic [ref=e378]:
+                - generic [ref=e379]: Urban Flaky
+                - generic [ref=e380]: Premium Streetwear
+            - paragraph [ref=e381]: Bold threads for bold people. We make streetwear that hits different — designed in India, worn everywhere.
+            - generic [ref=e382]:
+              - link "Instagram" [ref=e383] [cursor=pointer]:
+                - /url: https://instagram.com/urbanflaky
+                - img [ref=e384]
+              - link "Facebook" [ref=e386] [cursor=pointer]:
+                - /url: https://facebook.com/urbanflaky
+                - img [ref=e387]
+              - link "X / Twitter" [ref=e389] [cursor=pointer]:
+                - /url: https://x.com/urbanflaky
+                - img [ref=e390]
+          - generic [ref=e392]:
+            - generic [ref=e393]: About Us
+            - list [ref=e394]:
+              - listitem [ref=e395]:
+                - link "Contact Us" [ref=e396] [cursor=pointer]:
+                  - /url: /contact-us
+              - listitem [ref=e397]:
+                - link "Customer Service" [ref=e398] [cursor=pointer]:
+                  - /url: /page/customer-service
+              - listitem [ref=e399]:
+                - link "What's New" [ref=e400] [cursor=pointer]:
+                  - /url: /page/whats-new
+              - listitem [ref=e401]:
+                - link "Terms of Use" [ref=e402] [cursor=pointer]:
+                  - /url: /page/terms-of-use
+              - listitem [ref=e403]:
+                - link "Terms & Conditions" [ref=e404] [cursor=pointer]:
+                  - /url: /page/terms-conditions
+          - generic [ref=e405]:
+            - generic [ref=e406]: Privacy Policy
+            - list [ref=e407]:
+              - listitem [ref=e408]:
+                - link "Payment Policy" [ref=e409] [cursor=pointer]:
+                  - /url: /page/payment-policy
+              - listitem [ref=e410]:
+                - link "Shipping Policy" [ref=e411] [cursor=pointer]:
+                  - /url: /page/shipping-policy
+              - listitem [ref=e412]:
+                - link "Refund Policy" [ref=e413] [cursor=pointer]:
+                  - /url: /page/refund-policy
+              - listitem [ref=e414]:
+                - link "Return Policy" [ref=e415] [cursor=pointer]:
+                  - /url: /page/return-policy
+          - generic [ref=e416]:
+            - generic [ref=e417]: Contact
+            - generic [ref=e418]:
+              - img [ref=e420]
+              - generic [ref=e422]:
+                - generic [ref=e423]: Address
+                - generic [ref=e424]:
+                  - text: H.No. 402, Krishna Colony, Bari road
+                  - text: Dholpur, RJ 328001
+            - generic [ref=e425]:
+              - img [ref=e427]
+              - generic [ref=e429]:
+                - generic [ref=e430]: Email
+                - link "support@urbanflaky.in" [ref=e432] [cursor=pointer]:
+                  - /url: mailto:support@urbanflaky.in
+        - generic [ref=e433]:
+          - paragraph [ref=e434]: © 2026 Urban Flaky™ · Gabha Enterprise · All rights reserved.
+          - generic:
+            - generic [ref=e435]: Made in India
+            - generic [ref=e436]: Secure Checkout
+          - generic [ref=e437]:
+            - link "Privacy" [ref=e438] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/privacy-policy
+            - link "Terms" [ref=e439] [cursor=pointer]:
+              - /url: http://urbanflaky.test/page/terms-conditions
+            - link "Sitemap" [ref=e440] [cursor=pointer]:
+              - /url: http://urbanflaky.test/sitemap.xml
+  - text: 
+  - generic [ref=e1621]:
+    - generic [ref=e1622]:
+      - paragraph [ref=e1624]: Categories
+      - generic [ref=e1626] [cursor=pointer]: 
+    - generic [ref=e1631]:
+      - link "Mens" [ref=e1634] [cursor=pointer]:
+        - /url: http://urbanflaky.test/mens
+      - link "Womens" [ref=e1637] [cursor=pointer]:
+        - /url: http://urbanflaky.test/womens
+      - link "Casual Wear" [ref=e1640] [cursor=pointer]:
+        - /url: http://urbanflaky.test/casual-wear-men
+      - link "Combo's" [ref=e1643] [cursor=pointer]:
+        - /url: http://urbanflaky.test/combos

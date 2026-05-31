@@ -916,6 +916,8 @@ return [
             'buy-now' => 'Buy Now',
             'compare' => 'Compare',
             'description' => 'Description',
+            'load-more' => 'Load More',
+            'loading' => 'Loading…',
             'related-product-title' => 'Related Products',
             'review' => 'Reviews',
             'tax-inclusive' => 'Inclusive of all taxes',
@@ -1030,6 +1032,7 @@ return [
         ],
 
         'cart' => [
+            'bot-detected' => 'We could not verify that you are human. Please refresh the page and try again.',
             'continue-to-checkout' => 'Continue to Checkout',
             'illegal' => 'Quantity cannot be lesser than one.',
             'inactive' => 'The item has been deactivated and subsequently removed from the cart.',

@@ -46,6 +46,11 @@ class PageController extends Controller
             abort_if(! $page && ! $urlRewrite, 404);
         }
 
-        return view('shop::cms.page')->with('page', $page);
+        /**
+         * CMS pages are served at the root (e.g. /whats-new). Permanently
+         * redirect the legacy /page/{slug} URL to the clean canonical URL so
+         * search engines consolidate on a single address.
+         */
+        return redirect()->to($urlKey, 301);
     }
 }

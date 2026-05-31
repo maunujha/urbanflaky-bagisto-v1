@@ -189,6 +189,68 @@ class Captcha implements CaptchaContract
     }
 
     /**
+     * Fail-open captcha check for high-value actions (e.g. order placement).
+     *
+     * Unlike validateResponse(), this NEVER blocks when reCAPTCHA cannot be
+     * evaluated. A missing/blocked token, unconfigured keys, a network error,
+     * or a token Google rejects all return true. It returns false ONLY when
+     * Google successfully scores the request below the configured threshold —
+     * i.e. a confirmed bot. This guarantees a reCAPTCHA outage or
+     * misconfiguration can never stop legitimate checkouts.
+     */
+    public function isLikelyHuman($response): bool
+    {
+        /* Nothing to evaluate — let it through (fail open). */
+        if (empty($response) || empty($this->apiKey) || empty($this->siteKey)) {
+            logger()->warning('reCAPTCHA (checkout): no token or keys to evaluate, allowing order.');
+
+            return true;
+        }
+
+        try {
+            $apiResponse = Http::asForm()->post($this->getSiteVerifyEndpoint(), [
+                'secret'   => $this->apiKey,
+                'response' => $response,
+            ]);
+
+            $result = $apiResponse->json();
+
+            /* Could not get a usable response from Google — fail open. */
+            if (! $result || $apiResponse->failed()) {
+                logger()->warning('reCAPTCHA (checkout): could not reach Google, allowing order.', ['response' => $result]);
+
+                return true;
+            }
+
+            /* Google evaluated and returned a score — the only path that can block. */
+            if (! empty($result['success']) && isset($result['score'])) {
+                $score = (float) $result['score'];
+
+                $isHuman = $score >= $this->scoreThreshold;
+
+                logger()->info('reCAPTCHA (checkout): scored request.', [
+                    'score'     => $score,
+                    'threshold' => $this->scoreThreshold,
+                    'is_human'  => $isHuman,
+                ]);
+
+                return $isHuman;
+            }
+
+            /* success=false or no score (expired/forged/duplicate token) — ambiguous, fail open. */
+            logger()->warning('reCAPTCHA (checkout): unscored response, allowing order.', ['response' => $result]);
+
+            return true;
+        } catch (\Exception $e) {
+            logger()->warning('reCAPTCHA (checkout): exception during validation, allowing order.', [
+                'message' => $e->getMessage(),
+            ]);
+
+            return true;
+        }
+    }
+
+    /**
      * Get or merge existing validations with your captcha validations.
      */
     public function getValidations($rules = []): array

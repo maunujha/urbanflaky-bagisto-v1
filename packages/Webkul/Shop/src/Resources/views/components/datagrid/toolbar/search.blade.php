@@ -32,7 +32,7 @@
                                 type="text"
                                 name="search"
                                 :value="getSearchedValues('all')"
-                                class="rounded-lg border border-gray-300 bg-white px-3 py-2 text-base text-gray-600 transition-all hover:border-gray-400 focus:border-gray-400 max-md:max-w-[250px] max-md:py-2 max-sm:py-1.5 ltr:pr-8 rtl:pl-8"
+                                class="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2 text-base text-zinc-400 transition-all hover:border-white/25 focus:border-uf-accent max-md:max-w-[250px] max-md:py-2 max-sm:py-1.5 ltr:pr-8 rtl:pl-8"
                                 placeholder="@lang('shop::app.components.datagrid.toolbar.search.title')"
                                 autocomplete="off"
                                 @keyup.enter="search"
@@ -45,7 +45,7 @@
 
                     <!-- Information Panel -->
                     <div class="max-md:hidden ltr:pl-2.5 rtl:pr-2.5">
-                        <p class="text-sm font-light text-gray-800 max-md:w-full">
+                        <p class="text-sm font-light text-zinc-300 max-md:w-full">
                             @{{ "@lang('shop::app.components.datagrid.toolbar.results')".replace(':total', available.meta.total) }}
                         </p>
                     </div>

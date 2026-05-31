@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => {
                 buildDirectory: "themes/shop/default/build",
                 input: [
                     "src/Resources/assets/css/app.css",
+                    "src/Resources/assets/css/urbanflaky.css",
                     "src/Resources/assets/js/app.js",
                 ],
                 refresh: true,

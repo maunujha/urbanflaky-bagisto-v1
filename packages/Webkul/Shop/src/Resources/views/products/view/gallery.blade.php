@@ -63,6 +63,30 @@
                         }
                     },
                 },
+
+                // Single source of truth for the loading shimmer. Relying on the
+                // <img @load> alone is unreliable: when switching size within the
+                // same colour the URL can be unchanged (no @load fires) or the
+                // image is already cached/hidden — leaving the shimmer stuck on.
+                'baseFile.path'(newPath, oldPath) {
+                    if (this.baseFile.type !== 'image' || ! newPath || newPath === oldPath) {
+                        return;
+                    }
+
+                    this.isMediaLoading = true;
+
+                    const img = new Image();
+                    const done = () => { this.isMediaLoading = false; };
+
+                    img.onload = done;
+                    img.onerror = done;
+                    img.src = newPath;
+
+                    // Cached/preloaded images are ready synchronously.
+                    if (img.complete) {
+                        done();
+                    }
+                },
             },
         
             mounted() {
@@ -92,7 +116,6 @@
                         this.baseFile.type = 'video';
                         this.baseFile.path = first.video_url;
                     } else {
-                        this.isMediaLoading = true;
                         this.baseFile.type = 'image';
                         this.baseFile.path = first.large_image_url;
                     }

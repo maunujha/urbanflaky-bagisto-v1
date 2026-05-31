@@ -1,13 +1,13 @@
 <div class="flex flex-col max-md:hidden" v-pre>
-    <p class="font-semibold leading-6 text-gray-800">
+    <p class="font-semibold leading-6 text-zinc-100">
         {{ $address->company_name ?? '' }}
     </p>
 
-    <p class="font-semibold leading-6 text-gray-800">
+    <p class="font-semibold leading-6 text-zinc-100">
         {{ $address->name }}
     </p>
     
-    <p class="!leading-6 text-gray-600">
+    <p class="!leading-6 text-zinc-400">
         {{ $address->address }}<br>
 
         {{ $address->city }}<br>
@@ -21,7 +21,7 @@
 </div>
 
 <!-- For Mobile View -->
-<div class="text-gray-800 md:hidden" v-pre>
+<div class="text-zinc-100 md:hidden" v-pre>
     <p class="font-semibold">
         {{ $address->company_name ?? '' }}
     </p>

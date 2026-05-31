@@ -103,6 +103,9 @@
 
                 <!-- Services-content Template -->
                 @includeWhen($theme->type === 'services_content', 'admin::settings.themes.edit.services-content')
+
+                <!-- Instagram Lookbook Template -->
+                @includeWhen($theme->type === 'instagram_lookbook', 'lookbook::admin.theme-customization')
             </div>
 
             <!-- General -->
