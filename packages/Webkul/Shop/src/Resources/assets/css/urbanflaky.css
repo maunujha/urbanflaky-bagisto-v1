@@ -1225,14 +1225,62 @@ body::after {
 /* ── Rich-text / CMS content inside product tabs ──
    Forces dark-theme-readable colors, overriding any inline color styles stored in
    CMS HTML (e.g. the shipping-returns CMS page) or product descriptions — inline
-   styles can't be reached by Tailwind, so !important is required here. */
-.uf-rte { color: #d4d4d8; }
+   styles can't be reached by Tailwind, so !important is required here.
+
+   It also restores the block typography (heading sizes, paragraph spacing, list
+   bullets) that Tailwind's Preflight base strips — without this, hand-written HTML
+   pasted into the description editor renders as flat, unstyled "plain text". */
+.uf-rte { color: #d4d4d8; line-height: 1.7; }
+
+/* Headings */
 .uf-rte h1, .uf-rte h2, .uf-rte h3,
-.uf-rte h4, .uf-rte h5, .uf-rte h6,
-.uf-rte strong, .uf-rte b { color: #f5f5f5 !important; }
+.uf-rte h4, .uf-rte h5, .uf-rte h6 {
+    color: #f5f5f5 !important;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 1.5em 0 0.6em;
+}
+.uf-rte h1 { font-size: 1.75rem; }
+.uf-rte h2 { font-size: 1.45rem; }
+.uf-rte h3 { font-size: 1.2rem; }
+.uf-rte h4 { font-size: 1.05rem; }
+.uf-rte h5, .uf-rte h6 { font-size: 1rem; }
+.uf-rte > :first-child { margin-top: 0; }
+
+/* Inline emphasis */
+.uf-rte strong, .uf-rte b { color: #f5f5f5 !important; font-weight: 700; }
+.uf-rte em, .uf-rte i { font-style: italic; }
+
+/* Paragraphs & text nodes */
+.uf-rte p { margin: 0 0 1em; }
 .uf-rte p, .uf-rte li, .uf-rte span,
 .uf-rte td, .uf-rte th, .uf-rte dd, .uf-rte dt { color: #d4d4d8 !important; }
-.uf-rte a { color: #c7eb31 !important; }
+
+/* Lists — Preflight removes bullets & padding, so re-add them */
+.uf-rte ul, .uf-rte ol { margin: 0 0 1em; padding-left: 1.5em; }
+.uf-rte ul { list-style: disc; }
+.uf-rte ol { list-style: decimal; }
+.uf-rte li { margin: 0.35em 0; padding-left: 0.25em; }
+.uf-rte li::marker { color: #c7eb31; }
+.uf-rte ul ul, .uf-rte ol ol,
+.uf-rte ul ol, .uf-rte ol ul { margin: 0.35em 0 0.35em; }
+
+/* Links */
+.uf-rte a { color: #c7eb31 !important; text-decoration: underline; }
+
+/* Tables */
+.uf-rte table { width: 100%; border-collapse: collapse; margin: 0 0 1em; }
+.uf-rte th, .uf-rte td { border: 1px solid rgba(255, 255, 255, 0.12); padding: 0.5em 0.75em; text-align: left; }
+
+/* Misc blocks */
+.uf-rte blockquote {
+    margin: 0 0 1em;
+    padding: 0.25em 1em;
+    border-left: 3px solid #c7eb31;
+    color: #e4e4e7;
+}
+.uf-rte hr { border: 0; border-top: 1px solid rgba(255, 255, 255, 0.12); margin: 1.5em 0; }
+.uf-rte img { max-width: 100%; height: auto; border-radius: 0.5rem; }
 
 /* ── Sticky Add-to-Cart Bar (Product Detail Page) ── */
 #sticky-atc-bar {
@@ -1655,7 +1703,8 @@ body.mh-search-locked { overflow: hidden; }
 
 .uf-hero-bar {
     width: 32px;
-    height: 2px;
+    height: 4px;
+    border-radius: 4px;
     background: rgba(255, 255, 255, 0.4);
     overflow: hidden;
     cursor: pointer;
@@ -2145,9 +2194,6 @@ body.mh-search-locked { overflow: hidden; }
 
 .uf-looks-section {
     padding: 72px 0;
-    background:
-        radial-gradient(120% 80% at 50% -10%, rgba(199, 235, 49, 0.06), transparent 60%),
-        var(--uf-bg);
 }
 
 .uf-looks-container {

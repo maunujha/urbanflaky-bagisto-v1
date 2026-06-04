@@ -16,13 +16,37 @@
 
     $reviewCount = $reviewHelper->getTotalFeedback($product);
 
+    /* Index-aware sellable price. Configurable parents carry no own price, so fall back to the
+       minimal variant price (same logic as the Product schema), then to $product->price. This is
+       what stops "Rs 0" leaking into the title / meta description for configurable products. */
+    $minimalPrice = (float) $product->getTypeInstance()->getMinimalPrice();
+
+    if ($minimalPrice <= 0) {
+        $minimalPrice = (float) $product->price;
+    }
+
+    /* Price token is appended only when a positive price resolves — never advertise "Rs 0". */
+    $priceLabel = $minimalPrice > 0 ? ' at Rs ' . number_format($minimalPrice, 0) : '';
+
     $productBaseDesc = trim($product->meta_description) != ''
         ? $product->meta_description
         : \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 80, '');
 
     $metaDesc = ($productBaseDesc ? $productBaseDesc . ' ' : '')
-        . 'Shop ' . $product->name . ' at Rs ' . number_format($product->price, 0)
+        . 'Shop ' . $product->name . $priceLabel
         . ' on Urbanflaky. Fast delivery pan India. – Gabha Enterprise';
+
+    /* Single source of truth for the page title — reused by <title>, og:title and twitter:title
+       so Facebook, Twitter/X and LinkedIn share previews all render the same heading. */
+    $metaTitle = trim($product->meta_title) != ''
+        ? $product->meta_title
+        : $product->name . ($priceLabel !== '' ? ' — Buy Online' . $priceLabel : '') . ' | Urbanflaky';
+
+    /* Shared og:/twitter: description. Decode any HTML entities to raw text FIRST, then let
+       Blade's {{ }} escape exactly once. Previously an explicit htmlspecialchars() here plus
+       Blade's own auto-escape double-encoded ampersands (& → &amp;amp;), so share previews
+       showed a literal "&amp;". */
+    $shareDesc = trim(html_entity_decode(strip_tags($product->description ?? ''), ENT_QUOTES));
 
     $productCanonical = route('shop.product_or_category.index', $product->url_key);
 @endphp
@@ -34,9 +58,9 @@
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ $productCanonical }}">
 
-    <meta property="og:type" content="og:product">
-    <meta property="og:title" content="{{ $product->meta_title ?: $product->name }}">
-    <meta property="og:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
+    <meta property="og:type" content="product">
+    <meta property="og:title" content="{{ $metaTitle }}">
+    <meta property="og:description" content="{{ $shareDesc }}">
     <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
     <meta property="og:url" content="{{ $productCanonical }}">
 
@@ -45,8 +69,8 @@
          emitting a second, conflicting Product schema on the same page. --}}
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $product->name }}">
-    <meta name="twitter:description" content="{{ htmlspecialchars(trim(strip_tags($product->description ?? ''))) }}">
+    <meta name="twitter:title" content="{{ $metaTitle }}">
+    <meta name="twitter:description" content="{{ $shareDesc }}">
     <meta name="twitter:image:alt" content="{{ $product->name }}">
     <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}">
 @endpush
@@ -62,11 +86,7 @@
 <x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
-        @if (trim($product->meta_title) != '')
-            {{ $product->meta_title }}
-        @else
-            {{ $product->name }} — Buy Online at Rs {{ number_format($product->price, 0) }} | Urbanflaky
-        @endif
+        {{ $metaTitle }}
     </x-slot>
 
     {!! view_render_event('bagisto.shop.products.view.before', ['product' => $product]) !!}
@@ -103,9 +123,9 @@
                     :is-selected="true"
                 >
                     <div class="container mt-[60px] max-1180:px-5">
-                        <p class="uf-rte text-md text-zinc-300 max-1180:text-sm">
+                        <div class="uf-rte text-md text-zinc-300 max-1180:text-sm">
                             {!! $product->description !!}
-                        </p>
+                        </div>
                     </div>
                 </x-shop::tabs.item>
 
@@ -483,9 +503,9 @@
 
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
-                                <p class="mt-6 text-md text-zinc-300 max-sm:mt-1.5 max-sm:text-sm">
+                                <div class="uf-rte mt-6 text-md text-zinc-300 max-sm:mt-1.5 max-sm:text-sm">
                                     {!! $product->short_description !!}
-                                </p>
+                                </div>
 
                                 {!! view_render_event('bagisto.shop.products.short_description.after', ['product' => $product]) !!}
 

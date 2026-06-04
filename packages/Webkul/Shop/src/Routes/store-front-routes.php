@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TrackOrderController;
 use Illuminate\Support\Facades\Route;
 use Webkul\Shop\Http\Controllers\BookingProductController;
 use Webkul\Shop\Http\Controllers\CompareController;
@@ -16,6 +17,17 @@ use Webkul\Shop\Http\Controllers\SubscriptionController;
 Route::get('page/{slug}', [PageController::class, 'view'])
     ->name('shop.cms.page')
     ->middleware('cache.response');
+
+/**
+ * Order tracking (public AWB / Order-ID lookup via Shiprocket).
+ * Declared before the fallback so it shadows the legacy "track-order" CMS page.
+ */
+Route::get('track-order', [TrackOrderController::class, 'index'])
+    ->name('shop.track-order.index');
+
+Route::post('track-order/track', [TrackOrderController::class, 'track'])
+    ->name('shop.track-order.track')
+    ->middleware('throttle:30,1');
 
 /**
  * Fallback route.

@@ -346,24 +346,30 @@
 
     /* Auto-focus: run after Vue mounts (Vue mounts on window.load, so we wait for it) */
     window.addEventListener('load', function() {
-        var box0 = document.getElementById('otp-0');
-        if (box0) box0.focus();
+        /* app.mount() fires on this SAME load event but is registered after us
+           (the layout renders @stack('scripts') before the mount <script>), so
+           Vue replaces these nodes right after this callback runs. Defer with a
+           0ms timeout so we read the final Vue-rendered DOM, and re-query the
+           nodes each tick so a detached reference can never freeze the timer. */
+        setTimeout(function() {
+            var box0 = document.getElementById('otp-0');
+            if (box0) box0.focus();
 
-        /* 30s countdown */
-        var secs   = 30;
-        var cdVal  = document.getElementById('countdown-val');
-        var cdWrap = document.getElementById('resend-countdown');
-        var rfForm = document.getElementById('resend-form');
-
-        var timer = setInterval(function() {
-            secs = secs - 1;
-            if (cdVal) cdVal.textContent = secs;
-            if (secs <= 0) {
-                clearInterval(timer);
-                if (cdWrap) cdWrap.style.display = 'none';
-                if (rfForm) rfForm.style.display  = 'block';
-            }
-        }, 1000);
+            /* 30s countdown */
+            var secs  = 30;
+            var timer = setInterval(function() {
+                secs = secs - 1;
+                var cdVal  = document.getElementById('countdown-val');
+                var cdWrap = document.getElementById('resend-countdown');
+                var rfForm = document.getElementById('resend-form');
+                if (cdVal) cdVal.textContent = secs;
+                if (secs <= 0) {
+                    clearInterval(timer);
+                    if (cdWrap) cdWrap.style.display = 'none';
+                    if (rfForm) rfForm.style.display  = 'block';
+                }
+            }, 1000);
+        }, 0);
     });
 
     @endif

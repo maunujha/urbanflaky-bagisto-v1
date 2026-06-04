@@ -97,6 +97,10 @@
     .co-coupon-input:focus { border-color:#c7eb31; }
     .co-coupon-btn { height:44px; padding:0 20px; background:rgba(255,255,255,.06); color:#f5f5f5; border:1px solid rgba(255,255,255,.12); border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; transition:.15s; }
     .co-coupon-btn:hover { background:rgba(199,235,49,.12); border-color:#c7eb31; color:#c7eb31; }
+    .co-coupon-btn:disabled { opacity:.5; cursor:default; }
+    .co-coupon-applied { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 14px; border:1px solid rgba(199,235,49,.4); background:rgba(199,235,49,.08); border-radius:10px; font-size:13px; color:#f5f5f5; }
+    .co-coupon-remove { background:none; border:none; color:#fca5a5; font-size:12px; font-weight:600; cursor:pointer; padding:0; white-space:nowrap; }
+    .co-coupon-remove:hover { text-decoration:underline; }
 
     /* ── Buttons ── */
     .co-btn-row { display:grid; grid-template-columns:auto 1fr; gap:12px; margin-top:8px; }
@@ -594,10 +598,21 @@
 
                         <div style="border-top:.5px solid #ececec;padding-top:18px">
                             <label class="co-label" style="margin-bottom:8px">Have a coupon?</label>
-                            <div class="co-coupon-row">
-                                <input class="co-coupon-input" type="text" v-model="couponCode" placeholder="Enter coupon code" @keyup.enter="applyCoupon">
-                                <button class="co-coupon-btn" @click="applyCoupon">Apply</button>
+
+                            {{-- Applied coupon state --}}
+                            <div v-if="cart.coupon_code" class="co-coupon-applied">
+                                <span>
+                                    <strong>@{{ cart.coupon_code }}</strong> applied<template v-if="Number(cart.discount_amount) > 0"> · you save @{{ cart.formatted_discount_amount }}</template>
+                                </span>
+                                <button type="button" class="co-coupon-remove" @click="removeCoupon" :disabled="couponApplying">Remove</button>
                             </div>
+
+                            {{-- Coupon entry (hidden once a coupon is applied) --}}
+                            <div v-else class="co-coupon-row">
+                                <input class="co-coupon-input" type="text" v-model="couponCode" placeholder="Enter coupon code" @keyup.enter="applyCoupon" :disabled="couponApplying">
+                                <button class="co-coupon-btn" @click="applyCoupon" :disabled="couponApplying || !couponCode">@{{ couponApplying ? '…' : 'Apply' }}</button>
+                            </div>
+
                             <div v-if="couponMessage" style="font-size:12px;margin-top:6px" :style="{color: couponValid ? '#c7eb31' : '#fca5a5'}">
                                 @{{ couponMessage }}
                             </div>
@@ -644,6 +659,10 @@
                         </div>
 
                         <div class="co-totals-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
+                        <div class="co-totals-row" v-if="Number(cart.discount_amount) > 0" style="color:#c7eb31">
+                            <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
+                            <span>− @{{ cart.formatted_discount_amount }}</span>
+                        </div>
                         <div class="co-totals-row"><span>Shipping</span><span>@{{ cart.formatted_shipping_amount || 'Calculated' }}</span></div>
                         <div class="co-totals-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
                         <div class="co-totals-total"><span>Grand total</span><span>@{{ cart.formatted_grand_total }}</span></div>
@@ -713,11 +732,15 @@
                     <hr class="co-sum-divider">
 
                     <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
+                    <div class="co-sum-row" v-if="Number(cart.discount_amount) > 0" style="color:#c7eb31">
+                        <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
+                        <span>− @{{ cart.formatted_discount_amount }}</span>
+                    </div>
                     <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
                     <div class="co-sum-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
                     <div class="co-sum-total">
                         <span>Grand total</span>
-                        <span>@{{ selectedShipping ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
+                        <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
                     </div>
 
                     <div class="co-sum-secure">
@@ -800,6 +823,7 @@
                 couponCode: '',
                 couponMessage: '',
                 couponValid: false,
+                couponApplying: false,
 
                 savingAddress: false,
                 isPlacing: false,
@@ -1158,18 +1182,43 @@
             },
 
             async applyCoupon() {
-                if (!this.couponCode) return;
+                if (!this.couponCode || this.couponApplying) return;
+                this.couponApplying = true;
                 try {
                     const res = await this.$axios.post(
                         '{{ route("shop.api.checkout.cart.coupon.apply") }}',
-                        { code: this.couponCode }
+                        { code: this.couponCode.trim() }
                     );
-                    this.couponValid   = true;
-                    this.couponMessage = res.data.message || 'Coupon applied!';
                     await this.fetchCart();
+                    // Only treat as success if the coupon actually stuck to the cart.
+                    if (this.cart.coupon_code) {
+                        this.couponValid   = true;
+                        this.couponMessage = res.data.message || 'Coupon applied!';
+                        this.couponCode    = '';
+                    } else {
+                        this.couponValid   = false;
+                        this.couponMessage = res.data.message || 'This coupon could not be applied to your cart.';
+                    }
                 } catch (err) {
                     this.couponMessage = err.response?.data?.message || 'Invalid coupon code.';
                     this.couponValid   = false;
+                } finally {
+                    this.couponApplying = false;
+                }
+            },
+
+            async removeCoupon() {
+                if (this.couponApplying) return;
+                this.couponApplying = true;
+                try {
+                    await this.$axios.delete('{{ route("shop.api.checkout.cart.coupon.remove") }}');
+                    await this.fetchCart();
+                    this.couponValid   = false;
+                    this.couponMessage = 'Coupon removed.';
+                } catch (err) {
+                    this.couponMessage = err.response?.data?.message || 'Could not remove coupon.';
+                } finally {
+                    this.couponApplying = false;
                 }
             },
 

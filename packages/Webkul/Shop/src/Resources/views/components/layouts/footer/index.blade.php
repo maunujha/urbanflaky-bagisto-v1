@@ -43,14 +43,15 @@
      | in $footerColumns by the same slug key.
      */
     $cmsPages = $cmsPages->merge([
-        'contact-us' => ['title' => 'Contact Us', 'url_key' => 'contact-us'],
-        'faqs'       => ['title' => 'FAQs', 'url_key' => 'faqs'],
+        'contact-us'  => ['title' => 'Contact Us', 'url_key' => 'contact-us'],
+        'faqs'        => ['title' => 'FAQs', 'url_key' => 'faqs'],
+        'track-order' => ['title' => 'Track Order', 'url_key' => 'track-order'],
     ]);
 
     $footerColumns = [
         'Company' => ['about-us', 'our-story', 'whats-new', 'customer-service', 'wholesale'],
-        'Help'    => ['contact-us', 'faqs', 'track-order', 'size-guide', 'care-instructions'],
-        'Policies'=> ['privacy-policy', 'terms-conditions', 'refund-policy', 'return-policy', 'shipping-policy', 'payment-policy'],
+        'Help'    => ['contact-us', 'faqs', 'track-order', 'size-chart', 'garment-care-guide'],
+        'Policies'=> ['privacy-policy', 'terms-and-conditions', 'refund-policy', 'return-policy', 'shipping-policy', 'payment-policy'],
     ];
 @endphp
 
