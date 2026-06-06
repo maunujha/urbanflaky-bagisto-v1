@@ -1,5 +1,8 @@
 {!! view_render_event('bagisto.shop.layout.header.before') !!}
 
+{{-- Shared recursive category accordion — registered once, used by both the desktop "All" drawer and the mobile drawer. --}}
+@include('shop::components.layouts.header.category-accordion')
+
 @if(core()->getCurrentChannel()->locales()->count() > 1 || core()->getCurrentChannel()->currencies()->count() > 1 )
     <div class="max-lg:hidden">
         <x-shop::layouts.header.desktop.top />

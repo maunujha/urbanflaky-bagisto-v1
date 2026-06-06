@@ -611,6 +611,7 @@ return [
                     'account' => 'Account',
                     'back-button' => 'Back to Main Menu',
                     'bagisto' => 'Bagisto',
+                    'categories' => 'Shop by Category',
                     'compare' => 'Compare',
                     'currencies' => 'Currencies',
                     'dropdown-text' => 'Manage Cart, Orders & Wishlist',

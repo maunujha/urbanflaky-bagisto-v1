@@ -123,6 +123,9 @@
     </head>
 
     <body>
+        <!-- Premium "UF" site preloader — sibling before #app so Vue never manages it -->
+        <x-shop::layouts.preloader />
+
         {!! view_render_event('bagisto.shop.layout.body.before') !!}
 
         <a

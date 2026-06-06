@@ -362,72 +362,18 @@
     </script>
 
     <script type="text/x-template" id="v-mobile-category-template">
-        <div class="relative h-full overflow-hidden">
-            <div
-                class="flex h-full transition-transform duration-300"
-                :class="{
-                    'ltr:translate-x-0 rtl:translate-x-0': currentViewLevel !== 'third',
-                    'ltr:-translate-x-full rtl:translate-x-full': currentViewLevel === 'third'
-                }"
-            >
-                <div class="flex-shrink-0 w-full h-full px-6 overflow-auto">
-                    <div class="py-4">
-                        <div
-                            v-for="category in categories"
-                            :key="category.id"
-                            :class="{'mb-2': category.children && category.children.length}"
-                        >
-                            <div class="group flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer">
-                                <a :href="category.url" class="text-base font-medium text-white transition-colors group-hover:text-uf-accent">
-                                    @{{ category.name }}
-                                </a>
-                            </div>
+        <div :key="resetKey" class="overflow-auto" :style="{ maxHeight: getCurrentScreenHeight }">
+            <p class="px-6 pb-2 pt-5 font-poppins text-[11px] font-semibold uppercase tracking-[3px] text-white/35">
+                @lang('shop::app.components.layouts.header.mobile.categories')
+            </p>
 
-                            <div v-if="category.children && category.children.length">
-                                <div v-for="secondLevelCategory in category.children" :key="secondLevelCategory.id">
-                                    <div
-                                        class="group flex items-center justify-between py-2 transition-colors duration-200 cursor-pointer"
-                                        @click="showThirdLevel(secondLevelCategory, category, $event)"
-                                    >
-                                        <a :href="secondLevelCategory.url" class="text-sm font-normal text-zinc-300 transition-colors group-hover:text-uf-accent">
-                                            @{{ secondLevelCategory.name }}
-                                        </a>
-                                        <span
-                                            v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                            class="icon-arrow-right rtl:icon-arrow-left text-zinc-500 transition-colors group-hover:text-uf-accent"
-                                        ></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex-shrink-0 w-full h-full" v-if="currentViewLevel === 'third'">
-                    <div class="px-6 py-4 border-b border-white/10">
-                        <button
-                            @click="goBackToMainView"
-                            class="flex items-center justify-center gap-2 text-white transition-colors hover:text-uf-accent focus:outline-none"
-                            aria-label="Go back"
-                        >
-                            <span class="text-lg icon-arrow-left rtl:icon-arrow-right"></span>
-                            <div class="text-base font-medium">
-                                @lang('shop::app.components.layouts.header.mobile.back-button')
-                            </div>
-                        </button>
-                    </div>
-                    <div class="px-6 py-4">
-                        <div
-                            v-for="thirdLevelCategory in currentSecondLevelCategory?.children"
-                            :key="thirdLevelCategory.id"
-                            class="mb-2"
-                        >
-                            <a :href="thirdLevelCategory.url" class="block py-2 text-sm text-zinc-300 transition-colors duration-200 hover:text-uf-accent">
-                                @{{ thirdLevelCategory.name }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            <div class="pb-8">
+                <v-category-node
+                    v-for="category in categories"
+                    :key="category.id"
+                    :category="category"
+                    :level="0"
+                ></v-category-node>
             </div>
         </div>
     </script>
@@ -439,9 +385,7 @@
             data() {
                 return {
                     categories: [],
-                    currentViewLevel: 'main',
-                    currentSecondLevelCategory: null,
-                    currentParentCategory: null
+                    resetKey: 0,
                 }
             },
 
@@ -461,34 +405,32 @@
                         const stored = localStorage.getItem('categories');
                         if (stored) {
                             this.categories = JSON.parse(stored);
-                            this.isLoading = false;
-                            return;
                         }
                     } catch (e) {}
+
+                    /* Always refresh in the background. The cached copy gives an
+                       instant first paint; this silent re-fetch picks up catalog
+                       changes (new/renamed/reordered categories) on the next load. */
                     this.getCategories();
                 },
                 getCategories() {
                     this.$axios.get("{{ route('shop.api.categories.tree') }}")
                         .then(response => {
-                            this.categories = response.data.data;
-                            localStorage.setItem('categories', JSON.stringify(this.categories));
+                            const fresh = response.data.data;
+                            if (! fresh) return;
+
+                            const serialized = JSON.stringify(fresh);
+                            if (serialized !== localStorage.getItem('categories')) {
+                                this.categories = fresh;
+                                localStorage.setItem('categories', serialized);
+                            }
                         })
                         .catch(error => { console.log(error); });
                 },
-                showThirdLevel(secondLevelCategory, parentCategory, event) {
-                    if (secondLevelCategory.children && secondLevelCategory.children.length) {
-                        this.currentSecondLevelCategory = secondLevelCategory;
-                        this.currentParentCategory = parentCategory;
-                        this.currentViewLevel = 'third';
-                        if (event) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                    }
+                /* Collapse every expanded node by remounting the tree. */
+                collapseAll() {
+                    this.resetKey++;
                 },
-                goBackToMainView() {
-                    this.currentViewLevel = 'main';
-                }
             },
         });
 
@@ -497,7 +439,7 @@
 
             methods: {
                 onDrawerClose() {
-                    this.$refs.mobileCategory.currentViewLevel = 'main';
+                    this.$refs.mobileCategory?.collapseAll();
                 }
             },
         });

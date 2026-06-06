@@ -620,39 +620,11 @@
                     </a>
                 </span>
 
-                <div
-                    class="pointer-events-none absolute top-full z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-2 overflow-auto border-t border-white/10 bg-uf-surface/95 p-9 opacity-0 shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-xl transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
+                <!-- Mega-menu dropdown with image preview -->
+                <v-category-dropdown
+                    :category="category"
                     v-if="category.children && category.children.length"
-                >
-                    <div class="flex justify-between gap-x-[70px]">
-                        <div
-                            class="grid w-full min-w-max max-w-[150px] flex-auto grid-cols-[1fr] content-start gap-5"
-                            v-for="pairCategoryChildren in pairCategoryChildren(category)"
-                        >
-                            <template v-for="secondLevelCategory in pairCategoryChildren">
-                                <p class="font-poppins text-[13px] font-semibold uppercase tracking-[1.5px] text-uf-accent">
-                                    <a :href="secondLevelCategory.url">
-                                        @{{ secondLevelCategory.name }}
-                                    </a>
-                                </p>
-
-                                <ul
-                                    class="grid grid-cols-[1fr] gap-3"
-                                    v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                >
-                                    <li
-                                        class="text-sm font-medium text-white/65 transition-colors hover:text-white"
-                                        v-for="thirdLevelCategory in secondLevelCategory.children"
-                                    >
-                                        <a :href="thirdLevelCategory.url">
-                                            @{{ thirdLevelCategory.name }}
-                                        </a>
-                                    </li>
-                                </ul>
-                            </template>
-                        </div>
-                    </div>
-                </div>
+                ></v-category-dropdown>
             </div>
         </div>
 
@@ -686,40 +658,11 @@
                         </a>
                     </span>
 
-                    <!-- Dropdown for each category -->
-                    <div
-                        class="pointer-events-none absolute top-full z-[1] max-h-[580px] w-max max-w-[1260px] translate-y-2 overflow-auto border-t border-white/10 bg-uf-surface/95 p-9 opacity-0 shadow-[0_24px_48px_rgba(0,0,0,0.55)] backdrop-blur-xl transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
+                    <!-- Mega-menu dropdown with image preview -->
+                    <v-category-dropdown
+                        :category="category"
                         v-if="category.children && category.children.length"
-                    >
-                        <div class="flex justify-between gap-x-[70px]">
-                            <div
-                                class="grid w-full min-w-max max-w-[150px] flex-auto grid-cols-[1fr] content-start gap-5"
-                                v-for="pairCategoryChildren in pairCategoryChildren(category)"
-                            >
-                                <template v-for="secondLevelCategory in pairCategoryChildren">
-                                    <p class="font-poppins text-[13px] font-semibold uppercase tracking-[1.5px] text-uf-accent">
-                                        <a :href="secondLevelCategory.url">
-                                            @{{ secondLevelCategory.name }}
-                                        </a>
-                                    </p>
-
-                                    <ul
-                                        class="grid grid-cols-[1fr] gap-3"
-                                        v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                    >
-                                        <li
-                                            class="text-sm font-medium text-white/65 transition-colors hover:text-white"
-                                            v-for="thirdLevelCategory in secondLevelCategory.children"
-                                        >
-                                            <a :href="thirdLevelCategory.url">
-                                                @{{ thirdLevelCategory.name }}
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
+                    ></v-category-dropdown>
                 </div>
             </div>
 
@@ -742,96 +685,18 @@
                 </x-slot>
 
                 <x-slot:content class="!px-0">
-                    <!-- Wrapper with transition effects -->
-                    <div class="relative h-full overflow-hidden">
-                        <!-- Sliding container -->
-                        <div
-                            class="flex h-full transition-transform duration-300"
-                            :class="{
-                                'ltr:translate-x-0 rtl:translate-x-0': currentViewLevel !== 'third',
-                                'ltr:-translate-x-full rtl:translate-x-full': currentViewLevel === 'third'
-                            }"
-                        >
-                            <!-- First level view -->
-                            <div class="h-[calc(100vh-74px)] w-full flex-shrink-0 overflow-auto">
-                                <div class="py-4">
-                                    <div
-                                        v-for="category in categories"
-                                        :key="category.id"
-                                        :class="{'mb-2': category.children && category.children.length}"
-                                    >
-                                        <div class="group flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-white/5">
-                                            <a
-                                                :href="category.url"
-                                                class="text-base font-medium text-white transition-colors group-hover:text-uf-accent"
-                                            >
-                                                @{{ category.name }}
-                                            </a>
-                                        </div>
-
-                                        <!-- Second Level Categories -->
-                                        <div v-if="category.children && category.children.length" >
-                                            <div
-                                                v-for="secondLevelCategory in category.children"
-                                                :key="secondLevelCategory.id"
-                                            >
-                                                <div
-                                                    class="group flex items-center justify-between px-6 py-2 transition-colors duration-200 cursor-pointer hover:bg-white/5"
-                                                    @click="showThirdLevel(secondLevelCategory, category, $event)"
-                                                >
-                                                    <a
-                                                        :href="secondLevelCategory.url"
-                                                        class="text-sm font-normal text-zinc-300 transition-colors group-hover:text-uf-accent"
-                                                    >
-                                                        @{{ secondLevelCategory.name }}
-                                                    </a>
-
-                                                    <span
-                                                        v-if="secondLevelCategory.children && secondLevelCategory.children.length"
-                                                        class="icon-arrow-right rtl:icon-arrow-left text-zinc-500 transition-colors group-hover:text-uf-accent"
-                                                    ></span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Third level view -->
-                            <div
-                                class="flex-shrink-0 w-full h-full"
-                                v-if="currentViewLevel === 'third'"
-                            >
-                                <div class="px-6 py-4 border-b border-white/10">
-                                    <button
-                                        @click="goBackToMainView"
-                                        class="flex items-center justify-center gap-2 text-white transition-colors hover:text-uf-accent focus:outline-none"
-                                        aria-label="Go back"
-                                    >
-                                        <span class="text-lg icon-arrow-left rtl:icon-arrow-right"></span>
-
-                                        <p class="text-base font-medium">
-                                            @lang('shop::app.components.layouts.header.desktop.bottom.back-button')
-                                        </p>
-                                    </button>
-                                </div>
-
-                                <!-- Third Level Content -->
-                                <div class="py-4">
-                                    <div
-                                        v-for="thirdLevelCategory in currentSecondLevelCategory?.children"
-                                        :key="thirdLevelCategory.id"
-                                        class="mb-2"
-                                    >
-                                        <a
-                                            :href="thirdLevelCategory.url"
-                                            class="block px-6 py-2 text-sm text-zinc-300 transition-colors duration-200 hover:bg-white/5 hover:text-uf-accent"
-                                        >
-                                            @{{ thirdLevelCategory.name }}
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Recursive accordion (shared with the mobile drawer) -->
+                    <div
+                        class="h-[calc(100vh-74px)] overflow-auto"
+                        :key="resetKey"
+                    >
+                        <div class="pb-8">
+                            <v-category-node
+                                v-for="category in categories"
+                                :key="category.id"
+                                :category="category"
+                                :level="0"
+                            ></v-category-node>
                         </div>
                     </div>
                 </x-slot>
@@ -848,9 +713,7 @@
                     isLoading: true,
                     categories: [],
                     isDrawerActive: false,
-                    currentViewLevel: 'main',
-                    currentSecondLevelCategory: null,
-                    currentParentCategory: null
+                    resetKey: 0,
                 }
             },
 
@@ -866,12 +729,12 @@
                         if (stored) {
                             this.categories = JSON.parse(stored);
                             this.isLoading = false;
-
-                            return;
                         }
-
                     } catch (e) {}
 
+                    /* Always refresh in the background. The cached copy gives an
+                       instant first paint; this silent re-fetch picks up catalog
+                       changes (new/renamed/reordered categories) on the next load. */
                     this.getCategories();
                 },
 
@@ -879,30 +742,23 @@
                     this.$axios.get("{{ route('shop.api.categories.tree') }}")
                         .then(response => {
                             this.isLoading = false;
-                            this.categories = response.data.data;
-                            localStorage.setItem('categories', JSON.stringify(this.categories));
+
+                            const fresh = response.data.data;
+                            if (! fresh) return;
+
+                            const serialized = JSON.stringify(fresh);
+                            if (serialized !== localStorage.getItem('categories')) {
+                                this.categories = fresh;
+                                localStorage.setItem('categories', serialized);
+                            }
                         })
                         .catch(error => {
                             console.log(error);
                         });
                 },
 
-                pairCategoryChildren(category) {
-                    if (! category.children) return [];
-
-                    return category.children.reduce((result, value, index, array) => {
-                        if (index % 2 === 0) {
-                            result.push(array.slice(index, index + 2));
-                        }
-                        return result;
-                    }, []);
-                },
-
                 toggleCategoryDrawer() {
                     this.isDrawerActive = !this.isDrawerActive;
-                    if (this.isDrawerActive) {
-                        this.currentViewLevel = 'main';
-                    }
                 },
 
                 onDrawerToggle(event) {
@@ -911,24 +767,150 @@
 
                 onDrawerClose(event) {
                     this.isDrawerActive = false;
+                    this.resetKey++;   /* collapse every expanded node on close */
+                },
+            },
+        });
+    </script>
+
+    {{-- ── Premium mega-menu dropdown (shared by both header layouts) ── --}}
+    <style>
+        /* Crossfade between preview images as you hover each sub-category.
+           Both layers are absolutely positioned so they overlap during the swap. */
+        .uf-megafade-enter-active { transition: opacity .45s ease, transform .55s ease; }
+        .uf-megafade-leave-active { transition: opacity .35s ease; }
+        .uf-megafade-enter-from   { opacity: 0; transform: scale(1.06); }
+        .uf-megafade-leave-to     { opacity: 0; }
+    </style>
+
+    <script
+        type="text/x-template"
+        id="v-category-dropdown-template"
+    >
+        <div
+            class="pointer-events-none absolute top-full z-[1] w-[660px] max-w-[94vw] translate-y-3 overflow-hidden rounded-2xl border border-white/10 bg-uf-surface/95 opacity-0 shadow-[0_32px_70px_rgba(0,0,0,0.65)] backdrop-blur-2xl transition duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-hover:duration-200 group-hover:ease-in ltr:-left-9 rtl:-right-9"
+        >
+            <div class="grid grid-cols-[1fr_270px]">
+                <!-- Left: sub-category list -->
+                <div class="flex flex-col p-7">
+                    <p class="mb-4 font-poppins text-[11px] font-semibold uppercase tracking-[3px] text-white/35">
+                        @{{ category.name }}
+                    </p>
+
+                    <ul class="grid gap-0.5">
+                        <li
+                            v-for="child in category.children"
+                            :key="child.id"
+                            @mouseenter="activeChild = child"
+                        >
+                            <a
+                                :href="child.url"
+                                class="group/it flex items-center justify-between rounded-xl px-3.5 py-2.5 transition-all duration-200"
+                                :class="preview.id === child.id ? 'bg-white/[0.06] text-uf-accent' : 'text-white/80 hover:text-uf-accent'"
+                            >
+                                <span class="font-poppins text-[15px] font-medium tracking-wide">@{{ child.name }}</span>
+
+                                <span
+                                    class="icon-arrow-right rtl:icon-arrow-left text-lg transition-all duration-200"
+                                    :class="preview.id === child.id ? 'opacity-100 translate-x-0' : 'opacity-0 ltr:-translate-x-1 rtl:translate-x-1'"
+                                ></span>
+                            </a>
+
+                            <!-- Optional third level -->
+                            <ul
+                                class="mb-1 mt-0.5 grid gap-px ltr:pl-3.5 rtl:pr-3.5"
+                                v-if="child.children && child.children.length"
+                            >
+                                <li v-for="leaf in child.children" :key="leaf.id">
+                                    <a
+                                        :href="leaf.url"
+                                        class="block rounded-lg px-3.5 py-1.5 text-sm text-white/55 transition-colors hover:text-white"
+                                    >
+                                        @{{ leaf.name }}
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <a
+                        :href="category.url"
+                        class="group/all mt-auto inline-flex items-center gap-2 pt-6 font-poppins text-[12px] font-semibold uppercase tracking-[2.5px] text-uf-accent transition-colors hover:text-uf-accentHover"
+                    >
+                        Shop All @{{ category.name }}
+                        <span class="icon-arrow-right rtl:icon-arrow-left text-lg transition-transform duration-200 group-hover/all:translate-x-1"></span>
+                    </a>
+                </div>
+
+                <!-- Right: live image preview -->
+                <a
+                    :href="preview.url"
+                    class="relative block min-h-[330px] overflow-hidden bg-uf-bg"
+                >
+                    <transition name="uf-megafade">
+                        <img
+                            v-if="previewImage"
+                            :key="preview.id"
+                            :src="previewImage"
+                            :alt="preview.name"
+                            class="absolute inset-0 h-full w-full object-cover"
+                        >
+
+                        <div
+                            v-else
+                            :key="'ph-' + preview.id"
+                            class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-uf-surface2 to-uf-bg"
+                        >
+                            <span class="font-poppins text-7xl font-bold uppercase text-white/[0.07]">@{{ preview.name.charAt(0) }}</span>
+                        </div>
+                    </transition>
+
+                    <span class="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10"></span>
+
+                    <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent p-5 pt-16">
+                        <p class="font-poppins text-lg font-bold leading-tight text-white">@{{ preview.name }}</p>
+
+                        <span class="mt-1.5 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[2.5px] text-uf-accent">
+                            Shop Now
+                            <span class="icon-arrow-right rtl:icon-arrow-left text-sm"></span>
+                        </span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </script>
+
+    <script type="module">
+        app.component('v-category-dropdown', {
+            template: '#v-category-dropdown-template',
+
+            props: {
+                category: {
+                    type: Object,
+                    required: true,
+                },
+            },
+
+            data() {
+                return {
+                    activeChild: null,
+                };
+            },
+
+            computed: {
+                /* Currently previewed child — defaults to the first one until hovered. */
+                preview() {
+                    return this.activeChild
+                        || (this.category.children && this.category.children[0])
+                        || this.category;
                 },
 
-                showThirdLevel(secondLevelCategory, parentCategory, event) {
-                    if (secondLevelCategory.children && secondLevelCategory.children.length) {
-                        this.currentSecondLevelCategory = secondLevelCategory;
-                        this.currentParentCategory = parentCategory;
-                        this.currentViewLevel = 'third';
+                /* Banner is preferred (wide); fall back to logo, then to a placeholder. */
+                previewImage() {
+                    const c = this.preview;
 
-                        if (event) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-                    }
+                    return (c && (c.banner_url || c.logo_url)) || '';
                 },
-
-                goBackToMainView() {
-                    this.currentViewLevel = 'main';
-                }
             },
         });
     </script>
