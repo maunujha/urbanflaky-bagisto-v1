@@ -40,6 +40,7 @@ class CoinTransaction extends Model
         'order_id',
         'note',
         'expires_at',
+        'available_at',
     ];
 
     /**
@@ -48,10 +49,11 @@ class CoinTransaction extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type'       => TransactionType::class,
-        'status'     => TransactionStatus::class,
-        'amount'     => 'integer',
-        'expires_at' => 'datetime',
+        'type'         => TransactionType::class,
+        'status'       => TransactionStatus::class,
+        'amount'       => 'integer',
+        'expires_at'   => 'datetime',
+        'available_at' => 'datetime',
     ];
 
     /**

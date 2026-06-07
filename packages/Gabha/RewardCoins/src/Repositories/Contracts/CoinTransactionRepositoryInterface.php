@@ -83,6 +83,43 @@ interface CoinTransactionRepositoryInterface
     public function getRedeemedForOrder(int $orderId): Collection;
 
     /**
+     * Live `earned` transactions tied to an order — both pending and confirmed
+     * (for the refund claw-back). Terminal rows (cancelled/expired) are excluded.
+     *
+     * @param  int  $orderId
+     * @return Collection<int, CoinTransaction>
+     */
+    public function getEarnedForOrder(int $orderId): Collection;
+
+    /**
+     * Pending `earned` transactions whose return window has elapsed
+     * (available_at set and now past) — the confirm-available sweep input.
+     *
+     * @return Collection<int, CoinTransaction>
+     */
+    public function getAvailableForConfirmation(): Collection;
+
+    /**
+     * Stamp the return-window unlock time on an order's still-pending earned
+     * coins, only where it has not already been set. Idempotent.
+     *
+     * @param  int  $orderId
+     * @param  DateTimeInterface  $availableAt
+     * @return int  Rows stamped.
+     */
+    public function stampAvailableAt(int $orderId, DateTimeInterface $availableAt): int;
+
+    /**
+     * Total coin magnitude already recorded for an order under a given type
+     * (used to cap repeated partial-refund claw-backs / restores).
+     *
+     * @param  int  $orderId
+     * @param  TransactionType  $type
+     * @return int
+     */
+    public function sumAmountForOrder(int $orderId, TransactionType $type): int;
+
+    /**
      * Paginated, newest-first ledger for a customer (history table).
      *
      * @param  int  $customerId

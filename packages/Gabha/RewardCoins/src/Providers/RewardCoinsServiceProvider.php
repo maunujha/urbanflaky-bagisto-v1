@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Gabha\RewardCoins\Providers;
 
 use Gabha\RewardCoins\Checkout\CoinDiscount;
+use Gabha\RewardCoins\Console\ConfirmAvailableCoinsCommand;
 use Gabha\RewardCoins\Console\ExpireCoinsCommand;
 use Gabha\RewardCoins\Listeners\AwardCoinsOnOrder;
 use Gabha\RewardCoins\Listeners\ConfirmCoinsOnDelivery;
 use Gabha\RewardCoins\Listeners\RedeemCoinsOnOrder;
 use Gabha\RewardCoins\Listeners\ReverseCoinsOnCancellation;
+use Gabha\RewardCoins\Listeners\RevokeCoinsOnRefund;
 use Gabha\RewardCoins\Models\CoinSetting;
 use Gabha\RewardCoins\Repositories\CoinTransactionRepository;
 use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
@@ -167,6 +169,13 @@ class RewardCoinsServiceProvider extends ServiceProvider
 
         Event::listen('sales.order.update-status.after', ConfirmCoinsOnDelivery::class);
         Event::listen('sales.order.update-status.after', ReverseCoinsOnCancellation::class);
+
+        /*
+         * Claw back earned coins and restore redeemed coins when an order is
+         * refunded, proportional to the refunded amount. Runs synchronously so
+         * the whole adjustment is one atomic, retry-safe unit of work.
+         */
+        Event::listen('sales.refund.save.after', RevokeCoinsOnRefund::class);
     }
 
     /**
@@ -177,13 +186,19 @@ class RewardCoinsServiceProvider extends ServiceProvider
     private function registerCommands(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([ExpireCoinsCommand::class]);
+            $this->commands([
+                ExpireCoinsCommand::class,
+                ConfirmAvailableCoinsCommand::class,
+            ]);
         }
 
         $this->app->booted(function (): void {
-            $this->app->make(Schedule::class)
-                ->command('reward-coins:expire')
-                ->dailyAt('00:00');
+            $schedule = $this->app->make(Schedule::class);
+
+            $schedule->command('reward-coins:expire')->dailyAt('00:00');
+
+            // Release coins whose post-delivery return window has elapsed.
+            $schedule->command('reward-coins:confirm-available')->dailyAt('02:00');
         });
     }
 }

@@ -115,7 +115,7 @@
             }
 
             const rupeePerCoin = parseFloat(widget.dataset.rupeePerCoin) || 1;
-            const maxCoins     = parseInt(widget.dataset.maxCoins, 10) || 0;
+            let   maxCoins     = parseInt(widget.dataset.maxCoins, 10) || 0;
             const csrf         = '{{ csrf_token() }}';
 
             const range    = document.getElementById('reward-coins-range');
@@ -166,6 +166,19 @@
                 error.classList.toggle('hidden', ! message);
             };
 
+            // Re-cap the slider/input to a server-provided redeemable maximum and
+            // clamp the current selection down to it.
+            const applyServerMax = (max) => {
+                if (max === undefined || max === null || max < 0) {
+                    return;
+                }
+
+                maxCoins  = max;
+                range.max = max;
+                input.max = max;
+                sync(max);
+            };
+
             applyBtn.addEventListener('click', function () {
                 const coins = clamp(input.value);
 
@@ -180,6 +193,12 @@
                     .then((res) => res.json())
                     .then((data) => {
                         if (! data.success) {
+                            // When the server reports a cap, re-clamp the control so
+                            // the customer can immediately retry within the limit.
+                            if (data.error_code === 'exceeds_max_coverage' || data.error_code === 'order_would_be_free') {
+                                applyServerMax(data.max_coins);
+                            }
+
                             showError(data.message);
 
                             return;

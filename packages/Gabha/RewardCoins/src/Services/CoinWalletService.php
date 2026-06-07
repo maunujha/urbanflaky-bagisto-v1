@@ -125,6 +125,55 @@ class CoinWalletService
     }
 
     /**
+     * Force-remove coins from a customer and record the ledger row, without the
+     * sufficiency guard {@see self::debit()} enforces.
+     *
+     * Used for refund claw-backs, where the customer may already have spent the
+     * coins being revoked: the wallet column is floored at zero (never negative)
+     * rather than throwing. Records a positive-magnitude ledger row; the signed
+     * direction is implied by $type (e.g. Revoked).
+     *
+     * @param  int  $customerId
+     * @param  int  $amount  Positive coin count.
+     * @param  TransactionType  $type
+     * @param  bool  $fromPending  Debit the pending bucket instead of the spendable balance.
+     * @param  int|null  $orderId
+     * @param  string  $note
+     * @return CoinTransaction
+     *
+     * @throws InvalidArgumentException
+     */
+    public function revoke(
+        int $customerId,
+        int $amount,
+        TransactionType $type,
+        bool $fromPending = false,
+        ?int $orderId = null,
+        string $note = '',
+    ): CoinTransaction {
+        $this->guardPositive($amount);
+
+        return DB::transaction(function () use ($customerId, $amount, $type, $fromPending, $orderId, $note): CoinTransaction {
+            $transaction = $this->ledger->record(
+                customerId: $customerId,
+                type: $type,
+                status: TransactionStatus::Confirmed,
+                amount: $amount,
+                orderId: $orderId,
+                note: $note !== '' ? $note : null,
+            );
+
+            if ($fromPending) {
+                $this->wallets->decrementPending($customerId, $amount);
+            } else {
+                $this->wallets->decrementBalance($customerId, $amount);
+            }
+
+            return $transaction;
+        });
+    }
+
+    /**
      * Promote a pending earned transaction to confirmed (spendable).
      *
      * Idempotent: a transaction that is not pending is returned untouched.

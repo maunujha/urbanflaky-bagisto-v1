@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Gabha\RewardCoins\Services;
 
 use Gabha\RewardCoins\DTOs\TransactionResult;
+use Gabha\RewardCoins\DTOs\ValidationResult;
 use Gabha\RewardCoins\Enums\TransactionType;
 use Gabha\RewardCoins\Exceptions\InsufficientCoinsException;
 use Gabha\RewardCoins\Models\CoinSetting;
@@ -68,6 +69,112 @@ class CoinRedemptionService
         $maxCoinsByValue = (int) floor($maxValue / $rupeePerCoin);
 
         return max(0, min($balance, $maxCoinsByValue));
+    }
+
+    /**
+     * Fully validate a redemption request, returning a structured, user-facing
+     * result. Centralises every redemption rule so the controller, form request
+     * and any future caller share one source of truth (no silent failures).
+     *
+     * Measured against the pre-coin cart total in store (base) currency.
+     *
+     * @param  int    $customerId
+     * @param  int    $coinsRequested
+     * @param  float  $cartTotal
+     * @return ValidationResult
+     */
+    public function validateRedemption(int $customerId, int $coinsRequested, float $cartTotal): ValidationResult
+    {
+        // 1. Program enabled.
+        if (! CoinSetting::isEnabled()) {
+            return ValidationResult::fail(
+                'feature_disabled',
+                trans('reward-coins::reward_coins.redeem.feature-disabled'),
+            );
+        }
+
+        // 2. Authenticated customer (guests have no wallet).
+        if ($customerId <= 0) {
+            return ValidationResult::fail(
+                'not_authenticated',
+                trans('reward-coins::reward_coins.redeem.not-authenticated'),
+            );
+        }
+
+        // 3. Minimum order value to redeem (0 = no floor).
+        $minOrder = (float) config('reward_coins.min_order_for_redemption', 0);
+
+        if ($minOrder > 0 && $cartTotal < $minOrder) {
+            return ValidationResult::fail(
+                'order_too_small',
+                trans('reward-coins::reward_coins.redeem.order-too-small', [
+                    'min' => core()->formatBasePrice($minOrder),
+                ]),
+            );
+        }
+
+        // 4. Customer holds spendable coins.
+        $balance = $this->wallets->getBalance($customerId);
+
+        if ($balance <= 0) {
+            return ValidationResult::fail(
+                'no_coins',
+                trans('reward-coins::reward_coins.redeem.no-coins'),
+            );
+        }
+
+        if ($coinsRequested > $balance) {
+            return ValidationResult::fail(
+                'insufficient_coins',
+                trans('reward-coins::reward_coins.redeem.insufficient-coins', [
+                    'balance' => number_format($balance),
+                ]),
+                $this->getRedeemableCoins($customerId, $cartTotal),
+            );
+        }
+
+        // 5. Per-order coverage caps (absolute ceiling + percentage of order).
+        $rupeePerCoin = $this->rupeePerCoin();
+        $settings     = CoinSetting::active();
+        $percent      = (int) $settings->max_redemption_percent;
+
+        $maxValue = min(
+            (float) $settings->max_redemption_per_order,
+            $cartTotal * ($percent / 100),
+            $cartTotal,
+        );
+
+        $maxCoins = max(0, (int) floor($maxValue / $rupeePerCoin));
+
+        // Integer comparison is exact: requesting more coins than $maxCoins is
+        // exactly requesting more rupee value than $maxValue.
+        if ($coinsRequested > $maxCoins) {
+            return ValidationResult::fail(
+                'exceeds_max_coverage',
+                trans('reward-coins::reward_coins.redeem.exceeds-max-coverage', [
+                    'coins'   => number_format($maxCoins),
+                    'percent' => $percent,
+                    'amount'  => core()->formatBasePrice($maxValue),
+                ]),
+                $maxCoins,
+            );
+        }
+
+        // 6. Coins may never cover the whole order (at least the smallest cash
+        // amount must remain). Only reachable when the caps allow 100% coverage.
+        if ($coinsRequested * $rupeePerCoin >= $cartTotal) {
+            $allowed = max(0, min($maxCoins, (int) ceil($cartTotal / $rupeePerCoin) - 1));
+
+            return ValidationResult::fail(
+                'order_would_be_free',
+                trans('reward-coins::reward_coins.redeem.would-be-free', [
+                    'coins' => number_format($allowed),
+                ]),
+                $allowed,
+            );
+        }
+
+        return ValidationResult::pass($maxCoins);
     }
 
     /**
