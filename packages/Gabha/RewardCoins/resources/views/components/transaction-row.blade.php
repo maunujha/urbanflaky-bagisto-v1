@@ -32,5 +32,11 @@
         <span class="rounded-full px-2 py-0.5 text-xs font-medium {{ $statusClass }}">
             {{ $transaction->status->label() }}
         </span>
+
+        @if ($transaction->status->value === 'pending' && $transaction->available_at)
+            <span class="mt-1 block text-xs text-gray-500">
+                @lang('reward-coins::reward_coins.account.available-when', ['when' => $transaction->available_at->diffForHumans()])
+            </span>
+        @endif
     </td>
 </tr>

@@ -41,6 +41,19 @@ return [
     'rupee_per_coin' => (float) env('REWARD_COINS_RUPEE_VALUE', 1),
 
     /*
+    |--------------------------------------------------------------------------
+    | Minimum Order Value To Redeem
+    |--------------------------------------------------------------------------
+    |
+    | Floor (store currency) below which coins cannot be redeemed on a cart.
+    | Set to 0 to disable the floor. The per-order coverage caps (percentage and
+    | absolute ceiling) still live on the coin_settings row; this is a separate,
+    | config-only eligibility gate enforced by CoinRedemptionService::validateRedemption().
+    |
+    */
+    'min_order_for_redemption' => (float) env('REWARD_COINS_MIN_ORDER_REDEEM', 200),
+
+    /*
     | Reserved alternate earning knob. The active earning formula uses the
     | per-store coin_settings (earning_rate / coins_per_unit); this is kept for
     | forward-compatibility and is not consumed by CoinEarningCalculator.

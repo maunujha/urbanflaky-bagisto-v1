@@ -107,6 +107,58 @@ class CoinTransactionRepository implements CoinTransactionRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function getEarnedForOrder(int $orderId): Collection
+    {
+        return $this->model->newQuery()
+            ->where('order_id', $orderId)
+            ->where('type', TransactionType::Earned->value)
+            ->whereIn('status', [
+                TransactionStatus::Pending->value,
+                TransactionStatus::Confirmed->value,
+            ])
+            ->get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getAvailableForConfirmation(): Collection
+    {
+        return $this->model->newQuery()
+            ->where('type', TransactionType::Earned->value)
+            ->where('status', TransactionStatus::Pending->value)
+            ->whereNotNull('available_at')
+            ->where('available_at', '<=', Carbon::now())
+            ->get();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function stampAvailableAt(int $orderId, DateTimeInterface $availableAt): int
+    {
+        return $this->model->newQuery()
+            ->where('order_id', $orderId)
+            ->where('type', TransactionType::Earned->value)
+            ->where('status', TransactionStatus::Pending->value)
+            ->whereNull('available_at')
+            ->update(['available_at' => $availableAt]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function sumAmountForOrder(int $orderId, TransactionType $type): int
+    {
+        return (int) $this->model->newQuery()
+            ->where('order_id', $orderId)
+            ->where('type', $type->value)
+            ->sum('amount');
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getForCustomer(int $customerId, int $perPage = 15): LengthAwarePaginator
     {
         return $this->model->newQuery()

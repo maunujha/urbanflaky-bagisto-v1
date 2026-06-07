@@ -17,6 +17,8 @@ return [
             'expired'  => 'Expired',
             'adjusted' => 'Adjusted',
             'reversed' => 'Reversed',
+            'revoked'  => 'Revoked (Refund)',
+            'refunded' => 'Restored (Refund)',
         ],
 
         'statuses' => [
@@ -40,8 +42,9 @@ return [
         'note'              => 'Details',
         'status'            => 'Status',
         'empty'             => 'You have no coin activity yet.',
+        'available-when'    => 'Available :when',
         'how-to-earn'       => 'How to earn coins',
-        'how-to-earn-body'  => 'Earn coins on every eligible order. Coins are confirmed after your order is delivered and can be redeemed for discounts on future purchases.',
+        'how-to-earn-body'  => 'Earn coins on every eligible order. Coins are confirmed after your order is delivered and the return window closes, then can be redeemed for discounts on future purchases.',
     ],
 
     'checkout' => [
@@ -127,5 +130,15 @@ return [
         'insufficient-coins' => 'You do not have enough coins for this redemption.',
         'no-cart'            => 'Your cart is empty.',
         'generic'            => 'Something went wrong. Please try again.',
+    ],
+
+    'redeem' => [
+        'feature-disabled'     => 'Coin redemption is currently unavailable.',
+        'not-authenticated'    => 'Please log in to redeem coins.',
+        'order-too-small'      => 'Coins can be redeemed on orders of :min or more. Add a little more to your cart to use them.',
+        'no-coins'             => 'You do not have any coins available to redeem.',
+        'insufficient-coins'   => 'You only have :balance coins available. Please lower the amount.',
+        'exceeds-max-coverage' => 'You can use up to :coins coins on this order — that is :percent% of the order value (:amount).',
+        'would-be-free'        => 'Coins cannot cover the entire order. You can use up to :coins coins here.',
     ],
 ];

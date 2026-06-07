@@ -18,6 +18,8 @@ enum TransactionType: string
     case Expired  = 'expired';
     case Adjusted = 'adjusted';
     case Reversed = 'reversed';
+    case Revoked  = 'revoked';
+    case Refunded = 'refunded';
 
     /**
      * Human-readable, translated label for display.
@@ -32,6 +34,8 @@ enum TransactionType: string
             self::Expired  => trans('reward-coins::reward_coins.transaction.types.expired'),
             self::Adjusted => trans('reward-coins::reward_coins.transaction.types.adjusted'),
             self::Reversed => trans('reward-coins::reward_coins.transaction.types.reversed'),
+            self::Revoked  => trans('reward-coins::reward_coins.transaction.types.revoked'),
+            self::Refunded => trans('reward-coins::reward_coins.transaction.types.refunded'),
         };
     }
 
@@ -46,8 +50,8 @@ enum TransactionType: string
     public function isCredit(): bool
     {
         return match ($this) {
-            self::Earned, self::Adjusted     => true,
-            self::Redeemed, self::Expired, self::Reversed => false,
+            self::Earned, self::Adjusted, self::Refunded => true,
+            self::Redeemed, self::Expired, self::Reversed, self::Revoked => false,
         };
     }
 

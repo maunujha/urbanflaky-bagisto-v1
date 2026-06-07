@@ -6,7 +6,6 @@ namespace Gabha\RewardCoins\Http\Controllers\Shop;
 
 use Gabha\RewardCoins\Checkout\CoinDiscount;
 use Gabha\RewardCoins\Http\Requests\RedeemCoinsRequest;
-use Gabha\RewardCoins\Models\CoinSetting;
 use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
 use Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface;
 use Gabha\RewardCoins\Services\CoinRedemptionService;
@@ -70,13 +69,6 @@ class CoinController extends Controller
      */
     public function apply(RedeemCoinsRequest $request): JsonResponse
     {
-        if (! CoinSetting::isEnabled()) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('reward-coins::reward_coins.errors.disabled'),
-            ], 422);
-        }
-
         $requestedCoins = (int) $request->validated()['coins'];
         $customerId     = (int) auth()->guard('customer')->id();
 
@@ -89,43 +81,42 @@ class CoinController extends Controller
 
         $cart = Cart::getCart();
 
-        if (! $cart) {
+        if (! $cart || $cart->items->isEmpty()) {
             return response()->json([
-                'success' => false,
-                'message' => trans('reward-coins::reward_coins.errors.no-cart'),
+                'success'    => false,
+                'error_code' => 'empty_cart',
+                'message'    => trans('reward-coins::reward_coins.errors.no-cart'),
+                'max_coins'  => 0,
             ], 422);
         }
 
         $cartTotal = (float) $cart->base_grand_total;
 
-        if (! $this->redemption->canRedeem($customerId, $cartTotal)) {
-            return response()->json([
-                'success' => false,
-                'message' => trans('reward-coins::reward_coins.errors.insufficient-coins'),
-            ], 422);
-        }
+        // Single source of truth for every redemption rule; structured failure.
+        $result = $this->redemption->validateRedemption($customerId, $requestedCoins, $cartTotal);
 
-        // Clamp the request to what is redeemable on this cart (caps + balance).
-        $coins = min($requestedCoins, $this->redemption->getRedeemableCoins($customerId, $cartTotal));
-
-        if ($coins <= 0) {
+        if (! $result->passes) {
             return response()->json([
-                'success' => false,
-                'message' => trans('reward-coins::reward_coins.errors.insufficient-coins'),
+                'success'    => false,
+                'error_code' => $result->errorCode,
+                'message'    => $result->message,
+                'max_coins'  => $result->maxCoins,
             ], 422);
         }
 
         // Stage, then let the cart-total collector fold the discount into the cart.
-        session()->put(self::SESSION_KEY, ['coins' => $coins]);
+        session()->put(self::SESSION_KEY, ['coins' => $requestedCoins]);
         Cart::collectTotals();
 
         $cart     = Cart::getCart();
-        $applied  = (int) session(CoinDiscount::EFFECTIVE_KEY, $coins);
+        $applied  = (int) session(CoinDiscount::EFFECTIVE_KEY, $requestedCoins);
         $discount = $this->redemption->getDiscountValue($applied);
 
         return response()->json([
             'success'         => true,
+            'error_code'      => '',
             'coins'           => $applied,
+            'max_coins'       => $result->maxCoins,
             'discount'        => core()->formatBasePrice($discount),
             'discount_value'  => $discount,
             'newTotal'        => core()->formatBasePrice($cart->grand_total),
