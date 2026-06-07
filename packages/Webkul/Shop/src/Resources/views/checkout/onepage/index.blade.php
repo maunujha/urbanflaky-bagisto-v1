@@ -1,3 +1,64 @@
+@php
+    /* ── Reward coins: resolve the customer's balance + redeemable cap server-side
+       so the Vue checkout can show the redemption UI and live discount. Mirrors
+       CoinController / the coins-widget; renders nothing when off / guest. ── */
+    $coinCustomer       = auth()->guard('customer')->user();
+    $coinsActive        = $coinCustomer && \Gabha\RewardCoins\Models\CoinSetting::isEnabled();
+    $coinsBalance       = 0;
+    $coinsRedeemable    = 0;
+    $coinsApplied       = 0;
+    $coinsPerCoin       = (float) config('reward_coins.rupee_per_coin', 1);
+    $coinsDiscountValue = 0.0;
+    $coinsToEarn        = 0;
+
+    if ($coinsActive) {
+        $coinRedemption = app(\Gabha\RewardCoins\Services\CoinRedemptionService::class);
+        $coinCart       = \Webkul\Checkout\Facades\Cart::getCart();
+        $coinPreTotal   = (float) ($coinCart?->base_grand_total ?? 0);
+        $coinsApplied   = (int) session(\Gabha\RewardCoins\Checkout\CoinDiscount::EFFECTIVE_KEY, 0);
+
+        // Add back any coin discount already folded into the cart so the cap is
+        // measured against the true pre-coin order value.
+        if ($coinsApplied > 0) {
+            $coinPreTotal += $coinRedemption->getDiscountValue($coinsApplied);
+        }
+
+        $coinsBalance       = app(\Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface::class)->getBalance((int) $coinCustomer->id);
+        $coinsRedeemable    = $coinRedemption->getRedeemableCoins((int) $coinCustomer->id, $coinPreTotal);
+        $coinsDiscountValue = $coinRedemption->getDiscountValue($coinsApplied);
+
+        /* Coins this order will earn — shown even when the customer has nothing to
+           redeem. Mirrors AwardCoinsOnOrder: earns off sub_total with the coin
+           portion backed out of the discount (so redeeming never lowers earning). */
+        if ($coinCart) {
+            $coinCategoryIds = [];
+
+            foreach ($coinCart->items as $coinItem) {
+                $coinProduct = $coinItem->product;
+
+                if (! $coinProduct) {
+                    continue;
+                }
+
+                foreach ($coinProduct->categories as $coinCategory) {
+                    $coinCategoryIds[] = (int) $coinCategory->id;
+                }
+            }
+
+            $coinsToEarn = app(\Gabha\RewardCoins\Services\CoinEarningCalculator::class)->calculate(
+                new \Gabha\RewardCoins\DTOs\CoinEarningPayload(
+                    customerId: (int) $coinCustomer->id,
+                    subtotal: (float) $coinCart->base_sub_total,
+                    discountAmount: max(0.0, (float) $coinCart->base_discount_amount - $coinsDiscountValue),
+                    orderId: 0,
+                    categoryIds: array_values(array_unique($coinCategoryIds)),
+                    orderIncrementId: '',
+                )
+            );
+        }
+    }
+@endphp
+
 @push('meta')
     <meta name="description" content="@lang('shop::app.checkout.onepage.index.checkout')"/>
 @endPush
@@ -617,6 +678,39 @@
                                 @{{ couponMessage }}
                             </div>
                         </div>
+
+                        {{-- Reward coins --}}
+                        <div v-if="coins.active && (coins.toEarn > 0 || coins.redeemable > 0)" style="border-top:.5px solid rgba(255,255,255,.08);padding-top:18px;margin-top:18px">
+                            <label class="co-label" style="margin-bottom:8px">Reward coins<template v-if="coins.balance > 0"> · @{{ coins.balance }} available</template></label>
+
+                            {{-- Earn preview — shown even when the customer has no coins to redeem --}}
+                            <div v-if="coins.toEarn > 0" style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border:1px solid rgba(199,235,49,.3);background:rgba(199,235,49,.08);border-radius:10px;margin-bottom:12px">
+                                <span style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:#c7eb31;color:#0a0a0a;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;margin-top:1px">★</span>
+                                <div style="font-size:13px;color:#d4d4d8;line-height:1.5">
+                                    <div>You'll earn <strong style="color:#c7eb31">@{{ coins.toEarn }}</strong> reward coins with this order. 🎉</div>
+                                    <div style="font-size:12px;color:#a1a1aa;margin-top:3px">Use them for up to <strong style="color:#c7eb31">@{{ formatMoney(coins.toEarn * coins.perCoin) }}</strong> off your next order — come back soon!</div>
+                                </div>
+                            </div>
+
+                            {{-- Redeem — only when there's a spendable balance --}}
+                            <template v-if="coins.redeemable > 0">
+                                <div v-if="coins.applied > 0" class="co-coupon-applied">
+                                    <span><strong>@{{ coins.applied }}</strong> coins applied<template v-if="coins.discount"> · you save @{{ coins.discount }}</template></span>
+                                    <button type="button" class="co-coupon-remove" @click="removeCoins" :disabled="coins.applying">Remove</button>
+                                </div>
+
+                                <div v-else>
+                                    <div class="co-coupon-row">
+                                        <input class="co-coupon-input" type="number" min="1" :max="coins.redeemable"
+                                            v-model.number="coins.toRedeem" placeholder="Coins to redeem" :disabled="coins.applying" @keyup.enter="applyCoins">
+                                        <button class="co-coupon-btn" @click="applyCoins" :disabled="coins.applying || !coins.toRedeem">@{{ coins.applying ? '…' : 'Redeem' }}</button>
+                                    </div>
+                                    <div style="font-size:11px;color:#a1a1aa;margin-top:6px">Redeem up to @{{ coins.redeemable }} coins on this order.</div>
+                                </div>
+
+                                <div v-if="coins.error" style="font-size:12px;margin-top:6px;color:#fca5a5">@{{ coins.error }}</div>
+                            </template>
+                        </div>
                     </div>
 
                     <div class="co-btn-row">
@@ -659,9 +753,13 @@
                         </div>
 
                         <div class="co-totals-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
-                        <div class="co-totals-row" v-if="Number(cart.discount_amount) > 0" style="color:#c7eb31">
+                        <div class="co-totals-row" v-if="couponDiscountValue > 0" style="color:#c7eb31">
                             <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
-                            <span>− @{{ cart.formatted_discount_amount }}</span>
+                            <span>− @{{ formatMoney(couponDiscountValue) }}</span>
+                        </div>
+                        <div class="co-totals-row" v-if="coinDiscountValue > 0" style="color:#c7eb31">
+                            <span>Coins (@{{ coins.applied }})</span>
+                            <span>− @{{ formatMoney(coinDiscountValue) }}</span>
                         </div>
                         <div class="co-totals-row"><span>Shipping</span><span>@{{ cart.formatted_shipping_amount || 'Calculated' }}</span></div>
                         <div class="co-totals-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
@@ -732,9 +830,13 @@
                     <hr class="co-sum-divider">
 
                     <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
-                    <div class="co-sum-row" v-if="Number(cart.discount_amount) > 0" style="color:#c7eb31">
+                    <div class="co-sum-row" v-if="couponDiscountValue > 0" style="color:#c7eb31">
                         <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
-                        <span>− @{{ cart.formatted_discount_amount }}</span>
+                        <span>− @{{ formatMoney(couponDiscountValue) }}</span>
+                    </div>
+                    <div class="co-sum-row" v-if="coinDiscountValue > 0" style="color:#c7eb31">
+                        <span>Coins (@{{ coins.applied }})</span>
+                        <span>− @{{ formatMoney(coinDiscountValue) }}</span>
                     </div>
                     <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
                     <div class="co-sum-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
@@ -825,6 +927,22 @@
                 couponValid: false,
                 couponApplying: false,
 
+                /* Reward coins redemption (server-resolved balance + cap) */
+                coins: {
+                    active:     {{ $coinsActive ? 'true' : 'false' }},
+                    balance:    {{ (int) $coinsBalance }},
+                    redeemable: {{ (int) $coinsRedeemable }},
+                    toEarn:     {{ (int) $coinsToEarn }},
+                    perCoin:    {{ $coinsPerCoin ?: 1 }},
+                    applied:    {{ (int) $coinsApplied }},
+                    toRedeem:   {{ (int) $coinsApplied }},
+                    discount:   '{{ $coinsApplied > 0 ? core()->formatBasePrice($coinsDiscountValue) : '' }}',
+                    applying:   false,
+                    error:      '',
+                    applyUrl:   '{{ route('shop.checkout.coins.apply') }}',
+                    removeUrl:  '{{ route('shop.checkout.coins.remove') }}',
+                },
+
                 savingAddress: false,
                 isPlacing: false,
                 orderId: null,
@@ -838,6 +956,16 @@
             submitLabel() {
                 if (this.editingAddressId) return 'Save & deliver here';
                 return this.isLoggedIn ? 'Save & deliver here' : 'Continue to shipping';
+            },
+
+            /* Coin redemption is folded into cart.discount_amount server-side; split
+               it back out so the summary can show coupon vs. coins on separate lines. */
+            coinDiscountValue() {
+                return (this.coins.applied || 0) * (this.coins.perCoin || 0);
+            },
+
+            couponDiscountValue() {
+                return Math.max(0, Number(this.cart.discount_amount || 0) - this.coinDiscountValue);
             },
         },
 
@@ -1219,6 +1347,54 @@
                     this.couponMessage = err.response?.data?.message || 'Could not remove coupon.';
                 } finally {
                     this.couponApplying = false;
+                }
+            },
+
+            /* ── Reward coins ── */
+            formatMoney(amount) {
+                return '₹' + Number(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            },
+
+            async applyCoins() {
+                if (! this.coins.active || this.coins.applying) return;
+
+                const n = Math.max(0, Math.min(this.coins.redeemable, parseInt(this.coins.toRedeem || 0, 10) || 0));
+                if (n <= 0) { this.coins.error = 'Enter how many coins to redeem.'; return; }
+
+                this.coins.applying = true;
+                this.coins.error    = '';
+                try {
+                    const res = await this.$axios.post(this.coins.applyUrl, { coins: n });
+                    if (res.data.success) {
+                        this.coins.applied  = res.data.coins;
+                        this.coins.toRedeem = res.data.coins;
+                        this.coins.discount = res.data.discount;
+                        await this.fetchCart();   // refresh totals with the folded discount
+                    } else {
+                        this.coins.error = res.data.message || 'Could not redeem coins.';
+                    }
+                } catch (err) {
+                    this.coins.error = err.response?.data?.message || 'Could not redeem coins.';
+                } finally {
+                    this.coins.applying = false;
+                }
+            },
+
+            async removeCoins() {
+                if (this.coins.applying) return;
+
+                this.coins.applying = true;
+                this.coins.error    = '';
+                try {
+                    await this.$axios.post(this.coins.removeUrl, {});
+                    this.coins.applied  = 0;
+                    this.coins.toRedeem = 0;
+                    this.coins.discount = '';
+                    await this.fetchCart();
+                } catch (err) {
+                    this.coins.error = err.response?.data?.message || 'Could not remove coins.';
+                } finally {
+                    this.coins.applying = false;
                 }
             },
 

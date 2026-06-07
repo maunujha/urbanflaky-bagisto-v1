@@ -2,6 +2,8 @@
 
 use App\Providers\AppServiceProvider;
 use App\Providers\LookbookServiceProvider;
+use Gabha\Blog\Providers\BlogServiceProvider;
+use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
 use Webkul\Attribute\Providers\AttributeServiceProvider;
 use Webkul\BookingProduct\Providers\BookingProductServiceProvider;
@@ -53,6 +55,8 @@ return [
      * Custom application service providers.
      */
     LookbookServiceProvider::class,
+    BlogServiceProvider::class,
+    RewardCoinsServiceProvider::class,
 
     /**
      * Webkul's service providers.

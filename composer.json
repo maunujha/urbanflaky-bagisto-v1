@@ -68,6 +68,8 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
+            "Gabha\\Blog\\": "packages/Gabha/Blog/src",
+            "Gabha\\RewardCoins\\": "packages/Gabha/RewardCoins/src",
             "Webkul\\Admin\\": "packages/Webkul/Admin/src",
             "Webkul\\Attribute\\": "packages/Webkul/Attribute/src",
             "Webkul\\BookingProduct\\": "packages/Webkul/BookingProduct/src",

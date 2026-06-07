@@ -200,6 +200,13 @@
             </x-shop::dropdown>
 
             {!! view_render_event('bagisto.shop.components.layouts.header.desktop.bottom.profile.after') !!}
+
+        {{-- Reward-coins balance badge — shown only to logged-in customers with a positive balance --}}
+        @auth('customer')
+            @if (($coinBalance ?? 0) > 0)
+                <x-reward-coins::coin-badge :balance="$coinBalance" />
+            @endif
+        @endauth
     </div>
 </div>
 

@@ -89,6 +89,13 @@
                     <span class="icon-users"></span>
                 </a>
             @endauth
+
+            {{-- Reward-coins balance badge — shown only to logged-in customers with a positive balance --}}
+            @auth('customer')
+                @if (($coinBalance ?? 0) > 0)
+                    <x-reward-coins::coin-badge :balance="$coinBalance" />
+                @endif
+            @endauth
         </div>
     </div>
 

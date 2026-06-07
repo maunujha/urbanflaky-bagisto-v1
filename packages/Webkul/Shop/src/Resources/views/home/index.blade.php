@@ -154,4 +154,7 @@
                 @break
         @endswitch
     @endforeach
+
+    <!-- Latest blog posts (server-rendered via Gabha\Blog HomeBlogComposer) -->
+    @includeWhen(view()->exists('blog::shop.partials.home-grid'), 'blog::shop.partials.home-grid', ['blogs' => $latestBlogs ?? collect()])
 </x-shop::layouts>
