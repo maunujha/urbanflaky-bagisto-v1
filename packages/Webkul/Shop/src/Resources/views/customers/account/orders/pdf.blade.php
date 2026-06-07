@@ -8,9 +8,33 @@
         $fontPath = [];
         $fontFamily = ['regular' => 'DejaVu Sans', 'bold' => 'DejaVu Sans'];
 
-        $gstin        = core()->getConfigData('sales.shipping.origin.vat_id') ?? '';
-        $storePhone   = core()->getConfigData('sales.shipping.origin.telephone') ?? '';
+        $gstin        = core()->getConfigData('sales.shipping.origin.vat_number') ?? '';
+        $storePhone   = core()->getConfigData('sales.shipping.origin.contact') ?? '';
         $storeName    = core()->getConfigData('sales.shipping.origin.store_name') ?? 'Urbanflaky';
+
+        /* ── GST / place of supply ── */
+        $gstOrder        = $invoice->order;
+        $posAddress      = $gstOrder->shipping_address ?? $gstOrder->billing_address;
+        $posState        = $posAddress?->state;
+        $posCountry      = $posAddress?->country ?? 'IN';
+        $isIntraState    = \App\Support\Gst::isIntraState($posState, $posCountry);
+        $hsnCode         = \App\Support\Gst::hsnCode();
+
+        $gstLines        = \App\Support\Gst::breakup(
+            (float) $invoice->tax_amount,
+            (float) $invoice->sub_total,
+            $posState,
+            $posCountry
+        );
+
+        $sellerState     = core()->getConfigData('sales.shipping.origin.state');
+        $sellerStateName = \App\Support\Gst::stateName($sellerState);
+        $sellerGstCode   = \App\Support\Gst::sellerGstStateCode();
+
+        $posStateName    = \App\Support\Gst::stateName($posState, $posCountry);
+        $posGstCode      = \App\Support\Gst::gstStateCode($posState);
+
+        $buyerGstin      = $gstOrder->billing_address?->vat_id ?: $gstOrder->shipping_address?->vat_id;
     @endphp
 
     <style>
@@ -242,7 +266,7 @@
                     <div class="a-txt">
                         {{ core()->getConfigData('sales.shipping.origin.address') }}<br>
                         {{ core()->getConfigData('sales.shipping.origin.zipcode') }} {{ core()->getConfigData('sales.shipping.origin.city') }}<br>
-                        {{ core()->getConfigData('sales.shipping.origin.state') }}, {{ core()->getConfigData('sales.shipping.origin.country') }}
+                        {{ $sellerStateName }}{{ $sellerGstCode ? ' (Code: '.$sellerGstCode.')' : '' }}, {{ core()->getConfigData('sales.shipping.origin.country') }}
                     </div>
                     @if ($gstin)
                         <div class="a-ph" style="margin-top:8px;">
@@ -266,8 +290,11 @@
                     <div class="a-txt">
                         {{ $invoice->order->billing_address->address }}<br>
                         {{ $invoice->order->billing_address->postcode }} {{ $invoice->order->billing_address->city }}<br>
-                        {{ $invoice->order->billing_address->state }}, {{ core()->country_name($invoice->order->billing_address->country) }}
+                        {{ \App\Support\Gst::stateName($invoice->order->billing_address->state, $invoice->order->billing_address->country) }}@php $bCode = \App\Support\Gst::gstStateCode($invoice->order->billing_address->state); @endphp{{ $bCode ? ' (Code: '.$bCode.')' : '' }}, {{ core()->country_name($invoice->order->billing_address->country) }}
                     </div>
+                    @if ($invoice->order->billing_address->vat_id)
+                        <div class="a-ph"><span style="color:#888;">GSTIN:</span> {{ $invoice->order->billing_address->vat_id }}</div>
+                    @endif
                     <div class="a-ph">{{ $invoice->order->billing_address->phone }}</div>
                 </td>
             @endif
@@ -283,7 +310,7 @@
                     <div class="a-txt">
                         {{ $invoice->order->shipping_address->address }}<br>
                         {{ $invoice->order->shipping_address->postcode }} {{ $invoice->order->shipping_address->city }}<br>
-                        {{ $invoice->order->shipping_address->state }}, {{ core()->country_name($invoice->order->shipping_address->country) }}
+                        {{ \App\Support\Gst::stateName($invoice->order->shipping_address->state, $invoice->order->shipping_address->country) }}@php $sCode = \App\Support\Gst::gstStateCode($invoice->order->shipping_address->state); @endphp{{ $sCode ? ' (Code: '.$sCode.')' : '' }}, {{ core()->country_name($invoice->order->shipping_address->country) }}
                     </div>
                     <div class="a-ph">{{ $invoice->order->shipping_address->phone }}</div>
                 </td>
@@ -332,11 +359,12 @@
         <table class="itbl" cellpadding="0" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="width:13%;">SKU</th>
-                    <th style="width:40%;">Product</th>
+                    <th style="width:11%;">SKU</th>
+                    <th style="width:9%;">HSN</th>
+                    <th style="width:31%;">Product</th>
                     <th class="r" style="width:15%;">Price</th>
                     <th class="r" style="width:9%;">Qty</th>
-                    <th class="r" style="width:23%;">Subtotal</th>
+                    <th class="r" style="width:25%;">Subtotal</th>
                 </tr>
             </thead>
             <tbody>
@@ -344,6 +372,8 @@
                     @php $isLast = $loop->last; @endphp
                     <tr class="{{ $i % 2 === 1 ? 'even' : '' }}{{ $isLast ? ' last' : '' }}">
                         <td class="sku">{{ $item->getTypeInstance()->getOrderedItem($item)->sku }}</td>
+
+                        <td class="sku">{{ $hsnCode }}</td>
 
                         <td class="prd">
                             {{ $item->name }}
@@ -434,10 +464,19 @@
                     </tr>
                 @endif
 
-                <tr>
-                    <td class="tl">@lang('shop::app.customers.account.orders.invoice-pdf.tax')</td>
-                    <td class="tv">{!! core()->formatPrice($invoice->tax_amount, $orderCurrencyCode) !!}</td>
-                </tr>
+                @if (\App\Support\Gst::showBreakup() && count($gstLines))
+                    @foreach ($gstLines as $gstLine)
+                        <tr>
+                            <td class="tl">{{ \App\Support\Gst::label($gstLine) }}</td>
+                            <td class="tv">{!! core()->formatPrice($gstLine['amount'], $orderCurrencyCode) !!}</td>
+                        </tr>
+                    @endforeach
+                @else
+                    <tr>
+                        <td class="tl">@lang('shop::app.customers.account.orders.invoice-pdf.tax')</td>
+                        <td class="tv">{!! core()->formatPrice($invoice->tax_amount, $orderCurrencyCode) !!}</td>
+                    </tr>
+                @endif
 
                 <tr>
                     <td class="tl">@lang('shop::app.customers.account.orders.invoice-pdf.discount')</td>
@@ -462,6 +501,12 @@
                 <div class="ftr-web">www.urbanflaky.in</div>
             </td>
             <td width="40%" style="text-align:center;">
+                @if ($posStateName)
+                    <div class="ftr-note" style="color:#c7eb31;">
+                        Place of Supply: {{ $posStateName }}{{ $posGstCode ? ' ('.$posGstCode.')' : '' }}
+                        &middot; {{ $isIntraState ? 'Intra-State (CGST + SGST)' : 'Inter-State (IGST)' }}
+                    </div>
+                @endif
                 <div class="ftr-note">This is a computer-generated invoice. No signature required.</div>
                 <div class="ftr-thanks">&#9829; Thank You for Shopping with Us!</div>
             </td>

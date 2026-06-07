@@ -21,11 +21,18 @@ class OrderInvoiceDataGrid extends DataGrid
 
         $queryBuilder = DB::table('invoices')
             ->leftJoin('orders', 'invoices.order_id', '=', 'orders.id')
+            ->leftJoin('addresses as order_shipping', function ($join) {
+                $join->on('order_shipping.order_id', '=', 'orders.id')
+                    ->where('order_shipping.address_type', '=', 'order_shipping');
+            })
             ->select(
                 'invoices.id as id',
                 'orders.increment_id as order_id',
                 'invoices.state as state',
                 'invoices.base_grand_total as base_grand_total',
+                'invoices.base_tax_amount as base_tax_amount',
+                'order_shipping.state as pos_state',
+                'order_shipping.country as pos_country',
                 'invoices.created_at as created_at'
             )
             ->selectRaw("CASE WHEN {$tablePrefix}invoices.increment_id IS NOT NULL THEN {$tablePrefix}invoices.increment_id ELSE {$tablePrefix}invoices.id END AS increment_id");
@@ -71,6 +78,21 @@ class OrderInvoiceDataGrid extends DataGrid
             'sortable' => true,
             'closure' => function ($row) {
                 return core()->formatBasePrice($row->base_grand_total);
+            },
+        ]);
+
+        $this->addColumn([
+            'index' => 'base_tax_amount',
+            'label' => 'GST',
+            'type' => 'string',
+            'sortable' => true,
+            'closure' => function ($row) {
+                $type = \App\Support\Gst::isIntraState($row->pos_state, $row->pos_country ?? 'IN')
+                    ? 'CGST + SGST'
+                    : 'IGST';
+
+                return core()->formatBasePrice($row->base_tax_amount)
+                    .'<p class="text-xs text-gray-400">'.$type.'</p>';
             },
         ]);
 

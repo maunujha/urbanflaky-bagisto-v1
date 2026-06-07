@@ -378,16 +378,50 @@
 
                             {!! view_render_event('bagisto.admin.sales.order.view.tax-amount.before') !!}
 
-                            <!-- Tax Amount -->
-                            <div class="flex w-full justify-between gap-x-5">
-                                <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                    @lang('admin::app.sales.orders.view.summary-tax')
-                                </p>
+                            <!-- Tax Amount (GST breakup: CGST + SGST intra-state, IGST inter-state) -->
+                            @php
+                                $adminPosState = $order->shipping_address?->state ?? $order->billing_address?->state;
+                                $adminPosCountry = $order->shipping_address?->country ?? $order->billing_address?->country;
+                                $adminGstLines = \App\Support\Gst::breakup(
+                                    (float) $order->base_tax_amount,
+                                    (float) $order->base_sub_total,
+                                    $adminPosState,
+                                    $adminPosCountry
+                                );
+                            @endphp
 
-                                <p class="!leading-5 text-gray-600 dark:text-gray-300">
-                                    {{ core()->formatBasePrice($order->base_tax_amount) }}
-                                </p>
-                            </div>
+                            @if (\App\Support\Gst::showBreakup() && count($adminGstLines))
+                                @foreach ($adminGstLines as $adminGstLine)
+                                    <div class="flex w-full justify-between gap-x-5">
+                                        <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                            {{ \App\Support\Gst::label($adminGstLine) }}
+                                        </p>
+
+                                        <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                            {{ core()->formatBasePrice($adminGstLine['amount']) }}
+                                        </p>
+                                    </div>
+                                @endforeach
+
+                                <div class="flex w-full justify-between gap-x-5">
+                                    <p class="!leading-5 text-xs text-gray-400 dark:text-gray-400">
+                                        {{ \App\Support\Gst::isIntraState($adminPosState, $adminPosCountry) ? 'Intra-State (CGST + SGST)' : 'Inter-State (IGST)' }}
+                                        @if (\App\Support\Gst::stateName($adminPosState, $adminPosCountry ?? 'IN'))
+                                            &middot; {{ \App\Support\Gst::stateName($adminPosState, $adminPosCountry ?? 'IN') }}
+                                        @endif
+                                    </p>
+                                </div>
+                            @else
+                                <div class="flex w-full justify-between gap-x-5">
+                                    <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                        @lang('admin::app.sales.orders.view.summary-tax')
+                                    </p>
+
+                                    <p class="!leading-5 text-gray-600 dark:text-gray-300">
+                                        {{ core()->formatBasePrice($order->base_tax_amount) }}
+                                    </p>
+                                </div>
+                            @endif
 
                             {!! view_render_event('bagisto.admin.sales.order.view.tax-amount.after') !!}
 

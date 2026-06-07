@@ -2,6 +2,7 @@
 
 namespace Webkul\Shop\Http\Resources;
 
+use App\Support\Gst;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Webkul\Tax\Facades\Tax;
@@ -20,6 +21,23 @@ class CartResource extends JsonResource
             return core()->currency($rate ?? 0);
         });
 
+        /**
+         * GST breakup (CGST + SGST for intra-state, IGST for inter-state) derived
+         * from the cart tax total and the shipping place of supply. Updates
+         * automatically whenever the shipping address changes during checkout.
+         */
+        $gstBreakup = collect(Gst::breakup(
+            (float) $this->tax_total,
+            (float) $this->sub_total,
+            $this->shipping_address?->state,
+            $this->shipping_address?->country,
+        ))->map(fn ($line) => [
+            'code'      => $line['code'],
+            'label'     => Gst::label($line),
+            'amount'    => $line['amount'],
+            'formatted' => core()->formatPrice($line['amount']),
+        ])->values();
+
         return [
             'id' => $this->id,
             'is_guest' => $this->is_guest,
@@ -27,6 +45,7 @@ class CartResource extends JsonResource
             'items_count' => $this->items_count,
             'items_qty' => $this->items_qty,
             'applied_taxes' => $taxes,
+            'gst_breakup' => $gstBreakup,
             'tax_total' => $this->tax_total,
             'formatted_tax_total' => core()->formatPrice($this->tax_total),
             'sub_total_incl_tax' => $this->sub_total_incl_tax,

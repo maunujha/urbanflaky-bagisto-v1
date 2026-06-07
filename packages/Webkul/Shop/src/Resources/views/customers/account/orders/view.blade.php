@@ -352,14 +352,14 @@
 
                                         {!! view_render_event('bagisto.shop.customers.account.orders.view.information.tax-amount.before') !!}
 
-                                        <!-- Tax Amount -->
-                                        <div class="flex w-full justify-between gap-x-5">
-                                            @lang('shop::app.customers.account.orders.view.information.tax')
-
-                                            <p>
-                                                {{ core()->formatPrice($order->tax_amount, $order->order_currency_code) }}
-                                            </p>
-                                        </div>
+                                        <!-- Tax Amount (GST breakup: CGST + SGST intra-state, IGST inter-state) -->
+                                        @include('shop::customers.account.orders.gst-breakup', [
+                                            'taxAmount'    => $order->tax_amount,
+                                            'taxableValue' => $order->sub_total,
+                                            'state'        => $order->shipping_address?->state ?? $order->billing_address?->state,
+                                            'country'      => $order->shipping_address?->country ?? $order->billing_address?->country,
+                                            'currency'     => $order->order_currency_code,
+                                        ])
 
                                         {!! view_render_event('bagisto.shop.customers.account.orders.view.information.tax-amount.after') !!}
 
@@ -818,16 +818,15 @@
 
                                 {!! view_render_event('bagisto.shop.customers.account.orders.view.information.tax-amount.before') !!}
 
-                                <!-- Tax Informations -->
-                                <div class="flex w-full justify-between gap-x-5">
-                                    <p class="text-zinc-500">
-                                        @lang('shop::app.customers.account.orders.view.information.tax')
-                                    </p>
-
-                                    <p>
-                                        {{ core()->formatPrice($order->tax_amount, $order->order_currency_code) }}
-                                    </p>
-                                </div>
+                                <!-- Tax Informations (GST breakup: CGST + SGST intra-state, IGST inter-state) -->
+                                @include('shop::customers.account.orders.gst-breakup', [
+                                    'taxAmount'    => $order->tax_amount,
+                                    'taxableValue' => $order->sub_total,
+                                    'state'        => $order->shipping_address?->state ?? $order->billing_address?->state,
+                                    'country'      => $order->shipping_address?->country ?? $order->billing_address?->country,
+                                    'currency'     => $order->order_currency_code,
+                                    'labelClass'   => 'text-zinc-500',
+                                ])
 
                                 {!! view_render_event('bagisto.shop.customers.account.orders.view.information.tax-amount.after') !!}
 

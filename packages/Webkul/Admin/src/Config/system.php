@@ -3017,6 +3017,26 @@ return [
             ],
         ],
     ], [
+        'key'    => 'sales.taxes.gst',
+        'name'   => 'GST (India)',
+        'info'   => 'Indian GST settings used on cart, checkout, orders and the tax invoice. The seller GSTIN is configured under Sales > Shipping > Origin (VAT Number).',
+        'sort'   => 5,
+        'fields' => [
+            [
+                'name'    => 'hsn_code',
+                'title'   => 'Default HSN / SAC Code',
+                'info'    => 'Harmonized System code printed on the GST invoice (e.g. 6109 for knitted T-shirts, 6205 for woven shirts).',
+                'type'    => 'text',
+                'default' => '6109',
+            ], [
+                'name'    => 'show_breakup',
+                'title'   => 'Show CGST / SGST / IGST breakup',
+                'info'    => 'Display the GST tax split on cart, checkout, orders and the invoice.',
+                'type'    => 'boolean',
+                'default' => 1,
+            ],
+        ],
+    ], [
         'key' => 'sales.checkout',
         'name' => 'admin::app.configuration.index.sales.checkout.title',
         'info' => 'admin::app.configuration.index.sales.checkout.info',

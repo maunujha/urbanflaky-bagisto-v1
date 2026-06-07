@@ -839,7 +839,14 @@
                         <span>− @{{ formatMoney(coinDiscountValue) }}</span>
                     </div>
                     <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
-                    <div class="co-sum-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
+
+                    {{-- GST breakup: CGST + SGST intra-state (Rajasthan), IGST inter-state --}}
+                    <template v-if="cart.gst_breakup && cart.gst_breakup.length">
+                        <div class="co-sum-row" v-for="line in cart.gst_breakup" :key="line.code">
+                            <span>@{{ line.label }}</span><span>@{{ line.formatted }}</span>
+                        </div>
+                    </template>
+                    <div class="co-sum-row" v-else><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
                     <div class="co-sum-total">
                         <span>Grand total</span>
                         <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
