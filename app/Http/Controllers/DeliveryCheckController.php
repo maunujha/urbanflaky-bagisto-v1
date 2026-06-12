@@ -19,7 +19,17 @@ class DeliveryCheckController extends Controller
         $request->validate(['pincode' => 'required|digits:6']);
 
         $pincode = $request->input('pincode');
-        $token   = $this->getToken();
+
+        /* Serviceability per pincode barely changes intraday — cache the live
+           result so repeat checks skip the (up to 8s) Shiprocket round-trip.
+           Fallback responses are never cached. */
+        $cacheKey = 'uf_serviceability_'.$pincode;
+
+        if ($cached = Cache::get($cacheKey)) {
+            return response()->json($cached);
+        }
+
+        $token = $this->getToken();
 
         if (! $token) {
             return $this->fallback();
@@ -39,19 +49,27 @@ class DeliveryCheckController extends Controller
                 $available = $response->json('data.available_courier_companies', []);
 
                 if (empty($available)) {
-                    return response()->json(['deliverable' => false]);
+                    $payload = ['deliverable' => false];
+
+                    Cache::put($cacheKey, $payload, 4 * 3600);
+
+                    return response()->json($payload);
                 }
 
                 $best = collect($available)->sortBy('estimated_delivery_days')->first();
                 $days = $this->formatEtd($best);
                 $cod  = (bool) ($best['cod'] ?? false);
 
-                return response()->json([
+                $payload = [
                     'deliverable' => true,
                     'days'        => $days,
                     'cod'         => $cod,
                     'free'        => true,
-                ]);
+                ];
+
+                Cache::put($cacheKey, $payload, 4 * 3600);
+
+                return response()->json($payload);
             }
 
             if ($response->status() === 401) {

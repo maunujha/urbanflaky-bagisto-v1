@@ -2,8 +2,10 @@
 
 namespace Gabha\Blog\Models;
 
+use Gabha\Blog\ViewComposers\HomeBlogComposer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -44,6 +46,17 @@ class Blog extends Model
         'status'       => 'boolean',
         'published_at' => 'datetime',
     ];
+
+    /**
+     * Keep the cached home-page grid in sync with every create / update / delete.
+     */
+    protected static function booted(): void
+    {
+        $forget = fn () => Cache::forget(HomeBlogComposer::CACHE_KEY);
+
+        static::saved($forget);
+        static::deleted($forget);
+    }
 
     /**
      * The accessors to append to the model's array form.

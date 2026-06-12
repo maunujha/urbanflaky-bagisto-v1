@@ -27,15 +27,21 @@
      */
     $cmsLocale = app()->getLocale();
 
-    $cmsPages = \Webkul\CMS\Models\Page::with('translations')->get()
-        ->mapWithKeys(function ($page) use ($cmsLocale) {
-            $t = $page->translations->firstWhere('locale', $cmsLocale)
-                ?? $page->translations->first();
+    /* Cached for 1h — this runs on every storefront page, and CMS pages
+       change rarely. Clear with `php artisan cache:clear` after editing pages. */
+    $cmsPages = \Illuminate\Support\Facades\Cache::remember(
+        'uf_footer_cms_pages_'.$cmsLocale,
+        3600,
+        fn () => \Webkul\CMS\Models\Page::with('translations')->get()
+            ->mapWithKeys(function ($page) use ($cmsLocale) {
+                $t = $page->translations->firstWhere('locale', $cmsLocale)
+                    ?? $page->translations->first();
 
-            return $t && $t->url_key
-                ? [$t->url_key => ['title' => $t->page_title, 'url_key' => $t->url_key]]
-                : [];
-        });
+                return $t && $t->url_key
+                    ? [$t->url_key => ['title' => $t->page_title, 'url_key' => $t->url_key]]
+                    : [];
+            })
+    );
 
     /*
      | Non-CMS footer links: built-in Bagisto routes (e.g. contact-us) that

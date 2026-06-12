@@ -1,11 +1,26 @@
 @php
     $channel = core()->getCurrentChannel();
+
+    /*
+     | First hero slide. The carousel is a Vue component, so the browser's
+     | preload scanner can't discover its image — without this <head> preload
+     | the LCP image only starts downloading after the JS bundle executes.
+     */
+    $heroCarousel = $customizations->firstWhere('type', \Webkul\Theme\Models\ThemeCustomization::IMAGE_CAROUSEL);
+
+    $heroSlide = $heroCarousel->options['images'][0] ?? null;
 @endphp
 
 @section('page_seo', true)
 
 <!-- SEO Meta Content -->
 @push('meta')
+    @if (! empty($heroSlide['image']))
+        {{-- Breakpoint mirrors the <source media="(max-width: 767px)"> in the carousel --}}
+        <link rel="preload" as="image" href="{{ $heroSlide['mobile_image'] ?? $heroSlide['image'] }}" media="(max-width: 767px)" fetchpriority="high">
+        <link rel="preload" as="image" href="{{ $heroSlide['image'] }}" media="(min-width: 768px)" fetchpriority="high">
+    @endif
+
     <meta name="description" content="{{ $channel->home_seo['meta_description'] ?? "Shop men's polo t-shirts, slim fit tshirts and casual wear for men & women at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan, Jaipur and all metros. – Gabha Enterprise" }}">
     <meta name="keywords" content="{{ $channel->home_seo['meta_keywords'] ?? 'urbanflaky, polo tshirt online india, slim fit tshirt men, casual wear men women, buy tshirt under 500, mens fashion online, womens casual wear india, fashion jaipur rajasthan, gabha enterprise, tshirt delivery india' }}">
     <meta name="robots" content="index, follow">
