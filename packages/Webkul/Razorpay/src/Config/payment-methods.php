@@ -12,6 +12,7 @@ return [
         'sandbox' => true,
         'test_client_id' => 'TEST_CLIENT_ID',
         'test_client_secret' => 'TEST_CLIENT_SECRET',
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
         'sort' => 2,
     ],
 ];
