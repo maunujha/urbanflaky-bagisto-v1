@@ -39,6 +39,11 @@
             <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
             <meta property="og:type" content="{{ $ogType }}">
 
+            <meta name="twitter:card" content="summary_large_image">
+            <meta name="twitter:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
+            <meta name="twitter:description" content="{{ $metaDescription }}">
+            <meta name="twitter:image" content="{{ $ogImage ?? asset('images/og-image.jpg') }}">
+
             <link rel="canonical" href="{{ $canonical ?? url()->current() }}">
         @endunless
 

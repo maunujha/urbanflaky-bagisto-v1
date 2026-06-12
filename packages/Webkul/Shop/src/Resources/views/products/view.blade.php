@@ -61,7 +61,7 @@
     <meta property="og:type" content="product">
     <meta property="og:title" content="{{ $metaTitle }}">
     <meta property="og:description" content="{{ $shareDesc }}">
-    <meta property="og:image" content="{{ $productBaseImage['medium_image_url'] }}">
+    <meta property="og:image" content="{{ $productBaseImage['large_image_url'] ?? $productBaseImage['medium_image_url'] }}">
     <meta property="og:url" content="{{ $productCanonical }}">
 
     {{-- Product structured data lives in the @push('structured_data') block below.
@@ -72,7 +72,7 @@
     <meta name="twitter:title" content="{{ $metaTitle }}">
     <meta name="twitter:description" content="{{ $shareDesc }}">
     <meta name="twitter:image:alt" content="{{ $product->name }}">
-    <meta name="twitter:image" content="{{ $productBaseImage['medium_image_url'] }}">
+    <meta name="twitter:image" content="{{ $productBaseImage['large_image_url'] ?? $productBaseImage['medium_image_url'] }}">
 @endpush
 
 <!-- Product Structured Data (single source of truth: Webkul\Shop\Helpers\StructuredData) -->

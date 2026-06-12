@@ -11,18 +11,34 @@
     <meta property="og:image" content="{{ $category->banner_url ?? asset('images/og-image.jpg') }}">
     <meta property="og:url" content="{{ url()->current() }}">
 
-    @if (core()->getConfigData('catalog.rich_snippets.categories.enable'))
-        <script type="application/ld+json">
-            {!! app('Webkul\Product\Helpers\SEO')->getCategoryJsonLd($category) !!}
-        </script>
-    @endif
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ trim($category->meta_title) != '' ? $category->meta_title : $category->name }}">
+    <meta name="twitter:description" content="{{ trim($category->meta_description) != '' ? $category->meta_description : \Illuminate\Support\Str::limit(strip_tags($category->description ?? ''), 120, '') }}">
+    <meta name="twitter:image" content="{{ $category->banner_url ?? asset('images/og-image.jpg') }}">
 @endPush
+
+<!-- Category Structured Data (single source of truth: Webkul\Shop\Helpers\StructuredData) -->
+@push('structured_data')
+<script type="application/ld+json">
+{!! app(\Webkul\Shop\Helpers\StructuredData::class)->getCategoryGraph($category) !!}
+</script>
+@endpush
 
 <x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
         {{ trim($category->meta_title) != "" ? $category->meta_title : $category->name }}
     </x-slot>
+
+    <!-- Breadcrumbs -->
+    @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
+        <div class="flex justify-center px-7 max-lg:hidden">
+            <x-shop::breadcrumbs
+                name="category"
+                :entity="$category"
+            />
+        </div>
+    @endif
 
     {!! view_render_event('bagisto.shop.categories.view.banner_path.before') !!}
 

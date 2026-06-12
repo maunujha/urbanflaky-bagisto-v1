@@ -63,20 +63,30 @@ class SitemapController extends Controller
             ->where('ct.locale', $locale)
             ->whereNotNull('ct.slug')
             ->orderBy('c.id')
-            ->select('ct.slug')
+            ->select('ct.slug', 'c.updated_at')
             ->get()
             ->each(function ($c) use (&$urls) {
-                $urls[] = ['loc' => url($c->slug), 'priority' => '0.7'];
+                $urls[] = [
+                    'loc'     => url($c->slug),
+                    'lastmod' => $this->date($c->updated_at),
+                    'priority' => '0.7',
+                ];
             });
 
         /* CMS pages served at /{url_key}. */
-        DB::table('cms_page_translations')
-            ->where('locale', $locale)
-            ->whereNotNull('url_key')
-            ->orderBy('cms_page_id')
-            ->pluck('url_key')
-            ->each(function ($slug) use (&$urls) {
-                $urls[] = ['loc' => url($slug), 'priority' => '0.5'];
+        DB::table('cms_page_translations as cpt')
+            ->join('cms_pages as cp', 'cp.id', '=', 'cpt.cms_page_id')
+            ->where('cpt.locale', $locale)
+            ->whereNotNull('cpt.url_key')
+            ->orderBy('cpt.cms_page_id')
+            ->select('cpt.url_key', 'cp.updated_at')
+            ->get()
+            ->each(function ($p) use (&$urls) {
+                $urls[] = [
+                    'loc'     => url($p->url_key),
+                    'lastmod' => $this->date($p->updated_at),
+                    'priority' => '0.5',
+                ];
             });
 
         /* Published blog posts served at /blog/{slug}. */

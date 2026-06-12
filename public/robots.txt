@@ -7,6 +7,7 @@ Disallow: /search
 Disallow: /compare
 Disallow: /track-order
 Disallow: /razorpay
+Disallow: /api
 Allow: /
 
 Sitemap: https://urbanflaky.in/sitemap.xml

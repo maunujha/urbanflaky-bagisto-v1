@@ -16,8 +16,7 @@
     <meta property="og:description" content="{{ $channel->home_seo['meta_description'] ?? "Shop polo t-shirts, slim fit casuals for men & women at Urbanflaky. Rs 299–799. Pan India delivery. – Gabha Enterprise" }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ route('shop.home.index') }}">
-    <meta property="og:site_name" content="Urbanflaky">
-    <meta property="og:locale" content="en_IN">
+    {{-- og:site_name / og:locale are emitted unconditionally by the layout — not repeated here --}}
     <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
 
     {{-- Twitter / X --}}
@@ -68,6 +67,7 @@
     "contactPoint": {
       "@type": "ContactPoint",
       "contactType": "customer service",
+      "email": "support@urbanflaky.in",
       "availableLanguage": ["English", "Hindi"]
     },
     "sameAs": [

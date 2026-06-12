@@ -44,6 +44,72 @@ class StructuredData
     }
 
     /**
+     * Build the full JSON-LD graph (CollectionPage + BreadcrumbList) for a category listing page.
+     *
+     * Replaces the core rich-snippets category JSON-LD, which only emitted a generic WebSite
+     * node carrying no category data at all.
+     *
+     * @param  \Webkul\Category\Contracts\Category  $category
+     * @return string
+     */
+    public function getCategoryGraph($category): string
+    {
+        $url = $category->url;
+
+        $collectionPage = [
+            '@type' => 'CollectionPage',
+            '@id'   => $url.'#webpage',
+            'url'   => $url,
+            'name'  => trim((string) $category->meta_title) !== '' ? $category->meta_title : $category->name,
+        ];
+
+        if ($description = trim(strip_tags((string) $category->description))) {
+            $collectionPage['description'] = Str::limit($description, 5000, '');
+        }
+
+        $items = [[
+            '@type'    => 'ListItem',
+            'position' => 1,
+            'name'     => 'Home',
+            'item'     => route('shop.home.index'),
+        ]];
+
+        $position = 2;
+
+        /* Parent trail — the root category is skipped because it has no public page. */
+        foreach ($category->ancestors as $ancestor) {
+            if (! $ancestor->parent_id) {
+                continue;
+            }
+
+            $items[] = [
+                '@type'    => 'ListItem',
+                'position' => $position++,
+                'name'     => $ancestor->name,
+                'item'     => $ancestor->url,
+            ];
+        }
+
+        $items[] = [
+            '@type'    => 'ListItem',
+            'position' => $position,
+            'name'     => $category->name,
+            'item'     => $url,
+        ];
+
+        return json_encode([
+            '@context' => 'https://schema.org',
+            '@graph'   => [
+                $collectionPage,
+                [
+                    '@type'           => 'BreadcrumbList',
+                    'itemListElement' => $items,
+                ],
+            ],
+        ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * Assemble the Product node.
      *
      * @param  \Webkul\Product\Contracts\Product  $product
@@ -128,6 +194,27 @@ class StructuredData
             'seller'        => [
                 '@type' => 'Organization',
                 'name'  => self::SELLER_NAME,
+            ],
+            /* Flat-rate carrier config (sales.carriers.flatrate). No deliveryTime is emitted
+               because the store commits to no delivery SLA. */
+            'shippingDetails' => [
+                '@type'        => 'OfferShippingDetails',
+                'shippingRate' => [
+                    '@type'    => 'MonetaryAmount',
+                    'value'    => '50',
+                    'currency' => 'INR',
+                ],
+                'shippingDestination' => [
+                    '@type'          => 'DefinedRegion',
+                    'addressCountry' => 'IN',
+                ],
+            ],
+            /* Link-based return policy — the published policy fixes no day window, so a
+               merchantReturnDays value would be fabricated. */
+            'hasMerchantReturnPolicy' => [
+                '@type'              => 'MerchantReturnPolicy',
+                'applicableCountry'  => 'IN',
+                'merchantReturnLink' => url('return-policy'),
             ],
         ];
 

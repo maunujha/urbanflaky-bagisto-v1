@@ -97,6 +97,21 @@ Breadcrumbs::for('product', function (BreadcrumbTrail $trail, $entity) {
     $trail->push($entity->name ?? '', route('shop.product_or_category.index', $entity->url_key));
 });
 
+// Home > [parent categories] > Category
+Breadcrumbs::for('category', function (BreadcrumbTrail $trail, $entity) {
+    $trail->parent('home');
+
+    foreach ($entity->ancestors as $ancestor) {
+        if (! $ancestor->parent_id) {
+            continue;
+        }
+
+        $trail->push($ancestor->name, $ancestor->url);
+    }
+
+    $trail->push($entity->name ?? '', $entity->url);
+});
+
 // Home > RMA
 Breadcrumbs::for('rma', function (BreadcrumbTrail $trail) {
     $trail->parent('account');

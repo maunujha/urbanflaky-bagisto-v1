@@ -20,8 +20,7 @@
 @endphp
 
 @push('meta')
-    <link rel="canonical" href="{{ url('faqs') }}" />
-
+    {{-- Canonical comes from the layout via the :canonical prop — not duplicated here --}}
     @if (! empty($faqSchema['mainEntity']))
         <script type="application/ld+json">
             {!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
