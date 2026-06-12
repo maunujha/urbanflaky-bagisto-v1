@@ -44,3 +44,7 @@ skills-lock.json
 /vendor
 yarn.lock
 yarn-error.log
+
+# Redis snapshot and root-level debug screenshots (never commit)
+/dump.rdb
+/*.png

@@ -21,17 +21,26 @@ class ShiprocketWebhookController extends Controller
      */
     public function handle(Request $request)
     {
-        /* Verify token sent in x-api-key header */
+        /*
+         * Verify token sent in x-api-key header. Fail closed: if no token is
+         * configured the endpoint must reject everything, otherwise a missing
+         * env var would silently open this CSRF-exempt route to anyone.
+         */
         $expectedToken = config('shiprocket.webhook_token');
 
-        if ($expectedToken && $request->header('x-api-key') !== $expectedToken) {
+        if (! $expectedToken || ! hash_equals($expectedToken, (string) $request->header('x-api-key'))) {
             Log::warning('Shiprocket webhook: invalid token');
+
             return response()->json(['message' => 'Unauthorized'], 401);
         }
 
         $payload = $request->all();
 
-        Log::info('Shiprocket webhook received', $payload);
+        Log::info('Shiprocket webhook received', [
+            'channel_order_id' => $payload['channel_order_id'] ?? null,
+            'awb'              => $payload['awb'] ?? null,
+            'current_status'   => $payload['current_status'] ?? ($payload['shipment_status'] ?? null),
+        ]);
 
         /* channel_order_id is what we passed as order_id when creating the order */
         $channelOrderId = (string) ($payload['channel_order_id'] ?? '');
