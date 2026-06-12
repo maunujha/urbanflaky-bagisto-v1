@@ -3,6 +3,7 @@
 namespace Webkul\Admin\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Password;
 
 class UserForm extends FormRequest
 {
@@ -26,7 +27,7 @@ class UserForm extends FormRequest
         return [
             'name' => 'required',
             'email' => 'required|email|unique:admins,email,'.$this->id,
-            'password' => 'nullable|min:6|confirmed',
+            'password' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()],
             'password_confirmation' => 'nullable|required_with:password|same:password',
             'status' => 'sometimes',
             'role_id' => 'required',

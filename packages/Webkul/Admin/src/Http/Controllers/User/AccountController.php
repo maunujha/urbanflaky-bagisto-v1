@@ -6,6 +6,7 @@ use Hash;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
 use Webkul\Admin\Http\Controllers\Controller;
 
@@ -35,8 +36,8 @@ class AccountController extends Controller
         $this->validate(request(), [
             'name' => 'required',
             'email' => 'email|unique:admins,email,'.$user->id,
-            'password' => 'nullable|min:6|confirmed',
-            'current_password' => 'required|min:6',
+            'password' => ['nullable', 'confirmed', Password::min(8)->mixedCase()->numbers()],
+            'current_password' => 'required',
             'image.*' => 'nullable|mimes:bmp,jpeg,jpg,png,webp',
         ]);
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules\Password as PasswordRule;
 use Illuminate\View\View;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Shop\Http\Controllers\Controller;
@@ -53,7 +54,7 @@ class ResetPasswordController extends Controller
             $this->validate(request(), [
                 'token' => 'required',
                 'email' => 'required|email',
-                'password' => 'required|confirmed|min:6',
+                'password' => ['required', 'confirmed', PasswordRule::min(8)->mixedCase()->numbers()],
             ]);
 
             $response = $this->broker()->reset(

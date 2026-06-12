@@ -382,33 +382,49 @@ class RMAController extends Controller
      */
     public function sendMessage(): JsonResponse
     {
-        $data = request()->all();
+        $data = request()->validate([
+            'rma_id'  => ['required', 'integer'],
+            'message' => ['required', 'string', 'max:5000'],
+            'file'    => ['nullable', 'file', 'max:5120', 'mimes:jpg,jpeg,png,webp,pdf'],
+        ]);
 
         $rma = $this->rmaRepository->findOrFail($data['rma_id']);
 
         if ($rma->order->customer_id != auth()->guard('customer')->id()) {
             return new JsonResponse([
                 'messages' => trans('shop::app.customer.signup-form.failed'),
-            ]);
+            ], 403);
         }
 
-        $storedMessage = $this->rmaMessageRepository->create($data);
+        /*
+         * Only ever persist a sanitised, server-controlled payload. The message is
+         * rendered back to both the customer and an admin, so it is purified to
+         * neutralise stored XSS, and `is_admin` is forced to 0 so a customer can
+         * never spoof an official store reply via mass assignment.
+         */
+        $storedMessage = $this->rmaMessageRepository->create([
+            'rma_id'   => $rma->id,
+            'message'  => clean_content($data['message']),
+            'is_admin' => 0,
+        ]);
 
         if (! empty($storedMessage)) {
-            $removedKeys = explode(',', request()->input('removed_key'));
-
-            array_shift($removedKeys);
-
-            if (! empty(request()->file('file'))) {
+            if (request()->hasFile('file')) {
                 $file = request()->file('file');
 
-                $filename = $file->getClientOriginalName();
-
-                $path = $file->storeAs('rma-conversation/'.$storedMessage->id, $filename);
+                /*
+                 * store() (no explicit name) writes a random hashed filename, so the
+                 * original attacker-controlled name can no longer drive a path
+                 * traversal or overwrite another file, and the unguessable name keeps
+                 * the attachment from being enumerated. Type is whitelisted to
+                 * non-executable formats above, so public serving stays safe. The
+                 * original name is kept only as a display label.
+                 */
+                $path = $file->store('rma-conversation/'.$storedMessage->id);
 
                 $this->rmaMessageRepository->update([
                     'attachment_path' => $path,
-                    'attachment' => $filename,
+                    'attachment'      => $file->getClientOriginalName(),
                 ], $storedMessage->id);
             }
 

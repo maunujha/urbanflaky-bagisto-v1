@@ -56,9 +56,17 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->ip());
         });
 
-        // OTP endpoints — protects SMS costs and prevents brute-force verification
+        // OTP endpoints — protects SMS costs and prevents brute-force verification.
+        // Layered limits: an IP cap stops one source flooding, while per-phone caps
+        // stop a number being SMS-bombed from rotating IPs and bound the daily spend.
         RateLimiter::for('api-otp', function ($request) {
-            return Limit::perMinute(5)->by($request->ip());
+            $phone = (string) $request->input('phone');
+
+            return [
+                Limit::perMinute(5)->by($request->ip()),
+                Limit::perMinute(3)->by('otp-phone:'.$phone),
+                Limit::perDay(15)->by('otp-phone:'.$phone),
+            ];
         });
     }
 }

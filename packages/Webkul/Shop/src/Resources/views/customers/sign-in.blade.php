@@ -64,7 +64,7 @@
                         @csrf
 
                         <p class="su-label" style="margin-top:8px;">Continue with Phone + OTP</p>
-                        <p class="su-hint">We'll send a 4-digit OTP to verify your number</p>
+                        <p class="su-hint">We'll send a 6-digit OTP to verify your number</p>
 
                         <div class="su-phone-wrap">
                             <div class="su-phone-cc">🇮🇳 +91</div>
@@ -161,6 +161,8 @@
                             <input id="otp-1" type="tel" maxlength="1" inputmode="numeric" placeholder="0" class="otp-box" autocomplete="off"/>
                             <input id="otp-2" type="tel" maxlength="1" inputmode="numeric" placeholder="0" class="otp-box" autocomplete="off"/>
                             <input id="otp-3" type="tel" maxlength="1" inputmode="numeric" placeholder="0" class="otp-box" autocomplete="off"/>
+                            <input id="otp-4" type="tel" maxlength="1" inputmode="numeric" placeholder="0" class="otp-box" autocomplete="off"/>
+                            <input id="otp-5" type="tel" maxlength="1" inputmode="numeric" placeholder="0" class="otp-box" autocomplete="off"/>
                         </div>
                         <input type="hidden" name="otp" id="hidden-otp"/>
 
@@ -209,7 +211,7 @@
         var btn    = document.getElementById('verify-btn');
         if (hidden) hidden.value = val;
         if (!btn) return;
-        var ok = val.length === 4;
+        var ok = val.length === 6;
         btn.style.opacity       = ok ? '1'        : '0.4';
         btn.style.pointerEvents = ok ? 'auto'     : 'none';
         btn.style.cursor        = ok ? 'pointer'  : 'not-allowed';
@@ -256,7 +258,7 @@
         var el = e.target;
         if (!el.classList.contains('otp-box')) return;
         e.preventDefault();
-        var p     = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,4);
+        var p     = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g,'').slice(0,6);
         var boxes = Array.from(document.querySelectorAll('.otp-box'));
         p.split('').forEach(function(c, i){ if (boxes[i]) boxes[i].value = c; });
         syncOtpBtn();
@@ -273,7 +275,7 @@
         var val    = otpVal();
         var hidden = document.getElementById('hidden-otp');
         if (hidden) hidden.value = val;
-        if (val.length < 4) { e.preventDefault(); return; }
+        if (val.length < 6) { e.preventDefault(); return; }
         var btn = document.getElementById('verify-btn');
         var spn = document.getElementById('verify-spinner');
         var txt = document.getElementById('verify-text');

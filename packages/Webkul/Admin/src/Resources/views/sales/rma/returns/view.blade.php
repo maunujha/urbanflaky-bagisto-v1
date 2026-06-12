@@ -384,7 +384,7 @@
                                                     <div
                                                         class="value dark:text-black-300 text-base font-medium mb-2"
                                                         style="margin-top:2px; word-break: break-all;"
-                                                        v-html="message.message"
+                                                        v-text="message.message"
                                                     ></div>
 
                                                     <div v-if="message.attachment" class="mt-2">

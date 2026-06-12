@@ -40,11 +40,24 @@ class SecureHeaders
      */
     private function setHeaders($response)
     {
-        $response->headers->set('Referrer-Policy', 'no-referrer-when-downgrade');
+        $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-XSS-Protection', '1; mode=block');
         $response->headers->set('X-Frame-Options', 'DENY');
+        $response->headers->set('X-Permitted-Cross-Domain-Policies', 'none');
         $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+
+        /*
+         * frame-ancestors is the modern clickjacking control (superset of
+         * X-Frame-Options). It only governs who may frame us, so it is safe to set
+         * unconditionally — it does not restrict scripts/styles/images and cannot
+         * break the Razorpay or reCAPTCHA integrations. A full resource-restricting
+         * CSP (default-src/script-src) is intentionally left out here because it
+         * needs per-integration allow-listing and browser verification first.
+         */
+        if (! $response->headers->has('Content-Security-Policy')) {
+            $response->headers->set('Content-Security-Policy', "frame-ancestors 'self'");
+        }
     }
 
     /**

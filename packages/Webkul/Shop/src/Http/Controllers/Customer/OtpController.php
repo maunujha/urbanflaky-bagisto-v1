@@ -5,6 +5,7 @@ namespace Webkul\Shop\Http\Controllers\Customer;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
 use Illuminate\View\View;
 use Webkul\Customer\Repositories\CustomerRepository;
@@ -50,12 +51,15 @@ class OtpController extends Controller
             return redirect()->route('shop.customer.session.index');
         }
 
-        $otp = (string) random_int(1000, 9999);
+        $otp = (string) random_int(100000, 999999);
 
         $customer->update([
             'otp'            => $otp,
             'otp_expires_at' => Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10)),
         ]);
+
+        /* Reset the failed-attempt counter whenever a fresh OTP is issued. */
+        Cache::forget($this->attemptKey($request->phone));
 
         $sent = $this->smsAlertService->sendOtp($request->phone, $otp);
 
@@ -77,7 +81,7 @@ class OtpController extends Controller
     public function verify(Request $request): RedirectResponse
     {
         $request->validate([
-            'otp' => 'required|digits:4',
+            'otp' => 'required|digits:6',
         ], [
             'otp.required' => trans('shop::app.customers.otp.otp-required'),
             'otp.digits'   => trans('shop::app.customers.otp.otp-digits'),
@@ -100,9 +104,20 @@ class OtpController extends Controller
             return redirect()->route('shop.customer.session.index');
         }
 
-        if ($customer->otp !== $request->otp) {
-            session()->flash('error', trans('shop::app.customers.otp.invalid-otp'));
-            session()->flash('show_login_otp', true);
+        /*
+         * Cap wrong guesses per issued OTP. Without this, the OTP stays valid for
+         * its whole lifetime and only the IP throttle limits brute force; an
+         * attacker could grind the code from rotating IPs. After the cap we burn
+         * the OTP so it can never be guessed — the customer must request a new one.
+         */
+        $attemptKey   = $this->attemptKey($phone);
+        $maxAttempts  = 5;
+
+        if ((int) Cache::get($attemptKey, 0) >= $maxAttempts) {
+            $customer->update(['otp' => null, 'otp_expires_at' => null]);
+            Cache::forget($attemptKey);
+
+            session()->flash('error', trans('shop::app.customers.otp.too-many-attempts'));
 
             return redirect()->route('shop.customer.session.index');
         }
@@ -114,10 +129,21 @@ class OtpController extends Controller
             return redirect()->route('shop.customer.session.index');
         }
 
+        if (! $customer->otp || ! hash_equals((string) $customer->otp, (string) $request->otp)) {
+            Cache::put($attemptKey, (int) Cache::get($attemptKey, 0) + 1, now()->addMinutes(15));
+
+            session()->flash('error', trans('shop::app.customers.otp.invalid-otp'));
+            session()->flash('show_login_otp', true);
+
+            return redirect()->route('shop.customer.session.index');
+        }
+
         $customer->update([
             'otp'            => null,
             'otp_expires_at' => null,
         ]);
+
+        Cache::forget($attemptKey);
 
         session()->forget('otp_phone');
 
@@ -158,12 +184,15 @@ class OtpController extends Controller
             return redirect()->route('shop.customer.session.index');
         }
 
-        $otp = (string) random_int(1000, 9999);
+        $otp = (string) random_int(100000, 999999);
 
         $customer->update([
             'otp'            => $otp,
             'otp_expires_at' => Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10)),
         ]);
+
+        /* A fresh OTP clears the failed-attempt counter. */
+        Cache::forget($this->attemptKey($phone));
 
         $sent = $this->smsAlertService->sendOtp($phone, $otp);
 
@@ -176,5 +205,13 @@ class OtpController extends Controller
         session()->flash('show_login_otp', true);
 
         return redirect()->route('shop.customer.session.index');
+    }
+
+    /**
+     * Cache key holding the per-phone failed-verification counter.
+     */
+    protected function attemptKey(string $phone): string
+    {
+        return 'login_otp_attempts:'.$phone;
     }
 }
