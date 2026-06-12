@@ -166,6 +166,22 @@ class OnepageController extends APIController
             ], 422);
         }
 
+        /*
+         * SMS OTP is the primary checkout gate — enforce it server-side so a
+         * direct API call cannot place an order with an unverified phone.
+         */
+        $isPhoneVerified = session('checkout_phone_verified')
+            || (
+                auth()->guard('customer')->check()
+                && auth()->guard('customer')->user()->phone_verified_at
+            );
+
+        if (! $isPhoneVerified) {
+            return response()->json([
+                'message' => trans('shop::app.checkout.cart.phone-not-verified'),
+            ], 403);
+        }
+
         if (Cart::hasError()) {
             return new JsonResource([
                 'redirect' => true,

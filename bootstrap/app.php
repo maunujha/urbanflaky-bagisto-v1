@@ -45,7 +45,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'stripe/*',
         ]);
 
-        $middleware->trustProxies(at: '*');
+        /*
+         * Trust only the proxies listed in TRUSTED_PROXIES (comma-separated).
+         * Trusting '*' lets any client spoof its IP via X-Forwarded-For, which
+         * defeats every IP-keyed rate limiter (OTP, auth, API).
+         */
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
     })
     ->withSchedule(function (Schedule $schedule) {
         /* Sync AWB from Shiprocket every 30 minutes for orders missing tracking */

@@ -25,7 +25,7 @@ Route::group(['prefix' => config('app.admin_url')], function () {
         /**
          * Login post route to admin auth controller.
          */
-        Route::post('', 'store')->name('admin.session.store');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('admin.session.store');
     });
 
     /**
@@ -34,7 +34,7 @@ Route::group(['prefix' => config('app.admin_url')], function () {
     Route::controller(TwoFactorController::class)->prefix('two-factor')->group(function () {
         Route::get('verify', 'showVerifyForm')->name('admin.two_factor.verify.form');
 
-        Route::post('verify', 'verifyTwoFactorCode')->name('admin.two_factor.verifyTwoFactorCode');
+        Route::post('verify', 'verifyTwoFactorCode')->middleware('throttle:api-auth')->name('admin.two_factor.verifyTwoFactorCode');
     });
 
     /**
@@ -43,7 +43,7 @@ Route::group(['prefix' => config('app.admin_url')], function () {
     Route::controller(ForgetPasswordController::class)->prefix('forget-password')->group(function () {
         Route::get('', 'create')->name('admin.forget_password.create');
 
-        Route::post('', 'store')->name('admin.forget_password.store');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('admin.forget_password.store');
     });
 
     /**
@@ -52,6 +52,6 @@ Route::group(['prefix' => config('app.admin_url')], function () {
     Route::controller(ResetPasswordController::class)->prefix('reset-password')->group(function () {
         Route::get('{token}', 'create')->name('admin.reset_password.create');
 
-        Route::post('', 'store')->name('admin.reset_password.store');
+        Route::post('', 'store')->middleware('throttle:api-auth')->name('admin.reset_password.store');
     });
 });

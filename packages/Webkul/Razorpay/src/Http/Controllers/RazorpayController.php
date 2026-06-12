@@ -59,6 +59,16 @@ class RazorpayController extends Controller
 
             $razorpayOrder = $this->razorpayPayment->createOrder($cart);
 
+            /*
+             * Bind this Razorpay order to the cart and amount so the success
+             * callback can reject replayed or amount-mismatched payments.
+             */
+            session([
+                'razorpay_order_id' => $razorpayOrder['id'],
+                'razorpay_cart_id'  => $cart->id,
+                'razorpay_amount'   => (int) round($cart->base_grand_total * 100),
+            ]);
+
             $payment = $this->razorpayPayment->preparePaymentData($cart, $razorpayOrder);
 
             return view('razorpay::drop-in-ui', compact('payment'));
@@ -108,11 +118,25 @@ class RazorpayController extends Controller
 
         $cart = Cart::getCart();
 
-        if (! $cart) {
+        /*
+         * The signature only proves the payment belongs to a Razorpay order on
+         * this merchant account — it does not tie it to this cart. Reject the
+         * callback unless it matches the order id, cart and amount staged at
+         * redirect, otherwise a captured payment for a cheap cart could be
+         * replayed against a bigger one.
+         */
+        if (
+            ! $cart
+            || $razorpayOrderId !== session('razorpay_order_id')
+            || $cart->id !== session('razorpay_cart_id')
+            || (int) round($cart->base_grand_total * 100) !== session('razorpay_amount')
+        ) {
             session()->flash('error', trans('razorpay::app.response.something-went-wrong'));
 
             return redirect()->route('shop.checkout.cart.index');
         }
+
+        session()->forget(['razorpay_order_id', 'razorpay_cart_id', 'razorpay_amount']);
 
         return $this->handlePaymentSuccess($request, $cart);
     }

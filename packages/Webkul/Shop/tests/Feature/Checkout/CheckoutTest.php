@@ -20,6 +20,7 @@ use Webkul\Sales\Models\OrderPayment;
 use Webkul\Shop\Mail\Order\CreatedNotification as ShopOrderCreatedNotification;
 
 use function Pest\Laravel\postJson;
+use function Pest\Laravel\withSession;
 
 it('should handle certain validation errors when storing the guest user address for cart billing and shipping', function () {
     // Arrange.
@@ -1751,7 +1752,8 @@ it('should place a simple product order for a guest user', function () {
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -1912,7 +1914,8 @@ it('should place a simple product order for a guest user and send mail to guest 
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2085,7 +2088,8 @@ it('should place a simple product order for a customer', function () {
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2251,7 +2255,8 @@ it('should place a simple product order for a customer and send email to the cus
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2428,7 +2433,8 @@ it('should place a configurable product order for a guest user', function () {
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2601,7 +2607,8 @@ it('should place a configurable product order for a guest user and send email to
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2786,7 +2793,8 @@ it('should place a configurable product order for a customer', function () {
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -2967,7 +2975,8 @@ it('should place a configurable product order for a customer and send email to t
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3122,7 +3131,8 @@ it('should place a virtual product order for a guest user', function () {
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3259,7 +3269,8 @@ it('should place a virtual product order for a guest user and send email to the 
     cart()->collectTotals();
 
     // Act and Assert.
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3408,7 +3419,8 @@ it('should place a virtual product order for a customer', function () {
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3553,7 +3565,8 @@ it('should place a virtual product order for a customer and send email to the us
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3705,7 +3718,8 @@ it('should place a downloadable product order for a customer', function () {
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -3846,7 +3860,8 @@ it('should place a downloadable product order for a customer and send email to t
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -4465,7 +4480,8 @@ it('should place order with two products with simple and configurable product ty
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -4707,7 +4723,8 @@ it('should place order with two products with simple and grouped product type', 
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
@@ -4940,7 +4957,8 @@ it('should place order with two products with simple and downloadable product ty
     // Act and Assert.
     $this->loginAsCustomer($customer);
 
-    postJson(route('shop.checkout.onepage.orders.store'))
+    withSession(['checkout_phone_verified' => true])
+        ->postJson(route('shop.checkout.onepage.orders.store'))
         ->assertOk()
         ->assertJsonPath('data.redirect', true)
         ->assertJsonPath('data.redirect_url', route('shop.checkout.onepage.success'));
