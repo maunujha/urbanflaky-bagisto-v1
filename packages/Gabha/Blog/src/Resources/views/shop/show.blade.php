@@ -2,7 +2,7 @@
     $metaTitle       = $blog->seo_title;
     $metaDescription = $blog->seo_description;
     $canonical       = $blog->url;
-    $ogImage         = $blog->image_url ? url($blog->image_url) : asset('images/og-image.png');
+    $ogImage         = $blog->image_url ? url($blog->image_url) : asset('images/og-image.jpg');
     $authorName      = $blog->author ?: 'Urbanflaky';
 
     /* Article structured data (PHP-built to avoid @@context escaping in Blade). */
@@ -23,7 +23,7 @@
             'name'  => 'Urbanflaky',
             'logo'  => [
                 '@type' => 'ImageObject',
-                'url'   => asset('images/og-image.png'),
+                'url'   => asset('images/logo.png'),
             ],
         ],
         'mainEntityOfPage' => [

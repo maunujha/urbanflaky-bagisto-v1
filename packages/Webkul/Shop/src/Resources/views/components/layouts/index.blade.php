@@ -35,7 +35,7 @@
 
             <meta property="og:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
             <meta property="og:description" content="{{ $metaDescription }}">
-            <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.png') }}">
+            <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.jpg') }}">
             <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
             <meta property="og:type" content="{{ $ogType }}">
 
@@ -69,10 +69,6 @@
             name="currency"
             content="{{ core()->getCurrentCurrency()->toJson() }}"
         >
-        <meta
-            name="generator"
-            content="Bagisto"
-        >
 
         <link
             rel="icon"
@@ -94,15 +90,21 @@
             crossorigin
         />
 
+        {{-- Load fonts without blocking render: fetch as a preload, then flip
+             to a stylesheet on load. Browsers without JS still get them via the
+             <noscript> fallback. --}}
         <link
             rel="preload" as="style"
             href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
+            onload="this.onload=null;this.rel='stylesheet'"
         />
 
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
-        />
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
+            />
+        </noscript>
 
         @stack('styles')
 

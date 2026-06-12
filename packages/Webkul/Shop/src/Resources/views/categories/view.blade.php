@@ -8,7 +8,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="{{ trim($category->meta_title) != '' ? $category->meta_title : $category->name }}">
     <meta property="og:description" content="{{ trim($category->meta_description) != '' ? $category->meta_description : \Illuminate\Support\Str::limit(strip_tags($category->description ?? ''), 120, '') }}">
-    <meta property="og:image" content="{{ $category->banner_url ?? asset('images/og-image.png') }}">
+    <meta property="og:image" content="{{ $category->banner_url ?? asset('images/og-image.jpg') }}">
     <meta property="og:url" content="{{ url()->current() }}">
 
     @if (core()->getConfigData('catalog.rich_snippets.categories.enable'))

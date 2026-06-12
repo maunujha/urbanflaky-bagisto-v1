@@ -18,13 +18,13 @@
     <meta property="og:url" content="{{ route('shop.home.index') }}">
     <meta property="og:site_name" content="Urbanflaky">
     <meta property="og:locale" content="en_IN">
-    <meta property="og:image" content="{{ asset('images/og-image.png') }}">
+    <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
 
     {{-- Twitter / X --}}
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $channel->home_seo['meta_title'] ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
     <meta name="twitter:description" content="Shop polo t-shirts & slim fit casuals. Rs 299–799. Pan India delivery.">
-    <meta name="twitter:image" content="{{ asset('images/og-image.png') }}">
+    <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}">
     <meta name="twitter:site" content="@urbanflaky">
 @endpush
 
@@ -55,7 +55,7 @@
     "url": "{{ config('app.url') }}",
     "logo": {
       "@type": "ImageObject",
-      "url": "{{ asset('images/og-image.png') }}"
+      "url": "{{ asset('images/logo.png') }}"
     },
     "description": "Gabha Enterprise operates Urbanflaky — an online fashion store offering polo t-shirts, slim fit casuals and everyday wear for men and women. Mid-range fashion Rs 299–799 with pan India delivery.",
     "address": {
