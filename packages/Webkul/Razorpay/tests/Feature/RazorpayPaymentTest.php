@@ -115,8 +115,13 @@ it('successfully processes razorpay payment and creates order with invoice', fun
 
     $this->app->instance(RazorpayPayment::class, $mockRazorpay);
 
-    // Act
-    $response = $this->get(route('razorpay.payment.success', [
+    // Act — seed the session the way redirect() does so the success callback
+    // can confirm the payment is bound to this cart and amount.
+    $response = $this->withSession([
+        'razorpay_order_id' => 'order_test123',
+        'razorpay_cart_id'  => $cart->id,
+        'razorpay_amount'   => (int) round($cart->base_grand_total * 100),
+    ])->get(route('razorpay.payment.success', [
         'razorpay_payment_id' => 'pay_test123',
         'razorpay_order_id' => 'order_test123',
         'razorpay_signature' => 'test_signature',
@@ -158,6 +163,35 @@ it('handles payment failure gracefully', function () {
     $response->assertRedirect(route('shop.checkout.cart.index'));
 
     $response->assertSessionHas('error');
+});
+
+it('rejects a valid signature when the cart amount no longer matches the staged payment', function () {
+    // Arrange — a payment captured for a smaller amount than the current cart.
+    $cart = $this->createCartWithItems('razorpay', ['base_currency_code' => 'INR']);
+
+    $mockRazorpay = $this->mock(RazorpayPayment::class)->makePartial();
+
+    $mockRazorpay->shouldReceive('verifySignature')->andReturn(true);
+
+    $this->app->instance(RazorpayPayment::class, $mockRazorpay);
+
+    // Act — staged amount is far below the real cart total (replay/tamper attempt).
+    $response = $this->withSession([
+        'razorpay_order_id' => 'order_test123',
+        'razorpay_cart_id'  => $cart->id,
+        'razorpay_amount'   => 1,
+    ])->get(route('razorpay.payment.success', [
+        'razorpay_payment_id' => 'pay_test123',
+        'razorpay_order_id' => 'order_test123',
+        'razorpay_signature' => 'test_signature',
+    ]));
+
+    // Assert — no order is created, customer is bounced back to the cart.
+    $response->assertRedirect(route('shop.checkout.cart.index'));
+
+    $response->assertSessionHas('error');
+
+    expect(Order::where('cart_id', $cart->id)->first())->toBeNull();
 });
 
 it('redirects to cart when signature verification fails', function () {

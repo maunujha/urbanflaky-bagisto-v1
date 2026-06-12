@@ -1042,6 +1042,7 @@ return [
             'item-add-to-cart' => 'Item Added Successfully',
             'minimum-order-message' => 'Minimum order amount is',
             'missing-fields' => 'Some required fields missing for this product.',
+            'phone-not-verified' => 'Please verify your mobile number with OTP to place the order.',
             'missing-options' => 'Options are missing for this product.',
             'paypal-payment-cancelled' => 'Paypal payment has been cancelled.',
             'qty-missing' => 'At least one product should have more than 1 quantity.',
