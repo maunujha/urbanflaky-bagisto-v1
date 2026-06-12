@@ -48,8 +48,7 @@ Route::get('contact-us', [HomeController::class, 'contactUs'])
     ->middleware('cache.response');
 
 Route::post('contact-us/send-mail', [HomeController::class, 'sendContactUsMail'])
-    ->name('shop.home.contact_us.send_mail')
-    ->middleware('cache.response');
+    ->name('shop.home.contact_us.send_mail');
 
 /**
  * Store front search.

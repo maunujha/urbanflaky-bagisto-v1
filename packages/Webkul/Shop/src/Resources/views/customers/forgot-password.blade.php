@@ -6,6 +6,7 @@
 @endPush
 
 <x-shop::layouts
+    robots="noindex, nofollow"
     :has-header="false"
     :has-feature="false"
     :has-footer="false"
