@@ -123,7 +123,7 @@ class TrackOrderController extends Controller
             'current_status' => $status,
             'origin'         => $track['origin'] ?? null,
             'destination'    => $track['destination'] ?? null,
-            'consignee'      => $track['consignee_name'] ?? null,
+            'consignee'      => $this->maskName($track['consignee_name'] ?? null),
             'edd'            => $tracking['etd'] ?? ($track['edd'] ?? null),
             'delivered_date' => $track['delivered_date'] ?? null,
             'stage'          => $this->stage($status),
@@ -133,6 +133,23 @@ class TrackOrderController extends Controller
                 'location' => $a['location'] ?? '',
             ], $activities),
         ];
+    }
+
+    /**
+     * Partially mask a consignee name so this public, enumerable endpoint never
+     * exposes a full name. "Rahul Sharma" becomes "R•••• S•••••".
+     */
+    protected function maskName(?string $name): ?string
+    {
+        if (! $name = trim((string) $name)) {
+            return null;
+        }
+
+        return implode(' ', array_map(function ($word) {
+            $first = mb_substr($word, 0, 1);
+
+            return $first.str_repeat('•', max(0, mb_strlen($word) - 1));
+        }, preg_split('/\s+/', $name)));
     }
 
     /**
