@@ -1,4 +1,5 @@
 <x-shop::layouts
+	robots="noindex, nofollow"
 	:has-header="true"
 	:has-feature="false"
 	:has-footer="true"

@@ -1,4 +1,4 @@
-<x-shop::layouts :has-feature="false">
+<x-shop::layouts robots="noindex, nofollow" :has-feature="false">
     <!-- Page Title -->
     <x-slot:title>
         {{ $title ?? '' }}

@@ -235,6 +235,7 @@
 @endpush
 
 <x-shop::layouts
+    robots="noindex, nofollow"
     :has-feature="false"
 >
     <x-slot:title>Checkout</x-slot>

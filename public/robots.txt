@@ -1,2 +1,12 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /checkout
+Disallow: /cart
+Disallow: /customer
+Disallow: /search
+Disallow: /compare
+Disallow: /track-order
+Disallow: /razorpay
+Allow: /
+
+Sitemap: https://urbanflaky.in/sitemap.xml

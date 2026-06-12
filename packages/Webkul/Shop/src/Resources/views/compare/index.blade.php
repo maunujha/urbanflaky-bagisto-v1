@@ -5,7 +5,7 @@
     <meta name="keywords" content="@lang('shop::app.compare.title')"/>
 @endPush
 
-<x-shop::layouts>
+<x-shop::layouts robots="noindex, nofollow">
     <!-- Page Title -->
     <x-slot:title>
         @lang('shop::app.compare.title')
