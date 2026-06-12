@@ -82,5 +82,13 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <!--
+            Run the suite against an isolated database so live store data
+            (admin payment config, cart price rules, products) never leaks into
+            tests. Provision once (see DEPLOYMENT.md / README) with a fresh
+            migrate plus seed against my_bagisto_store_test.
+        -->
+        <env name="DB_DATABASE" value="my_bagisto_store_test" force="true"/>
+        <env name="RESPONSE_CACHE_ENABLED" value="false" force="true"/>
     </php>
 </phpunit>
