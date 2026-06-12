@@ -32,7 +32,22 @@ uses(InstallerTestCase::class)->in('../packages/Webkul/Installer/tests');
 uses(PaymentTestCase::class)->in('../packages/Webkul/Payment/tests');
 uses(PayUTestCase::class)->in('../packages/Webkul/PayU/tests');
 uses(RazorpayTestCase::class)->in('../packages/Webkul/Razorpay/tests');
-uses(ShopTestCase::class)->in('../packages/Webkul/Shop/tests');
+/*
+| This store ships via Shiprocket and disables the flat-rate and free carriers
+| in production config. The stock checkout tests, however, assert against those
+| two carriers. Enable them for the Shop test scope only — production config is
+| never touched, and the isolated test database carries no override rows, so this
+| config() value is what getConfigData() falls back to.
+*/
+uses(ShopTestCase::class)
+    ->beforeEach(function () {
+        config([
+            'carriers.flatrate.active' => true,
+            'carriers.free.active'     => true,
+        ]);
+    })
+    ->in('../packages/Webkul/Shop/tests');
+
 uses(StripeTestCase::class)->in('../packages/Webkul/Stripe/tests');
 
 /*
