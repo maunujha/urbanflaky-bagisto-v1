@@ -55,6 +55,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule) {
         /* Sync AWB from Shiprocket every 30 minutes for orders missing tracking */
         $schedule->command('shiprocket:sync-awb')->everyThirtyMinutes();
+
+        /* Reset search term use counts weekly to keep trending fresh */
+        $schedule->command('search:reset-trending')->weekly();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         \Sentry\Laravel\Integration::handles($exceptions);

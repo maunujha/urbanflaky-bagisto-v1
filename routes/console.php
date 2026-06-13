@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Foundation\Inspiring;
-use Illuminate\Support\Facades\Artisan;
-
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
+/*
+ * Closure-based Artisan commands are registered here. Application command
+ * classes live in app/Console/Commands; scheduled tasks are wired in
+ * bootstrap/app.php via withSchedule().
+ */
