@@ -96,7 +96,7 @@ class ThemeCustomizationRepository extends Repository
 
         $storeImage = function ($file) use ($theme) {
             $path = 'theme/'.$theme->id.'/'.Str::random(40).'.webp';
-            $encoded = image_manager()->read($file)->encodeByExtension('webp');
+            $encoded = image_manager()->read($file)->encodeByExtension('webp', quality: webp_quality());
             Storage::put($path, (string) $encoded);
 
             return 'storage/'.$path;

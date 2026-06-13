@@ -15,25 +15,33 @@
         >
         </div>
 
-        <img
-            v-bind="$attrs"
-            :data-src="src"
-            :id="'image-' + $.uid"
-            decoding="async"
-            @load="onLoad"
+        <!--
+            WebP with original-format fallback: `src`/`srcset` carry the .webp
+            URLs; `fallback` (when provided) is the same-basename JPG/PNG kept
+            at upload time. Browsers without WebP support skip the <source>.
+        -->
+        <picture
+            v-if="shouldLoad"
             v-show="! isLoading"
-            v-if="lazy"
         >
+            <source
+                type="image/webp"
+                :srcset="srcset || src"
+                :sizes="sizes || null"
+                v-if="hasFallback"
+            >
 
-        <img
-            v-bind="$attrs"
-            :data-src="src"
-            :id="'image-' + $.uid"
-            decoding="async"
-            @load="onLoad"
-            v-else
-            v-show="! isLoading"
-        >
+            <img
+                v-bind="$attrs"
+                :src="hasFallback ? fallback : src"
+                :srcset="hasFallback ? null : (srcset || null)"
+                :sizes="hasFallback ? null : (sizes || null)"
+                :id="'image-' + $.uid"
+                decoding="async"
+                @load="onLoad"
+                v-on:error="onLoad" {{-- NOT @error: that is a Blade directive --}}
+            >
+        </picture>
     </script>
 
     <script type="module">
@@ -50,34 +58,55 @@
                     type: String,
                     default: '',
                 },
+
+                srcset: {
+                    type: String,
+                    default: '',
+                },
+
+                sizes: {
+                    type: String,
+                    default: '',
+                },
+
+                fallback: {
+                    type: String,
+                    default: '',
+                },
             },
 
             data() {
                 return {
                     isLoading: true,
+
+                    shouldLoad: ! this.lazy,
                 };
             },
 
-            mounted() {
-                let self = this;
+            computed: {
+                hasFallback() {
+                    return this.fallback !== '' && this.fallback !== this.src;
+                },
+            },
 
+            mounted() {
                 if (! this.lazy) {
                     return;
                 }
 
-                let lazyImageObserver = new IntersectionObserver(function(entries, observer) {
-                    entries.forEach(function(entry) {
-                        if (entry.isIntersecting) {
-                            let lazyImage = document.getElementById('image-' + self.$.uid);
-
-                            lazyImage.src = lazyImage.dataset.src;
-
-                            lazyImageObserver.unobserve(lazyImage);
+                let observer = new IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (! entry.isIntersecting) {
+                            return;
                         }
-                    });
-                });
 
-                lazyImageObserver.observe(document.getElementById('image-shimmer-' + this.$.uid));
+                        this.shouldLoad = true;
+
+                        observer.disconnect();
+                    });
+                }, { rootMargin: '200px' });
+
+                observer.observe(document.getElementById('image-shimmer-' + this.$.uid));
             },
 
             methods: {

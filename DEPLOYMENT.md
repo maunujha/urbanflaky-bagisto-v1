@@ -11,6 +11,8 @@ deploy script repeats on each release.
 - PHP 8.3+ with extensions: `gd`, `intl`, `mbstring`, `pdo_mysql`, `curl`,
   `openssl`, **`redis` (phpredis)** — phpredis is required because
   `REDIS_CLIENT=phpredis`; predis (pure PHP) is measurably slower.
+- GD must be compiled **with WebP support** (`php -r "var_dump(gd_info()['WebP Support']);"`
+  must print `true`) — every image upload is converted to WebP at quality 85.
 - MySQL 8, Redis 7, Nginx, Composer 2, Node 20 (build only).
 - OPcache enabled and tuned for deploys:
 
@@ -108,6 +110,7 @@ composer install --no-dev --optimize-autoloader
 npm ci && npm run build                  # repeat inside packages/Webkul/Shop and Admin if themes changed
 php artisan storage:link
 php artisan migrate --force
+php artisan webp:convert --fallbacks   # WebP siblings for any JPG/PNG + JPEG fallbacks for WebP-only images
 php artisan config:cache && php artisan route:cache && php artisan event:cache
 php artisan view:clear                   # NOT view:cache (Windows dev habit carries no benefit here either; lazy-compile is fine)
 ```

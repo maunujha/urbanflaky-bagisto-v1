@@ -55,11 +55,14 @@ class ProductMediaRepository extends Repository
             foreach ($data[$uploadFileType]['files'] as $indexOrModelId => $file) {
                 if ($file instanceof UploadedFile) {
                     if (Str::contains($file->getMimeType(), 'image')) {
-                        $encoded = image_manager()->read($file)->encodeByExtension('webp');
+                        $encoded = image_manager()->read($file)->encodeByExtension('webp', quality: webp_quality());
 
                         $path = $this->getProductDirectory($product).'/'.Str::random(40).'.webp';
 
                         Storage::put($path, (string) $encoded);
+
+                        /* Keep the original as a <picture> fallback for non-WebP browsers. */
+                        webp_store_fallback($file, $path);
                     } else {
                         $path = $file->store($this->getProductDirectory($product));
                     }
@@ -87,7 +90,7 @@ class ProductMediaRepository extends Repository
                 continue;
             }
 
-            Storage::delete($model->path);
+            Storage::delete([$model->path, ...webp_sibling_paths($model->path)]);
 
             $this->delete($indexOrModelId);
         }

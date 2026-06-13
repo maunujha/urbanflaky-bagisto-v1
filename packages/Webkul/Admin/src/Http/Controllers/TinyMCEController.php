@@ -95,6 +95,21 @@ class TinyMCEController extends Controller
 
         $this->sanitizeSVG($path, $mimeType);
 
+        /*
+         * Auto-generate a WebP sibling for JPG/PNG uploads. RTE content keeps
+         * embedding the original URL; the storefront wraps it in <picture>
+         * with this .webp as the preferred <source> (see webp_picture_html()).
+         */
+        if (in_array($mimeType, ['image/jpeg', 'image/jpg', 'image/png'])) {
+            try {
+                $encoded = image_manager()->read($file)->encodeByExtension('webp', quality: webp_quality());
+
+                Storage::put(preg_replace('/\.[^.\/]+$/', '.webp', $path), (string) $encoded);
+            } catch (\Exception $e) {
+                report($e);
+            }
+        }
+
         return [
             'file' => $path,
             'file_name' => $file->getClientOriginalName(),

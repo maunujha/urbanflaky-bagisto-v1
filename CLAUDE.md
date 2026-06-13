@@ -5,7 +5,7 @@
 - **Stack**: Bagisto 2.4.x · Laravel 12 · PHP 8.3+ · Vue 3 · Tailwind 3 · Vite 5
 - **Shell**: PowerShell (Windows 11) — use PowerShell syntax in all terminal commands
 - **After any change**: `php artisan optimize:clear` · blade ParseError → `php artisan view:clear`
-- **Blade**: `@context` in JSON-LD → escape as `@@context` inside any `.blade.php` file
+- **Blade**: `@context` in JSON-LD → escape as `@@context` inside any `.blade.php` file · Vue `@error` handlers → write `v-on:error` (`@error` is a Blade directive and breaks compilation)
 - **Locale**: only `en` is active — never add translations for other locales
 - **Git**: remote `https://github.com/maunujha/urbanflaky-bagisto-v1.git` · branch `dev`
 

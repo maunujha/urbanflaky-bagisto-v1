@@ -130,12 +130,25 @@ class ProductImage
             ];
         }
 
-        return [
+        $urls = [
             'small_image_url' => url('cache/small/'.$path),
             'medium_image_url' => url('cache/medium/'.$path),
             'large_image_url' => url('cache/large/'.$path),
             'original_image_url' => url('cache/original/'.$path),
         ];
+
+        /*
+         * WebP uploads keep their original JPG/PNG next to them (same
+         * basename). Expose it so storefront <picture> tags can offer a
+         * non-WebP fallback; the cache route serves it in its source format.
+         */
+        if ($fallbackPath = webp_fallback_path($path)) {
+            $urls['small_image_fallback_url'] = url('cache/small/'.$fallbackPath);
+            $urls['medium_image_fallback_url'] = url('cache/medium/'.$fallbackPath);
+            $urls['large_image_fallback_url'] = url('cache/large/'.$fallbackPath);
+        }
+
+        return $urls;
     }
 
     /**

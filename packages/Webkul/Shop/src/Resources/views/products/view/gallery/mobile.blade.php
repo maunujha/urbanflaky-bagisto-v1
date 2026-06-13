@@ -51,11 +51,19 @@
                     </template>
 
                     <template v-else>
-                        <img
-                            class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
-                            :src="media.large_image_url"
-                            :alt="media.large_image_url"
-                        />
+                        <picture>
+                            <source
+                                type="image/webp"
+                                :srcset="media.large_image_url"
+                                v-if="media.large_image_fallback_url"
+                            >
+
+                            <img
+                                class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
+                                :src="media.large_image_fallback_url || media.large_image_url"
+                                :alt="media.large_image_url"
+                            />
+                        </picture>
                     </template>
                 </div>
             </div>

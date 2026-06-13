@@ -74,7 +74,7 @@ class BlogRepository extends Repository
                         Storage::delete($blog->image);
                     }
 
-                    $encoded = image_manager()->read(request()->file($file))->encodeByExtension('webp');
+                    $encoded = image_manager()->read(request()->file($file))->encodeByExtension('webp', quality: webp_quality());
 
                     $blog->image = 'blog/'.$blog->id.'/'.Str::random(40).'.webp';
 

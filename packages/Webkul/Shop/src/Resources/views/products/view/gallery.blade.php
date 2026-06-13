@@ -42,7 +42,9 @@
                     baseFile: {
                         type: '',
 
-                        path: ''
+                        path: '',
+
+                        fallback: '',
                     },
 
                     activeIndex: 0,
@@ -60,6 +62,8 @@
 
                         if (JSON.stringify(newImages) !== JSON.stringify(oldImages) && selectedImage?.large_image_url) {
                             this.baseFile.path = selectedImage.large_image_url;
+
+                            this.baseFile.fallback = selectedImage.large_image_fallback_url || '';
                         }
                     },
                 },
@@ -95,6 +99,8 @@
                     this.baseFile.type = 'image';
 
                     this.baseFile.path = this.media.images[0].large_image_url;
+
+                    this.baseFile.fallback = this.media.images[0].large_image_fallback_url || '';
                 } else if (this.media.videos.length) {
 
                     this.baseFile.type = 'video';
@@ -115,9 +121,11 @@
                     if (first.type === 'videos') {
                         this.baseFile.type = 'video';
                         this.baseFile.path = first.video_url;
+                        this.baseFile.fallback = '';
                     } else {
                         this.baseFile.type = 'image';
                         this.baseFile.path = first.large_image_url;
+                        this.baseFile.fallback = first.large_image_fallback_url || '';
                     }
                 });
             },
@@ -155,11 +163,15 @@
 
                         this.baseFile.path = media.video_url;
 
+                        this.baseFile.fallback = '';
+
                         this.onMediaLoad();
                     } else {
                         this.baseFile.type = 'image';
 
                         this.baseFile.path = media.large_image_url;
+
+                        this.baseFile.fallback = media.large_image_fallback_url || '';
                     }
 
                     if (index > this.activeIndex) {

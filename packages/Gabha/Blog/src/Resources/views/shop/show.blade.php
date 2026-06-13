@@ -150,7 +150,7 @@
 
             {{-- Content (RTE wrapper restores typography on the dark theme) --}}
             <div class="uf-rte text-uf-muted">
-                {!! $blog->content !!}
+                {!! webp_picture_html($blog->content) !!}
             </div>
 
             {{-- Back to blog --}}

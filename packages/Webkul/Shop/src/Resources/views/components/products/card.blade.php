@@ -29,6 +29,7 @@
                             ${currentImage.medium_image_url} 300w,
                         `"
                         sizes="(max-width: 768px) 150px, (max-width: 1200px) 300px, 600px"
+                        ::fallback="currentImage.medium_image_fallback_url"
                         ::key="`${product.id}-${currentImage.medium_image_url}`"
                         ::index="product.id"
                         width="291"
@@ -322,11 +323,19 @@
                         <div class="uf-qv-grid">
                             <!-- Image -->
                             <div class="uf-qv-image flex items-center justify-center overflow-hidden bg-black">
-                                <img
-                                    :src="currentImage.large_image_url || currentImage.medium_image_url"
-                                    :alt="product.name"
-                                    class="h-full w-full object-cover"
-                                />
+                                <picture>
+                                    <source
+                                        type="image/webp"
+                                        :srcset="currentImage.large_image_url || currentImage.medium_image_url"
+                                        v-if="currentImage.large_image_fallback_url"
+                                    >
+
+                                    <img
+                                        :src="currentImage.large_image_fallback_url || currentImage.large_image_url || currentImage.medium_image_url"
+                                        :alt="product.name"
+                                        class="h-full w-full object-cover"
+                                    />
+                                </picture>
                             </div>
 
                             <!-- Info -->
@@ -419,6 +428,7 @@
                     <x-shop::media.images.lazy
                         class="after:content-[' '] relative min-w-[250px] bg-zinc-100 transition-all duration-300 after:block after:pb-[calc(100%+9px)] group-hover:scale-105"
                         ::src="product.base_image.medium_image_url"
+                        ::fallback="product.base_image.medium_image_fallback_url"
                         ::key="product.id"
                         ::index="product.id"
                         width="291"

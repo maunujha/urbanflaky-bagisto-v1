@@ -31,13 +31,20 @@
                         :aria-label="category.name"
                     >
                         <div class="uf-cat-card-image">
-                            <img
-                                v-if="category.logo?.original_image_url"
-                                :src="category.logo.original_image_url"
-                                :alt="category.name"
-                                loading="lazy"
-                                decoding="async"
-                            />
+                            <picture v-if="category.logo?.original_image_url">
+                                <source
+                                    type="image/webp"
+                                    :srcset="category.logo.original_image_url"
+                                    v-if="category.logo.original_image_fallback_url"
+                                >
+
+                                <img
+                                    :src="category.logo.original_image_fallback_url || category.logo.original_image_url"
+                                    :alt="category.name"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
+                            </picture>
                         </div>
 
                         <div class="uf-cat-content">

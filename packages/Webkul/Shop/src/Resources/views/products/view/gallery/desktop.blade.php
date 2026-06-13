@@ -32,16 +32,23 @@
                     />
                 </video>
 
-                <img
-                    v-else
-                    :class="`transparent max-h-[100px] min-w-[100px] cursor-pointer rounded-md border ${isActiveMedia(index) ? 'pointer-events-none border border-navyBlue' : 'border-white'}`"
-                    :src="media.small_image_url"
-                    alt="{{ $product->name }}"
-                    width="100"
-                    height="100"
-                    tabindex="0"
-                    @click="change(media, index)"
-                />
+                <picture v-else>
+                    <source
+                        type="image/webp"
+                        :srcset="media.small_image_url"
+                        v-if="media.small_image_fallback_url"
+                    >
+
+                    <img
+                        :class="`transparent max-h-[100px] min-w-[100px] cursor-pointer rounded-md border ${isActiveMedia(index) ? 'pointer-events-none border border-navyBlue' : 'border-white'}`"
+                        :src="media.small_image_fallback_url || media.small_image_url"
+                        alt="{{ $product->name }}"
+                        width="100"
+                        height="100"
+                        tabindex="0"
+                        @click="change(media, index)"
+                    />
+                </picture>
             </template>
         </div>
 
@@ -69,18 +76,25 @@
         class="max-h-[610px] max-w-[560px]"
         v-show="! isMediaLoading"
     >
-        <img
-            class="min-w-[450px] cursor-pointer rounded-md"
-            :src="baseFile.path"
-            v-if="baseFile.type == 'image'"
-            alt="{{ $product->name }}"
-            width="560"
-            height="610"
-            tabindex="0"
-            @click="isImageZooming = !isImageZooming"
-            @load="onMediaLoad()"
-            fetchpriority="high"
-        />
+        <picture v-if="baseFile.type == 'image'">
+            <source
+                type="image/webp"
+                :srcset="baseFile.path"
+                v-if="baseFile.fallback"
+            >
+
+            <img
+                class="min-w-[450px] cursor-pointer rounded-md"
+                :src="baseFile.fallback || baseFile.path"
+                alt="{{ $product->name }}"
+                width="560"
+                height="610"
+                tabindex="0"
+                @click="isImageZooming = !isImageZooming"
+                @load="onMediaLoad()"
+                fetchpriority="high"
+            />
+        </picture>
 
         <div
             class="min-w-[450px] cursor-pointer rounded-md"

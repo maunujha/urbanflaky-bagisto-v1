@@ -242,21 +242,24 @@ class CategoryRepository extends Repository
 
                 if (request()->hasFile($file)) {
                     if ($category->{$type}) {
-                        Storage::delete($category->{$type});
+                        Storage::delete([$category->{$type}, ...webp_sibling_paths($category->{$type})]);
                     }
 
-                    $encoded = image_manager()->read(request()->file($file))->encodeByExtension('webp');
+                    $encoded = image_manager()->read(request()->file($file))->encodeByExtension('webp', quality: webp_quality());
 
                     $category->{$type} = 'category/'.$category->id.'/'.Str::random(40).'.webp';
 
                     Storage::put($category->{$type}, (string) $encoded);
+
+                    /* Keep the original as a <picture> fallback for non-WebP browsers. */
+                    webp_store_fallback(request()->file($file), $category->{$type});
 
                     $category->save();
                 }
             }
         } else {
             if ($category->{$type}) {
-                Storage::delete($category->{$type});
+                Storage::delete([$category->{$type}, ...webp_sibling_paths($category->{$type})]);
             }
 
             $category->{$type} = null;
