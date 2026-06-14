@@ -26,8 +26,14 @@ deploy script repeats on each release.
 
 ## 2. Environment
 
-1. Copy `.env.production.example` → `.env`, fill **every** blank.
-2. `php artisan key:generate` — never reuse the dev APP_KEY.
+1. Copy `.env.production.example` → `.env`, fill **every** blank. **Never copy your dev
+   `.env`** — it ships `REDIS_CLIENT=predis` (predis is not installed → every Redis call
+   dies), a stale `REDIS_PASSWORD` (prod Redis has no auth → `NOAUTH`/`ERR` failures), and
+   `CACHE_DRIVER` (Laravel 12 only reads `CACHE_STORE`). All three silently break
+   cache/session/queue while the app still boots.
+2. `php artisan key:generate` — never reuse the dev APP_KEY. **Exception:** if the prod DB
+   was migrated from another install, keep that install's `APP_KEY` or encrypted columns
+   become unreadable.
 3. Non-negotiables (each one was an audit finding):
    - `APP_ENV=production`, `APP_DEBUG=false`, `LOG_LEVEL=warning`
    - `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`
@@ -45,9 +51,14 @@ deploy script repeats on each release.
 
 ## 3. Nginx vhost (hardening that dev does not have)
 
+**Copy the committed file — do not hand-roll it:** `deploy/nginx/urbanflaky.conf` is the
+canonical HTTP base. `sudo cp` it into `sites-available`, enable it, remove `default`, then
+`sudo certbot --nginx -d urbanflaky.in -d www.urbanflaky.in --redirect` rewrites it to add
+the `listen 443 ssl http2` block + the 80→443 redirect. The resulting vhost:
+
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl http2;                    # nginx ≥1.25.1: use a separate `http2 on;`
     server_name urbanflaky.in www.urbanflaky.in;
     root /var/www/urbanflaky/public;
     index index.php;
@@ -57,6 +68,11 @@ server {
 
     client_max_body_size 20m;
 
+    # Bagisto on-the-fly image resizer (Webkul\ImageCache). MUST be ABOVE the static
+    # regex — /cache/{size}/product/*.webp|jpg are DYNAMIC Laravel routes, not files.
+    # Omit it and every product image 404s while /storage originals still load fine.
+    location ^~ /cache/ { try_files $uri /index.php$is_args$args; }
+
     location / { try_files $uri $uri/ /index.php$is_args$args; }
 
     location ~ \.php$ {
@@ -64,14 +80,15 @@ server {
         fastcgi_pass unix:/run/php/php8.3-fpm.sock;
     }
 
-    # Static asset cache (Vite output is content-hashed)
+    # Static asset cache (Vite output is content-hashed; /storage originals served here too)
     location ~* \.(css|js|woff2?|jpg|jpeg|png|webp|svg|ico)$ {
+        try_files $uri =404;
         expires 30d;
         add_header Cache-Control "public, immutable";
         access_log off;
     }
 
-    location ~ /\. { deny all; }             # blocks .env, .git, .ht*
+    location ~ /\.(?!well-known).* { deny all; }   # block .env/.git/.ht*, allow ACME
 }
 
 server {                                      # force HTTPS
@@ -109,6 +126,15 @@ Scheduler cron (AWB sync 30min, coin expiry daily, trending-search reset):
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build                  # repeat inside packages/Webkul/Shop and Admin if themes changed
 php artisan storage:link
+
+# Media (storage/app/public — product/category/lookbook/tinymce images, ~84M) is GITIGNORED.
+# It is NOT in the repo and NOT in migrations — copy it from a working install or every
+# product image 404s. From the source machine (Git Bash works on Windows; no rsync needed):
+#   tar czf - -C storage/app/public . | ssh deploy@SERVER 'tar xzf - -C /var/www/urbanflaky/storage/app/public'
+# Then on the server, match the rest of storage:
+#   sudo chown -R deploy:www-data storage/app/public && sudo chmod -R 775 storage/app/public \
+#     && sudo find storage/app/public -type d -exec chmod 2775 {} +
+
 php artisan migrate --force
 php artisan webp:convert --fallbacks   # WebP siblings for any JPG/PNG + JPEG fallbacks for WebP-only images
 php artisan config:cache && php artisan route:cache && php artisan event:cache
@@ -122,6 +148,11 @@ curl -sI https://urbanflaky.in            | head -1   # 200
 curl -sI https://urbanflaky.in/sitemap.xml| head -1   # 200, application/xml
 curl -s  https://urbanflaky.in/robots.txt | head -3
 curl -sI https://urbanflaky.in/admin/login| head -1   # 200
+
+# Product-image pipeline: a RESIZED variant must be 200 image/webp, NOT 404. This catches
+# both a missing storage/app/public copy AND a missing `location ^~ /cache/` nginx rule.
+P=$(php artisan tinker --execute="echo DB::table('product_images')->value('path');")
+curl -sI "https://urbanflaky.in/cache/medium/$P" | head -1   # 200, content-type image/webp
 ```
 
 ## 6. Per-release script
@@ -136,7 +167,7 @@ php artisan migrate --force
 php artisan optimize:clear
 php artisan config:cache && php artisan route:cache && php artisan event:cache
 php artisan responsecache:clear
-sudo supervisorctl restart urbanflaky-worker:
+sudo supervisorctl restart urbanflaky-worker:*
 sudo systemctl restart php8.3-fpm        # because opcache.validate_timestamps=0
 php artisan up
 ```
@@ -160,4 +191,6 @@ php artisan up
 - Rotate `SHIPROCKET_PASSWORD`, `SMSALERT_APIKEY`, `MAIL_PASSWORD`,
   Razorpay secrets ~quarterly and on any team change.
 - Database backups: nightly `mysqldump` + binlog, tested restore monthly.
+- Media backups: `storage/app/public` is **not in git** — back it up (rsync/tar) nightly
+  alongside the DB, or uploaded product images are unrecoverable after a rebuild.
 - `composer audit` in CI on every release; treat new advisories as blockers.
