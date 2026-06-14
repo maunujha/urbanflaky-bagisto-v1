@@ -68,5 +68,12 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perDay(15)->by('otp-phone:'.$phone),
             ];
         });
+
+        // Payment order-creation — each hit creates a Razorpay order via their API.
+        // Cap it so a script can't spam order->create (pollutes orders, can trip
+        // Razorpay's fraud monitoring). Keyed by customer when known, else IP.
+        RateLimiter::for('checkout', function ($request) {
+            return Limit::perMinute(15)->by($request->user('customer')?->id ?: $request->ip());
+        });
     }
 }

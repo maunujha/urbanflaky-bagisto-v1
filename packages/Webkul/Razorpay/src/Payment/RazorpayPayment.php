@@ -201,7 +201,7 @@ class RazorpayPayment extends Payment
         $api = $this->getApi();
 
         return $api->order->create([
-            'amount' => (int) ($cart->base_grand_total * 100),
+            'amount' => $this->toPaise($cart->base_grand_total),
             'currency' => $currency,
             'receipt' => self::RECEIPT_PREFIX.$cart->id,
             'payment_capture' => 1,
@@ -222,7 +222,7 @@ class RazorpayPayment extends Payment
     {
         return [
             'key' => $this->getApiKey(),
-            'amount' => (int) ($cart->base_grand_total * 100),
+            'amount' => $this->toPaise($cart->base_grand_total),
             'currency' => strtoupper($cart->base_currency_code ?? core()->getBaseCurrencyCode()),
             'name' => $this->getMerchantName(),
             'description' => $this->getMerchantDescription(),
@@ -256,5 +256,51 @@ class RazorpayPayment extends Payment
         $generatedSignature = hash_hmac('sha256', $expectedSignature, $this->getApiSecret());
 
         return hash_equals($generatedSignature, $signature);
+    }
+
+    /**
+     * Convert a rupee amount to integer paise.
+     *
+     * Always round() before casting — `(int) (55.10 * 100)` truncates to 5509
+     * because of float representation, undercharging by a paise and drifting from
+     * the snapshot. Round consistently everywhere money is converted.
+     *
+     * @param  mixed  $rupees
+     * @return int
+     */
+    public function toPaise($rupees): int
+    {
+        return (int) round((float) $rupees * 100);
+    }
+
+    /**
+     * Independently confirm with Razorpay's API that a payment is genuinely
+     * captured for the expected amount and currency.
+     *
+     * The redirect signature only proves the payment belongs to our order — it
+     * says nothing about capture state or amount. So the money facts are fetched
+     * server-side and re-checked here. Fail-closed: any lookup error or mismatch
+     * returns false rather than trusting the browser-supplied redirect params.
+     *
+     * @param  string  $paymentId
+     * @param  int  $expectedAmount  expected amount in paise
+     * @param  string  $expectedCurrency
+     * @return bool
+     */
+    public function isCapturedFor($paymentId, $expectedAmount, $expectedCurrency)
+    {
+        if (! $paymentId) {
+            return false;
+        }
+
+        try {
+            $payment = $this->getApi()->payment->fetch($paymentId);
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return ($payment['status'] ?? null) === 'captured'
+            && (int) ($payment['amount'] ?? -1) === (int) $expectedAmount
+            && strtoupper((string) ($payment['currency'] ?? '')) === strtoupper((string) $expectedCurrency);
     }
 }

@@ -140,6 +140,26 @@ class RazorpayController extends Controller
             return redirect()->route('shop.checkout.cart.index');
         }
 
+        /*
+         * Independently confirm with Razorpay's API that the payment is actually
+         * captured for the expected amount + currency. The signature proves the
+         * payment belongs to this order but not that money was captured for the
+         * right amount — never finalize on the redirect params alone. Fail-closed.
+         */
+        $expectedAmount = (int) session('razorpay_amount');
+
+        $currency = strtoupper($cart->base_currency_code ?? core()->getBaseCurrencyCode());
+
+        if (! $this->razorpayPayment->isCapturedFor(
+            (string) $request->input('razorpay_payment_id'),
+            $expectedAmount,
+            $currency
+        )) {
+            session()->flash('error', trans('razorpay::app.response.something-went-wrong'));
+
+            return redirect()->route('shop.checkout.cart.index');
+        }
+
         session()->forget(['razorpay_order_id', 'razorpay_cart_id', 'razorpay_amount']);
 
         return $this->handlePaymentSuccess($request, $cart);
@@ -316,6 +336,26 @@ class RazorpayController extends Controller
         /* Cart gone, or an order was already created for it (e.g. the redirect won the race). */
         if (! $cart || Order::where('cart_id', $cartId)->exists()) {
             return response()->json(['message' => 'ok']);
+        }
+
+        /*
+         * The webhook body is signature-verified, so payment.entity.amount is
+         * trustworthy. Refuse to build an order if the captured amount no longer
+         * matches the cart total (the cart drifted after the Razorpay order was
+         * created) — log for manual reconciliation rather than mischarge.
+         */
+        $paidAmount     = (int) ($paymentEntity['amount'] ?? 0);
+        $expectedAmount = $this->razorpayPayment->toPaise($cart->base_grand_total);
+
+        if ($paidAmount > 0 && $paidAmount !== $expectedAmount) {
+            Log::warning('Razorpay webhook: captured amount does not match cart total; order not created.', [
+                'cart_id'    => $cartId,
+                'expected'   => $expectedAmount,
+                'paid'       => $paidAmount,
+                'payment_id' => $rpPaymentId,
+            ]);
+
+            return response()->json(['message' => 'amount mismatch'], 200);
         }
 
         try {
