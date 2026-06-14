@@ -6,6 +6,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\GoogleProvider;
 use Webkul\Customer\Repositories\CustomerGroupRepository;
 use Webkul\Customer\Repositories\CustomerRepository;
 use Webkul\Shop\Http\Controllers\Controller;
@@ -18,11 +19,26 @@ class GoogleController extends Controller
     ) {}
 
     /**
+     * Google OAuth provider built straight from config/services.php.
+     *
+     * We deliberately do NOT use Socialite::driver('google'): the bundled
+     * Webkul\SocialLogin package overrides the Socialite Factory and its
+     * createGoogleDriver() always reads admin (core_config) creds — never
+     * services.google — so the shared driver ignores GOOGLE_CLIENT_ID/.env.
+     * buildProvider() is the same call that manager uses internally; it just
+     * lets us feed our own config and keep .env as the single source of truth.
+     */
+    protected function googleProvider(): GoogleProvider
+    {
+        return Socialite::buildProvider(GoogleProvider::class, config('services.google'));
+    }
+
+    /**
      * Redirect to Google OAuth page.
      */
     public function redirect(): RedirectResponse
     {
-        return Socialite::driver('google')->redirect();
+        return $this->googleProvider()->redirect();
     }
 
     /**
@@ -31,7 +47,7 @@ class GoogleController extends Controller
     public function callback(): RedirectResponse
     {
         try {
-            $googleUser = Socialite::driver('google')->user();
+            $googleUser = $this->googleProvider()->user();
         } catch (\Exception $e) {
             session()->flash('error', 'Google login failed. Please try again.');
 
