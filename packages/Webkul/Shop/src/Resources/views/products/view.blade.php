@@ -365,7 +365,7 @@
             <button
                 id="sticky-atc-btn"
                 type="button"
-                class="flex flex-shrink-0 items-center gap-2 rounded-md bg-gradient-to-b from-[#d4ef4f] to-[#a9da1e] px-6 py-3 text-sm font-bold text-black transition hover:brightness-105 max-sm:px-4 max-sm:py-2 max-sm:text-xs"
+                class="flex min-h-11 flex-shrink-0 items-center gap-2 rounded-md bg-gradient-to-b from-[#d4ef4f] to-[#a9da1e] px-6 py-3 text-sm font-bold text-black transition hover:brightness-105 max-sm:px-4 max-sm:py-2.5 max-sm:text-xs"
             >
                 <span class="icon-cart text-lg max-sm:hidden"></span>
                 Add to Cart
@@ -420,7 +420,7 @@
 
                                     @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
                                         <div
-                                            class="flex max-h-[44px] min-h-[44px] min-w-[44px] max-sm:max-h-9 max-sm:min-h-9 max-sm:min-w-9 cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white backdrop-blur-md transition-all hover:border-[#c7eb31] hover:bg-[#c7eb31] hover:text-black max-sm:text-base"
+                                            class="flex max-h-[44px] min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white backdrop-blur-md transition-all hover:border-[#c7eb31] hover:bg-[#c7eb31] hover:text-black max-sm:text-lg"
                                             role="button"
                                             aria-label="@lang('shop::app.products.view.add-to-wishlist')"
                                             tabindex="0"
@@ -503,7 +503,7 @@
 
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
-                                <div class="uf-rte mt-6 text-md text-zinc-300 max-sm:mt-1.5 max-sm:text-sm">
+                                <div class="uf-rte mt-6 text-md text-zinc-300 max-sm:mt-4 max-sm:text-sm">
                                     {!! $product->short_description !!}
                                 </div>
 
@@ -532,7 +532,7 @@
                                         <x-shop::quantity-changer
                                             name="quantity"
                                             value="1"
-                                            class="gap-x-4 rounded-xl px-7 py-4 max-md:py-3 max-sm:gap-x-5 max-sm:rounded-lg max-sm:px-4 max-sm:py-1.5"
+                                            class="shrink-0 gap-x-4 rounded-xl px-5 py-2 max-md:py-1.5 max-sm:gap-x-1 max-sm:rounded-lg max-sm:px-2 max-sm:py-1"
                                         />
                                     @endif
 
@@ -544,7 +544,7 @@
 
                                         <x-shop::button
                                             type="submit"
-                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
                                             button-type="secondary-button"
                                             :loading="false"
                                             :title="trans('shop::app.products.view.add-to-cart')"
@@ -558,7 +558,7 @@
                                     @else
                                         <button
                                             type="button"
-                                            class="secondary-button w-full max-w-full max-md:py-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
                                             @click="$refs.contactUsModal.open()"
                                         >
                                             @lang('shop::app.components.layouts.footer.contact-us')
@@ -573,7 +573,7 @@
                                     @if (core()->getConfigData('catalog.products.storefront.buy_now_button_display'))
                                         <x-shop::button
                                             type="submit"
-                                            class="primary-button mt-4 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-1.5"
+                                            class="primary-button mt-4 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-3.5"
                                             button-type="primary-button"
                                             ::title="buyNowLabel"
                                             ::loading="isStoring.buyNow"
@@ -890,7 +890,7 @@
                         <div class="mt-6 flex justify-end">
                             <button
                                 type="submit"
-                                class="primary-button rounded-2xl px-8 py-3 max-sm:rounded-lg max-sm:px-6 max-sm:py-2"
+                                class="primary-button rounded-2xl px-8 py-3 max-sm:rounded-lg max-sm:px-6 max-sm:py-3"
                             >
                                 @lang('shop::app.products.view.contact-us.submit')
                             </button>

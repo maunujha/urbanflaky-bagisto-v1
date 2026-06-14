@@ -51,6 +51,15 @@ class ProductResource extends JsonResource
                 ->where('channel_id', core()->getCurrentChannel()->id)
                 ->where('product_id', $this->id)->count(),
             'min_price' => core()->formatPrice($productTypeInstance->getMinimalPrice()),
+            'regular_price' => core()->formatPrice($productTypeInstance->getRegularMinimalPrice()),
+            'discount_percentage' => (function () use ($productTypeInstance) {
+                $regular = $productTypeInstance->getRegularMinimalPrice();
+                $final = $productTypeInstance->getMinimalPrice();
+
+                return ($regular > 0 && $final < $regular)
+                    ? (int) round((($regular - $final) / $regular) * 100)
+                    : null;
+            })(),
             'prices' => $productTypeInstance->getProductPrices(),
             'price_html' => $productTypeInstance->getPriceHtml(),
             'ratings' => [

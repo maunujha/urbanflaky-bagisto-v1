@@ -265,12 +265,14 @@ body::after {
     user-select: none;
 }
 
-/* Content (label + CTA) — bottom-left aligned per reference */
+/* Content (label + CTA) — bottom-left aligned per reference.
+   Base values are the MOBILE sizes (cards are ~70vw wide there); desktop
+   scales back up via the ≥768px overrides below. */
 .uf-cat-content {
     position: absolute;
-    left: 22px;
-    right: 22px;
-    bottom: 22px;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
     z-index: 3;
     text-align: left;
     pointer-events: none;
@@ -283,12 +285,12 @@ body::after {
     display: block;
     font-family: 'Poppins', sans-serif;
     font-weight: 800;
-    font-size: 22px;
-    letter-spacing: 4px;
+    font-size: 17px;
+    letter-spacing: 2.5px;
     text-transform: uppercase;
     color: #fff;
     line-height: 1;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     text-shadow: 0 2px 12px rgba(0, 0, 0, 0.65);
     transition: letter-spacing 0.4s ease;
 }
@@ -302,16 +304,18 @@ body::after {
 .uf-cat-cta {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-family: 'Poppins', sans-serif;
     font-weight: 600;
     font-size: 10px;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: #ffffff;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
     position: relative;
     padding-bottom: 4px;
+    /* never let "Explore Now" break onto two lines on narrow cards */
+    white-space: nowrap;
 }
 .uf-cat-cta::after {
     content: '';
@@ -775,12 +779,12 @@ body::after {
     .uf-card-content { padding: 12px 12px 14px; }
 }
 
-/* Mobile compact square "+" icon button */
+/* Mobile compact square "+" icon button — 40px so it's a comfortable thumb target */
 .uf-mobile-cart {
     display: none;
     align-items: center; justify-content: center;
     flex-shrink: 0;
-    width: 32px; height: 32px;
+    width: 40px; height: 40px;
     padding: 0;
     border-radius: 4px;
     background: #1a1a1a;
@@ -800,6 +804,17 @@ body::after {
 .uf-mobile-cart:disabled { opacity: .4; cursor: not-allowed; }
 @media (max-width: 1179px) {
     .uf-mobile-cart { display: inline-flex; }
+    /* Wishlist icon stays visually compact (34px — the mobile cards are narrow
+       and a bigger circle crowds the badge); the invisible ::after expands the
+       tap zone to ~48px. Only one icon shows on touch (quick-view is hidden),
+       so the expanded zone can't overlap a sibling. */
+    .uf-icon-btn { position: relative; }
+    .uf-icon-btn::after {
+        content: '';
+        position: absolute;
+        inset: -7px;
+        border-radius: 50%;
+    }
 }
 
 /* Free delivery / easy return strip — minimal subtle accent line */
@@ -906,10 +921,10 @@ body::after {
 }
 .uf-sheet-close {
     position: absolute;
-    top: -46px;
+    top: -50px;
     right: 14px;
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -932,8 +947,14 @@ body::after {
     transform: scale(1.05);
 }
 
-/* Guarantee bottom spacing below CTAs inside the sheet */
-.uf-sheet .uf-cta-row { margin-bottom: 28px; }
+/* Guarantee bottom spacing below CTAs inside the sheet (+ iPhone home indicator) */
+.uf-sheet .uf-cta-row { margin-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); }
+
+/* Inside the bottom sheet everything is operated by thumb — enforce 44px+ targets */
+.uf-sheet .uf-size-pill { min-width: 52px; height: 44px; font-size: 13px; }
+.uf-sheet .uf-color-dot { width: 28px; height: 28px; }
+.uf-sheet .uf-btn-atc,
+.uf-sheet .uf-btn-buy { min-height: 48px; font-size: 13px; }
 @keyframes uf-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes uf-sheet-up   { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
@@ -1053,10 +1074,17 @@ body::after {
     .uf-prod-viewall-inline { display: inline-flex; }
 }
 
-/* Horizontal product strip */
+/* Horizontal product strip — TWO rows, scrolls horizontally one column at a time.
+   grid-auto-flow:column fills row1+row2 of each column before moving to the next,
+   so cards stack in pairs. Card width is set via grid-auto-columns per breakpoint. */
 .uf-prod-strip {
-    display: flex;
-    gap: 20px;
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    grid-auto-columns: calc((100% - 20px) / 2);
+    column-gap: 20px;
+    row-gap: 22px;
+    align-items: start;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
@@ -1065,20 +1093,23 @@ body::after {
     padding: 4px 4px 8px;
 }
 .uf-prod-strip::-webkit-scrollbar { display: none; }
-.uf-prod-strip > .uf-product-card { scroll-snap-align: start; flex-shrink: 0; }
+.uf-prod-strip > .uf-product-card { scroll-snap-align: start; }
 
 @media (min-width: 1024px) {
-    .uf-prod-strip { gap: 24px; }
-    .uf-prod-strip > .uf-product-card {
-        flex: 0 0 calc((100% - 72px) / 4);
+    .uf-prod-strip {
+        column-gap: 24px;
+        grid-auto-columns: calc((100% - 72px) / 4);
     }
 }
 @media (min-width: 525px) and (max-width: 1023px) {
-    .uf-prod-strip > .uf-product-card { flex: 0 0 calc((100% - 20px) / 2); }
+    .uf-prod-strip { grid-auto-columns: calc((100% - 20px) / 2); }
 }
 @media (max-width: 524px) {
-    .uf-prod-strip { gap: 12px; }
-    .uf-prod-strip > .uf-product-card { flex: 0 0 42%; }
+    .uf-prod-strip {
+        column-gap: 10px;
+        row-gap: 16px;
+        grid-auto-columns: 47%;
+    }
 }
 
 /* "View All" CTA button under strip (desktop) */
@@ -1292,6 +1323,8 @@ body::after {
     transform: translateY(100%);
     transition: transform 0.3s ease-in-out;
     z-index: 1000;
+    /* keep the CTA above the iPhone home indicator */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ── Recently Viewed (JS-injected into #main on the product page) ── */
@@ -1422,18 +1455,17 @@ body::after {
     align-items: center;
     justify-content: space-between;
     height: 56px;
-    padding: 0 12px;
+    padding: 0 16px;
     gap: 8px;
 }
 
 .mh-left  { display: flex; align-items: center; gap: 10px; }
-.mh-right { display: flex; align-items: center; gap: 4px; }
+.mh-right { display: flex; align-items: center; gap: 8px; }
 
-/* Logo — sits on the left after the hamburger, with 10px gap */
+/* Logo — sits on the left after the hamburger, with 10px gap (from .mh-left's gap) */
 .mh-logo {
     display: inline-flex;
     align-items: center;
-    margin-left: 10px;
 }
 .mh-logo img {
     display: block;
@@ -1442,10 +1474,11 @@ body::after {
     height: auto;
 }
 
-/* Icon button — used for the search + account anchors/buttons that we control directly */
+/* Icon button — used for the search + account anchors/buttons that we control directly.
+   40px box (header bar is 56px) so each icon is a real touch target. */
 .mh-icon-btn {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1476,6 +1509,8 @@ body::after {
 .mh-right .icon-cart {
     font-size: 24px;
     line-height: 1;
+    width: 40px;
+    height: 40px;
     padding: 2px 0px 0;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -1706,11 +1741,20 @@ body.mh-search-locked { overflow: hidden; }
     height: 4px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.4);
-    overflow: hidden;
     cursor: pointer;
     position: relative;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.15s ease;
+}
+/* Invisible expanded hit area — the visible bar stays 4px thin but the
+   tappable zone reaches ~28px tall for thumbs (overflow stays visible). */
+.uf-hero-bar::after {
+    content: '';
+    position: absolute;
+    top: -12px;
+    bottom: -12px;
+    left: -2px;
+    right: -2px;
 }
 @media (max-width: 640px) {
     .uf-hero-bar { width: 22px; }
@@ -1720,6 +1764,7 @@ body.mh-search-locked { overflow: hidden; }
 .uf-hero-bar-fill {
     position: absolute;
     inset: 0;
+    border-radius: 4px;
     background: #ffffff;
     transform-origin: left;
     transform: scaleX(0);
@@ -1993,7 +2038,8 @@ body.mh-search-locked { overflow: hidden; }
     }
     .uf-nl-sub{    font-size: 12px;}
     .uf-nl-form{display: inline-block;}
-    .uf-nl-form button{padding: 9px 10px;font-weight: 600;font-size: 16px; width: 100%;}
+    .uf-nl-form button{padding: 13px 10px;font-weight: 600;font-size: 16px; width: 100%;}
+    .uf-nl-form input{padding: 13px 16px;}
 }
 
 /* Newsletter AJAX feedback */
@@ -2876,4 +2922,230 @@ body.mh-search-locked { overflow: hidden; }
     .uf-rte .wh-cta h2,
     .uf-rte .wh-section > h2 { font-size: 26px; }
     .uf-rte .wh-tagline { font-size: 18px; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Mobile usability — global fixes (CRO audit)
+   ════════════════════════════════════════════════════════════════════ */
+
+/* iOS Safari force-zooms the viewport when a focused control's font-size is
+   under 16px. Force 16px on all text-entry controls on phones so tapping
+   search, newsletter, filter or checkout fields never triggers the zoom-jump. */
+@media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Mobile Product Card — Redesign (≤767px only)
+   Desktop keeps the hover-drawer layout; these blocks are mobile-only.
+   Type scale: title 13px · price 15px · everything else < 13px.
+   Colors use the existing theme tokens (var(--uf-accent) etc.).
+   ════════════════════════════════════════════════════════════════════ */
+
+/* Mobile-only nodes — hidden on desktop, revealed inside the media query */
+.uf-mob-swatches,
+.uf-mob-price,
+.uf-mob-cta { display: none; }
+
+/* Brand eyebrow — hidden on every breakpoint (no reveal rule) */
+.uf-card-brand { display: none; }
+
+/* Color swatches overlaid on the image (sits over the photo) */
+.uf-mob-swatches {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    z-index: 3;
+    align-items: center;
+    gap: 4px;
+}
+.uf-mob-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.uf-mob-dot-active {
+    border-color: var(--uf-accent);
+    box-shadow: 0 0 0 2px rgba(199, 235, 49, 0.45), 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+.uf-mob-more {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(10, 10, 10, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+}
+
+@media (max-width: 767px) {
+    /* Rounded card + soft shadow per spec (16px radius) */
+    .uf-product-card {
+        border-radius: 5px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }
+    .uf-card-content { padding: 8px; }
+
+    /* Hide the desktop price row, the "+" button, the subtitle and the
+       ratings badge on mobile */
+    .uf-product-card .uf-card-price-row,
+    .uf-product-card .uf-card-subtitle,
+    .uf-product-card .uf-card-rating-badge { display: none !important; }
+
+    /* Reveal the mobile redesign blocks */
+    .uf-mob-swatches { display: flex; }
+    .uf-mob-price    { display: block; }
+    .uf-mob-cta      { display: flex; }
+
+    /* Brand eyebrow — 11px, subordinate to the title */
+    .uf-card-brand {
+        margin: 0 0 3px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 11px;
+        font-weight: 500;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+        color: var(--uf-muted);
+        line-height: 1;
+    }
+
+    /* Title — 12px, normal weight on mobile, two lines max */
+    .uf-card-name {
+        font-size: 12px;
+        font-weight: 400;
+        line-height: 1.35;
+        color: var(--uf-text);
+        margin-bottom: 5px;
+    }
+
+    /* "As low as" label — 10px accent */
+    .uf-mob-aslow {
+        margin: 0 0 1px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: .01em;
+        color: var(--uf-accent);
+        line-height: 1.2;
+        white-space: nowrap;
+    }
+
+    .uf-mob-price-row {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 2px;
+        margin-bottom: 6px;
+    }
+
+    /* Final / sale price — 14px, normal weight on mobile */
+    .uf-mob-final {
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        font-weight: 400;
+        color: var(--uf-white);
+        line-height: 1;
+    }
+
+    /* Original price — 11px strikethrough muted */
+    .uf-mob-regular {
+        font-family: 'Poppins', sans-serif;
+        font-size: 11px;
+        font-weight: 400;
+        color: var(--uf-muted);
+        text-decoration: line-through;
+        line-height: 1;
+    }
+
+    /* CTA buttons — stacked full-width (narrow mobile cards can't fit two
+       labelled buttons side-by-side without the text overflowing). */
+    .uf-mob-cta { flex-direction: column; gap: 6px; }
+    .uf-mob-atc,
+    .uf-mob-buy {
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        height: auto;
+        padding: 6px 8px;
+        border-radius: 4px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background .2s ease, color .2s ease, border-color .2s ease, transform .12s ease;
+    }
+    .uf-mob-atc svg,
+    .uf-mob-buy svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+    .uf-mob-atc {
+        background: transparent;
+        border: 1px solid var(--uf-accent);
+        color: var(--uf-accent);
+    }
+    .uf-mob-atc:active:not(:disabled) { transform: scale(.97); }
+
+    .uf-mob-buy {
+        background: var(--uf-accent);
+        border: 1.5px solid var(--uf-accent);
+        color: #0a0a0a;
+    }
+    .uf-mob-buy:active:not(:disabled) { transform: scale(.97); }
+
+    .uf-mob-atc:disabled,
+    .uf-mob-buy:disabled { opacity: .45; cursor: not-allowed; }
+
+    /* Wishlist circle — clean outline look per spec */
+    .uf-card-icons { top: 10px; right: 10px; }
+    .uf-icon-btn {
+        width: 18px;
+        height: 18px;
+        background: rgba(10, 10, 10, 0.35);
+        border-color: rgba(255, 255, 255, 0.55);
+        font-size: 12px;
+        top: -8px;
+        right: -10px;
+    }
+
+    /* SALE badge — dark chip + accent text (theme colors), matching the spec style */
+    .uf-badge {
+        top: 5px;
+        left: -1px;
+        border-radius: 0 2px 2px 0;
+        white-space: nowrap;
+        padding: 2px 5px;
+        border: none;
+        font-size: 7px;
+     }
+    .uf-badge-sale {
+        background: rgba(10, 10, 10, 0.6);
+        color: var(--uf-accent);
+        backdrop-filter: blur(8px);
+    }
+    .uf-img-wrap{
+        padding-bottom: 160.33%;
+    }
+    .uf-prod-section{
+            padding: 35px 5px 0;
+    }
 }

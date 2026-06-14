@@ -1,0 +1,539 @@
+/* ════════════════════════════════════════════════════════════════════
+   Urbanflaky — Auth (Sign in / Sign up · OTP) — Dark glassmorphism theme
+   Neon-green accent · split-screen fashion banner on the login page.
+   Class names are preserved so the existing JS hooks + sign-up page keep
+   working; only the visual layer changed.
+   ════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --su-accent: #c7eb31;
+    --su-accent-hover: #d4f04a;
+    --su-text: #f5f5f5;
+    --su-muted: #a1a1aa;
+    --su-dim: #71717a;
+    --su-line: rgba(255, 255, 255, 0.12);
+}
+
+/* ── Page shell ── */
+.su-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    box-sizing: border-box;
+    color: var(--su-text);
+    background:
+        radial-gradient(1100px 560px at 12% 8%, rgba(124, 58, 237, 0.20), transparent 58%),
+        radial-gradient(900px 520px at 92% 95%, rgba(199, 235, 49, 0.10), transparent 55%),
+        linear-gradient(135deg, #08080b 0%, #121019 38%, #18122e 72%, #140f24 100%);
+}
+
+.su-outer {
+    width: 100%;
+    max-width: 460px;
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Split-screen layout — applied via `.su-login-wrap` on the login page
+   ════════════════════════════════════════════════════════════════════ */
+.su-login-wrap {
+    position: relative;
+    padding: 0;
+    align-items: stretch;
+    justify-content: center;
+    overflow: hidden;
+    background: #0a0a0a;
+}
+/* Full-bleed fashion image across the whole screen */
+.su-login-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: url('/images/auth-banner.jpg') center/cover no-repeat;
+}
+/* Vignette + brand overlay — darker at the edges/bottom so the centered card and the
+   bottom-left brand text stay readable while the fashion image remains visible */
+.su-login-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+        linear-gradient(180deg, rgba(8, 8, 11, 0.10) 0%, rgba(8, 8, 11, 0.18) 45%, rgba(10, 9, 18, 0.78) 100%),
+        radial-gradient(1200px 760px at 50% 42%, transparent 0%, rgba(8, 8, 11, 0.42) 100%),
+        radial-gradient(760px 520px at 50% 50%, rgba(124, 58, 237, 0.18), transparent 62%);
+}
+.su-panel { position: relative; z-index: 2; }
+
+/* Brand text — sits as a bottom-left overlay over the image; the form box stays centered */
+.su-banner {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 1;
+    max-width: 540px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 56px;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+.su-brand-logo { height: 34px; width: auto; }
+
+.su-brand-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 18px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--su-accent);
+}
+.su-brand-eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--su-accent);
+}
+.su-brand-title {
+    margin: 0 0 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(34px, 3.4vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: #fff;
+}
+.su-brand-title span { color: var(--su-accent); }
+.su-brand-text {
+    margin: 0 0 26px;
+    max-width: 420px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: rgba(245, 245, 245, 0.78);
+}
+.su-brand-feats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+}
+.su-brand-feats span {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(245, 245, 245, 0.9);
+}
+.su-brand-feats span::before {
+    content: '';
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a0a0a' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center/11px no-repeat,
+        var(--su-accent);
+}
+
+/* Right · form panel */
+.su-panel {
+    flex: 1 1 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 22px;
+    padding: 48px 28px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+.su-panel-logo {
+    height: 30px;
+    width: auto;
+    display: none; /* shown only when banner is hidden (mobile) */
+}
+
+/* ── Glass card ── */
+.su-card {
+    width: 100%;
+    max-width: 448px;
+    box-sizing: border-box;
+    padding: 28px 38px 24px;
+    border-radius: 12px;
+    background: rgba(10, 10, 10, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    box-shadow:
+        0 30px 80px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    -webkit-backdrop-filter: blur(26px) saturate(125%);
+    backdrop-filter: blur(26px) saturate(125%);
+    animation: su-card-in .5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes su-card-in {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .su-card { animation: none; }
+}
+
+.su-logo-wrap { text-align: center; margin-bottom: 28px; }
+.su-logo-wrap img { height: 34px; width: auto; }
+
+/* Badge */
+.su-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 14px;
+    padding: 5px 14px;
+    border-radius: 4px;
+    background: rgba(199, 235, 49, 0.10);
+    border: 1px solid rgba(199, 235, 49, 0.30);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--su-accent);
+}
+
+/* Headings */
+.su-h1 {
+    margin: 0 0 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--su-text);
+}
+.su-sub {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: var(--su-muted);
+}
+.su-sub strong { color: var(--su-text); }
+
+/* Alerts */
+.su-error {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: rgba(248, 81, 86, 0.10);
+    border: 1px solid rgba(248, 81, 86, 0.32);
+    color: #f85156;
+    font-size: 13px;
+}
+.su-success {
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: rgba(199, 235, 49, 0.10);
+    border: 1px solid rgba(199, 235, 49, 0.32);
+    color: var(--su-accent);
+    font-size: 13px;
+}
+
+/* Labels */
+.su-label {
+    margin: 0 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e4e4e7;
+}
+.su-hint {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: var(--su-dim);
+}
+
+/* Name row (sign-up) */
+.su-name-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* Text inputs */
+.su-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px 16px;
+    border: 1.5px solid var(--su-line);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--su-text);
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.su-input::placeholder { color: var(--su-dim); }
+.su-input:focus {
+    border-color: var(--su-accent);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(199, 235, 49, 0.15);
+}
+
+/* Phone input */
+.su-phone-wrap {
+    display: flex;
+    overflow: hidden;
+    border: 1.5px solid var(--su-line);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    transition: border-color .15s, box-shadow .15s;
+}
+.su-phone-wrap:focus-within {
+    border-color: var(--su-accent);
+    box-shadow: 0 0 0 3px rgba(199, 235, 49, 0.15);
+}
+.su-phone-cc {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 0 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border-right: 1.5px solid var(--su-line);
+    font-size: 14px;
+    font-weight: 600;
+    color: #e4e4e7;
+    white-space: nowrap;
+}
+.su-phone-input {
+    flex: 1;
+    min-width: 0;
+    padding: 13px 16px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--su-text);
+    font-size: 14px;
+    font-family: inherit;
+}
+.su-phone-input::placeholder { color: var(--su-dim); }
+.su-phone-err {
+    display: none;
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: #fca5a5;
+}
+
+/* Primary button */
+.su-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 16px;
+    padding: 14px;
+    border: 1px solid var(--su-accent);
+    border-radius: 2px;
+    background: var(--su-accent);
+    color: #0a0a0a;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: background-color .15s, transform .2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .2s;
+}
+.su-btn:hover { background: var(--su-accent-hover); border-color: var(--su-accent-hover); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(199, 235, 49, 0.25); }
+.su-btn:active { transform: translateY(0); }
+
+/* Spinner (on accent button → dark) */
+.su-spin {
+    display: none;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 2px solid rgba(0, 0, 0, .25);
+    border-top-color: #0a0a0a;
+    border-radius: 50%;
+    animation: su-rotate .7s linear infinite;
+}
+@keyframes su-rotate { to { transform: rotate(360deg); } }
+
+/* OR divider */
+.su-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--su-dim);
+}
+.su-divider::before,
+.su-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.10);
+}
+
+/* Sign-in / create-account link */
+.su-signin {
+    margin: 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--su-muted);
+}
+.su-signin a {
+    color: var(--su-accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+.su-signin a:hover { text-decoration: underline; }
+
+/* OTP boxes */
+.otp-boxes {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 28px 0 0;
+}
+.otp-box {
+    width: 58px;
+    height: 64px;
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    text-align: center;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--su-text);
+    outline: none;
+    caret-color: transparent;
+    font-family: inherit;
+    transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.otp-box::placeholder { color: rgba(255, 255, 255, 0.16); }
+.otp-box:focus {
+    border-color: var(--su-accent);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(199, 235, 49, 0.15);
+}
+
+/* Resend row */
+.su-resend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 20px;
+    font-size: 13px;
+}
+.su-change-link {
+    color: var(--su-muted);
+    text-decoration: none;
+    transition: color .15s;
+}
+.su-change-link:hover { color: var(--su-accent); text-decoration: underline; }
+.su-countdown { color: var(--su-dim); }
+.su-countdown span { font-weight: 600; color: var(--su-accent); }
+.su-resend-btn {
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--su-accent);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.su-resend-btn:hover { color: var(--su-accent-hover); }
+
+/* Footer */
+.su-footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--su-dim);
+}
+
+/* Google button */
+.su-google-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 13px;
+    border: 1.5px solid var(--su-line);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.04);
+    color: #e4e4e7;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s, box-shadow .15s;
+}
+.su-google-btn:hover {
+    border-color: rgba(199, 235, 49, 0.35);
+    background: rgba(199, 235, 49, 0.06);
+    color: #fff;
+    box-shadow: 0 0 0 3px rgba(199, 235, 49, 0.10);
+    text-decoration: none;
+}
+.su-google-btn[disabled] { cursor: not-allowed; opacity: 0.5; }
+
+/* ── Responsive ── */
+/* Hide the bottom-left brand overlay on smaller screens so it never collides with
+   the centered form box (only shown where there's room to its side). */
+@media (max-width: 1199px) {
+    .su-banner { display: none; }
+}
+
+@media (max-width: 991px) {
+    /* On phones/tablets the wrap no longer needs to fill 100vh — its height
+       should hug the card so the photo doesn't stretch into empty space
+       above and below it. */
+    .su-login-wrap { min-height: auto; padding: 40px 16px; }
+    .su-panel {
+        min-height: auto;
+        padding: 0;
+        width: 100%;
+        max-width: 460px;
+    }
+
+    /* The banner photo is a wide 1920x934 shot with the subject on the
+       right third; `cover` centered on a narrow/tall viewport crops her
+       out entirely, leaving only the gray studio backdrop. Shift the
+       focal point right so she stays in frame on phones/tablets. */
+    .su-login-wrap::before { background-position: 80% center; }
+}
+
+@media (max-width: 767px) {
+    .su-card {
+        padding: 20px 18px 18px;
+        border-radius: 12px;
+    }
+    .su-h1 { font-size: 22px; }
+    .su-name-row { grid-template-columns: 1fr; }
+    .otp-boxes { gap: 10px; }
+    .otp-box { width: 52px; height: 58px; font-size: 24px; border-radius: 6px; }
+    .su-wrap { padding: 40px 12px; }
+    .su-badge { padding: 4px 11px; font-size: 11px; margin-bottom: 14px; }
+    .su-phone-cc { font-size: 13px; padding: 0 10px; }
+    .su-divider { font-size: 11px; margin: 18px 0; }
+    .su-google-btn { padding: 12px; font-size: 13px; }
+}

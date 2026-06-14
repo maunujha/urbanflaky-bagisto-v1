@@ -91,7 +91,7 @@
 
                 @if (core()->getConfigData('catalog.products.review.summary') == 'star_counts')
                     <x-shop::products.ratings
-                        class="absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
+                        class="uf-card-rating-badge absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
                         ::average="product.ratings.average"
                         ::total="product.ratings.total"
                         ::rating="false"
@@ -99,7 +99,7 @@
                     />
                 @else
                     <x-shop::products.ratings
-                        class="absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
+                        class="uf-card-rating-badge absolute bottom-2 items-center !border-white bg-white/80 !px-2 !py-1 text-xs ltr:left-2 rtl:right-2"
                         ::average="product.ratings.average"
                         ::total="product.reviews.total"
                         ::rating="false"
@@ -108,6 +108,30 @@
                 @endif
 
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.after') !!}
+
+                <!-- Mobile color swatches (bottom-left of image) -->
+                <div
+                    class="uf-mob-swatches"
+                    v-if="colorAttribute && colorAttribute.options && colorAttribute.options.length"
+                >
+                    <span
+                        v-for="opt in colorAttribute.options.slice(0, 3)"
+                        :key="opt.id"
+                        class="uf-mob-dot"
+                        :style="{ background: opt.swatch_value || '#ccc' }"
+                        :class="{ 'uf-mob-dot-active': selectedAttributes[colorAttribute.id] == opt.id }"
+                        :title="opt.label"
+                        @click.stop.prevent="selectAttribute(colorAttribute.id, opt.id)"
+                    ></span>
+
+                    <button
+                        type="button"
+                        class="uf-mob-more"
+                        v-if="colorAttribute.options.length > 3"
+                        aria-label="More colors"
+                        @click.stop.prevent="openVariantSheet()"
+                    >+@{{ colorAttribute.options.length - 3 }}</button>
+                </div>
             </div>
             <!-- /uf-img-wrap -->
 
@@ -115,6 +139,8 @@
             <div class="uf-card-content">
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.before') !!}
+
+                <p class="uf-card-brand">Urbanflaky</p>
 
                 <p class="uf-card-name">@{{ product.name }}</p>
 
@@ -140,6 +166,48 @@
                         ><span v-if="isAddingToCart">···</span><span v-else>+</span></button>
                     @endif
                 </div>
+
+                <!-- ── Mobile-only price block ── -->
+                <div class="uf-mob-price">
+                    <p class="uf-mob-aslow" v-if="isConfigurable">@lang('shop::app.products.prices.configurable.as-low-as')</p>
+
+                    <div class="uf-mob-price-row">
+                        <span class="uf-mob-final">@{{ product.min_price }}</span>
+                        <span class="uf-mob-regular" v-if="product.discount_percentage">@{{ product.regular_price }}</span>
+                    </div>
+                </div>
+
+                <!-- ── Mobile-only CTA buttons ── -->
+                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                    <div class="uf-mob-cta">
+                        <button
+                            type="button"
+                            class="uf-mob-atc"
+                            :disabled="! product.is_saleable || isAddingToCart"
+                            @click.stop.prevent="mobileCartClick()"
+                        >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                                <line x1="3" y1="6" x2="21" y2="6"/>
+                                <path d="M16 10a4 4 0 0 1-8 0"/>
+                            </svg>
+                            <span v-if="isAddingToCart">···</span>
+                            <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="uf-mob-buy"
+                            :disabled="! product.is_saleable || isAddingToCart"
+                            @click.stop.prevent="mobileBuyClick()"
+                        >
+                            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/>
+                            </svg>
+                            Buy Now
+                        </button>
+                    </div>
+                @endif
 
                 <!-- Subtle trust strip (single line, minimal) -->
                 <div class="uf-delivery-strip">
@@ -637,6 +705,14 @@
                     }
                 },
 
+                mobileBuyClick() {
+                    if (this.isConfigurable) {
+                        this.openVariantSheet();
+                    } else {
+                        this.buyNow();
+                    }
+                },
+
                 openVariantSheet() {
                     this.variantSheetOpen = true;
                     this.variantError = null;
@@ -746,11 +822,6 @@
                 },
 
                 addToCart() {
-                    if (this.isConfigurable && !this.allSelected) {
-                        this.variantError = 'Please select variant to add to cart';
-                        return;
-                    }
-
                     this.variantError = null;
                     this.isAddingToCart = true;
 
@@ -769,11 +840,6 @@
                 },
 
                 buyNow() {
-                    if (this.isConfigurable && !this.allSelected) {
-                        this.variantError = 'Please select variant to proceed';
-                        return;
-                    }
-
                     this.variantError = null;
                     this.isAddingToCart = true;
 

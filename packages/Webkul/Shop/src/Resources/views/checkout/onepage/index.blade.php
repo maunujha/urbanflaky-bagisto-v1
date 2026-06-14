@@ -85,6 +85,8 @@
     .is-pending .co-step-lbl { color:rgba(255,255,255,.4); }
     .co-step-sep { width:24px; height:1px; background:rgba(255,255,255,.12); }
     .co-nav-secure { display:flex; align-items:center; gap:6px; font-size:12px; color:rgba(255,255,255,.5); }
+    /* Compact progress label — replaces the step pills on phones */
+    .co-nav-progress { display:none; font-size:12px; font-weight:600; color:#c7eb31; letter-spacing:.02em; white-space:nowrap; }
 
     /* ── Layout ── */
     .co-body { display:grid; grid-template-columns:1fr 360px; gap:28px; max-width:1100px; margin:0 auto; padding:32px 40px; align-items:start; }
@@ -188,6 +190,10 @@
     /* ── Sidebar ── */
     .co-summary { background:rgba(255,255,255,.03); border-radius:16px; border:1px solid rgba(255,255,255,.08); padding:22px; position:sticky; top:96px; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); }
     .co-sum-title { font-size:14px; font-weight:700; color:#f5f5f5; margin-bottom:16px; padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.08); }
+    /* Summary header — static on desktop, tap-to-expand on phones */
+    .co-sum-head { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; background:none; border:none; border-bottom:1px solid rgba(255,255,255,.08); padding:0 0 14px; margin:0 0 16px; font-family:inherit; font-size:14px; font-weight:700; color:#f5f5f5; text-align:left; cursor:default; pointer-events:none; }
+    .co-sum-head-meta { display:none; align-items:center; gap:8px; color:#c7eb31; font-size:14px; font-weight:700; }
+    .co-sum-chevron { color:#a1a1aa; flex-shrink:0; transition:transform .2s ease; }
     .co-sum-item { display:flex; gap:12px; margin-bottom:16px; }
     .co-sum-img { width:54px; height:54px; border-radius:8px; object-fit:cover; background:#1c1c1c; flex-shrink:0; }
     .co-sum-item-name { font-size:13px; font-weight:600; color:#f5f5f5; line-height:1.4; }
@@ -213,23 +219,38 @@
     @media(max-width:768px) {
         .co-nav { padding:12px 16px; flex-wrap:wrap; gap:10px; }
         .co-nav-steps { display:none; }
+        .co-nav-progress { display:inline-flex; }
         .co-nav-secure { margin-left:auto; }
         .co-body { grid-template-columns:1fr; padding:16px; gap:16px; }
         .co-right { order:-1; }
-        .co-summary { position:static; top:auto; }
+        .co-summary { position:static; top:auto; padding:16px 18px; }
         .co-grid-3 { grid-template-columns:1fr 1fr; }
         .co-card { padding:18px; }
         .co-btn-row { grid-template-columns:1fr 2fr; }
+        /* 16px stops the iOS focus zoom-jump */
+        .co-input, .co-select, .co-coupon-input { font-size:16px; }
+        /* Order summary collapses to a single tappable row so the address
+           form stays above the fold; tap shows the full breakdown */
+        .co-sum-head { cursor:pointer; pointer-events:auto; -webkit-tap-highlight-color:transparent; }
+        .co-sum-head-meta { display:inline-flex; }
+        .co-sum-body { display:none; }
+        .co-summary.is-open .co-sum-body { display:block; }
+        .co-summary.is-open .co-sum-chevron { transform:rotate(180deg); }
+        .co-summary:not(.is-open) .co-sum-head { padding-bottom:0; margin-bottom:0; border-bottom:none; }
     }
     @media(max-width:480px) {
         .co-grid-2, .co-grid-3 { grid-template-columns:1fr; }
+        /* Stack the actions full-width — Back stays available (never strand
+           the shopper mid-checkout), primary action stays on top */
         .co-btn-row { grid-template-columns:1fr; }
-        .co-btn-back { display:none; }
+        .co-btn-next { order:1; }
+        .co-btn-back { order:2; height:48px; }
         .co-card { padding:16px; }
         .co-card-title { font-size:16px; }
         .co-coupon-row { flex-wrap:wrap; }
-        .co-coupon-btn { width:100%; }
+        .co-coupon-btn { width:100%; min-height:44px; }
         .co-btn-next { font-size:14px; }
+        .co-page { padding-bottom:calc(48px + env(safe-area-inset-bottom, 0px)); }
     }
 </style>
 @endpush
@@ -260,6 +281,10 @@
         {{-- Step nav --}}
         <nav class="co-nav">
             <span class="co-nav-title">Checkout</span>
+            {{-- Phones: step pills are hidden, show a compact progress label instead --}}
+            <span class="co-nav-progress" v-if="step <= 4">
+                Step @{{ step }} of 4 · @{{ ['Address', 'Shipping', 'Payment', 'Review'][step - 1] }}
+            </span>
             <div class="co-nav-steps">
                 <span class="co-step-item" :class="stepCls(1)">
                     <span class="co-step-num"><span v-if="step > 1">✓</span><span v-else>1</span></span>
@@ -809,8 +834,20 @@
 
             {{-- ── Sidebar: Order summary ── --}}
             <div class="co-right">
-                <div class="co-summary">
-                    <div class="co-sum-title">Order summary</div>
+                <div class="co-summary" :class="{'is-open': summaryOpen}">
+                    {{-- Static heading on desktop; on phones this row is tappable and
+                         shows the running total while the breakdown stays collapsed --}}
+                    <button type="button" class="co-sum-head" :aria-expanded="summaryOpen ? 'true' : 'false'" @click="summaryOpen = !summaryOpen">
+                        <span>Order summary</span>
+                        <span class="co-sum-head-meta">
+                            <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
+                            <svg class="co-sum-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </button>
+
+                    <div class="co-sum-body">
 
                     <div v-if="!cartLoaded" style="text-align:center;padding:20px;color:#bbb;font-size:13px;">
                         Loading…
@@ -860,6 +897,8 @@
                         </svg>
                         Secured · 256-bit SSL
                     </div>
+
+                    </div>{{-- /co-sum-body --}}
                 </div>
             </div>
         </div>
@@ -878,6 +917,9 @@
                 cart: this.initialCart,
                 cartItems: [],
                 cartLoaded: false,
+
+                /* Mobile-only: order summary starts collapsed so the form leads */
+                summaryOpen: false,
 
                 addr: {
                     first_name : '{{ auth()->user()?->first_name ?? "" }}',

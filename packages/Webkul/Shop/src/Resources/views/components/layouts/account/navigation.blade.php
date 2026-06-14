@@ -17,11 +17,11 @@
             class="flex flex-col justify-between"
             v-pre
         >
-            <p class="text-2xl break-all font-mediums max-md:text-xl"> 
+            <p class="break-all text-2xl font-medium max-md:text-xl">
                 Hello! {{ $customer->first_name }}
             </p>
 
-            <p class="no-underline max-md:text-md: text-zinc-500">
+            <p class="text-zinc-500 no-underline max-md:text-sm">
                 {{ $customer->email }}
             </p>
         </div>

@@ -5,7 +5,7 @@
 ])
 
 <v-quantity-changer
-    {{ $attributes->merge(['class' => 'flex items-center border border-navyBlue']) }}
+    {{ $attributes->merge(['class' => 'flex items-center border border-white/20']) }}
     name="{{ $name }}"
     value="{{ $value }}"
     min-value="{{ $minValue }}"
@@ -18,8 +18,8 @@
         id="v-quantity-changer-template"
     >
         <div>
-            <span 
-                class="icon-minus cursor-pointer text-2xl"
+            <span
+                class="icon-minus flex min-h-9 min-w-9 cursor-pointer select-none items-center justify-center text-2xl"
                 role="button"
                 tabindex="0"
                 aria-label="@lang('shop::app.components.quantity-changer.decrease-quantity')"
@@ -31,8 +31,8 @@
                 @{{ quantity }}
             </p>
             
-            <span 
-                class="icon-plus cursor-pointer text-2xl"
+            <span
+                class="icon-plus flex min-h-9 min-w-9 cursor-pointer select-none items-center justify-center text-2xl"
                 role="button"
                 tabindex="0"
                 aria-label="@lang('shop::app.components.quantity-changer.increase-quantity')"

@@ -31,14 +31,14 @@
 
                         @if (core()->getConfigData('sales.checkout.my_cart.summary') == 'display_item_quantity')
                             <span
-                                class="absolute -top-4 rounded-[44px] bg-navyBlue px-2 py-1.5 text-xs font-semibold leading-[9px] text-white ltr:left-5 rtl:right-5 max-md:ltr:left-4 max-md:rtl:right-4"
+                                class="absolute -top-4 rounded-[44px] bg-uf-accent px-2 py-1.5 text-xs font-semibold leading-[9px] text-black ltr:left-5 rtl:right-5 max-md:ltr:left-4 max-md:rtl:right-4"
                                 v-if="cart?.items_qty"
                             >
                                 @{{ cart.items_qty }}
                             </span>
                         @else
                             <span
-                                class="absolute -top-4 rounded-[44px] bg-navyBlue px-2 py-1.5 text-xs font-semibold leading-[9px] text-white ltr:left-5 rtl:right-5 max-md:px-2 max-md:py-1.5 max-md:ltr:left-4 max-md:rtl:right-4"
+                                class="absolute -top-4 rounded-[44px] bg-uf-accent px-2 py-1.5 text-xs font-semibold leading-[9px] text-black ltr:left-5 rtl:right-5 max-md:px-2 max-md:py-1.5 max-md:ltr:left-4 max-md:rtl:right-4"
                                 v-if="cart?.items_count"
                             >
                                 @{{ cart.items_count }}
@@ -202,7 +202,7 @@
                                 <!-- Cart Item Quantity Changer -->
                                 <x-shop::quantity-changer
                                     v-if="item.can_change_qty"
-                                    class="max-h-9 max-w-[150px] gap-x-2.5 rounded-[54px] px-3.5 py-1.5 max-md:gap-x-2 max-md:px-1 max-md:py-0.5"
+                                    class="max-w-[150px] gap-x-1 rounded-[54px] px-2 max-md:px-1"
                                     name="quantity"
                                     ::value="item?.quantity"
                                     @change="updateItem($event, item)"
@@ -215,7 +215,7 @@
                                 <!-- Cart Item Remove Button -->
                                 <button
                                     type="button"
-                                    class="text-blue-700 max-md:text-sm"
+                                    class="inline-flex min-h-10 items-center px-1.5 font-medium text-uf-accent max-md:text-sm"
                                     @click="removeItem(item.id)"
                                 >
                                     @lang('shop::app.checkout.cart.mini-cart.remove')
@@ -259,7 +259,7 @@
                     class="grid-col-1 grid gap-5 max-md:gap-2.5"
                 >
                     <div
-                        class="my-8 flex items-center justify-between border-b border-zinc-200 px-6 pb-2 max-md:my-0 max-md:border-t max-md:px-5 max-md:py-2"
+                        class="my-8 flex items-center justify-between border-b border-white/10 px-6 pb-2 max-md:my-0 max-md:border-t max-md:px-5 max-md:py-2"
                         :class="{'!justify-end': isLoading}"
                     >
                         {!! view_render_event('bagisto.shop.checkout.mini-cart.subtotal.before') !!}
@@ -331,15 +331,18 @@
 
                         <a
                             href="{{ route('shop.checkout.onepage.index') }}"
-                            class="mx-auto block w-full cursor-pointer rounded-2xl bg-navyBlue px-11 py-4 text-center text-base font-medium text-white max-md:rounded-lg max-md:px-5 max-md:py-2"
+                            class="primary-button mx-auto block w-full cursor-pointer rounded-2xl px-11 py-4 text-center text-base font-medium max-md:rounded-lg max-md:px-5 max-md:py-3.5"
                         >
                             @lang('shop::app.checkout.cart.mini-cart.continue-to-checkout')
                         </a>
 
                             {!! view_render_event('bagisto.shop.checkout.mini-cart.continue_to_checkout.after') !!}
 
-                            <div class="block cursor-pointer text-center text-base font-medium max-md:py-1.5">
-                                <a href="{{ route('shop.checkout.cart.index') }}">
+                            <div class="block cursor-pointer text-center text-base font-medium">
+                                <a
+                                    class="inline-flex min-h-11 items-center px-4 underline-offset-4 hover:text-uf-accent hover:underline"
+                                    href="{{ route('shop.checkout.cart.index') }}"
+                                >
                                     @lang('shop::app.checkout.cart.mini-cart.view-cart')
                                 </a>
                             </div>
@@ -363,7 +366,7 @@
                         ></span>
 
                         <span
-                            class="absolute -top-4 rounded-[44px] bg-navyBlue px-2 py-1.5 text-xs font-semibold leading-[9px] text-white ltr:left-5 rtl:right-5 max-md:px-2 max-md:py-1.5 max-md:ltr:left-4 max-md:rtl:right-4"
+                            class="absolute -top-4 rounded-[44px] bg-uf-accent px-2 py-1.5 text-xs font-semibold leading-[9px] text-black ltr:left-5 rtl:right-5 max-md:px-2 max-md:py-1.5 max-md:ltr:left-4 max-md:rtl:right-4"
                             v-if="cart?.items_qty"
                         >
                             @{{ cart.items_qty }}

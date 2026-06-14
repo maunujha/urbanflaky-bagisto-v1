@@ -110,7 +110,7 @@
                             {!! view_render_event('bagisto.shop.checkout.cart.cart_mass_actions.before') !!}
 
                             <!-- Cart Mass Action Container -->
-                            <div class="flex items-center justify-between border-b border-zinc-200 pb-2.5 max-md:py-2.5">
+                            <div class="flex items-center justify-between border-b border-white/10 pb-2.5 max-md:py-2.5">
                                 <div class="flex select-none items-center">
                                     <input
                                         type="checkbox"
@@ -121,7 +121,7 @@
                                     >
 
                                     <label
-                                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-navyBlue peer-checked:text-navyBlue"
+                                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 peer-checked:text-uf-accent"
                                         for="select-all"
                                         tabindex="0"
                                         aria-label="@lang('shop::app.checkout.cart.index.select-all')"
@@ -138,9 +138,12 @@
                                     </span>
                                 </div>
 
-                                <div v-if="selectedItemsCount">
+                                <div
+                                    class="flex items-center"
+                                    v-if="selectedItemsCount"
+                                >
                                     <span
-                                        class="cursor-pointer text-base text-blue-700 max-sm:text-xs"
+                                        class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent max-sm:text-sm"
                                         role="button"
                                         tabindex="0"
                                         @click="removeSelectedItems"
@@ -149,10 +152,10 @@
                                     </span>
 
                                     @if (auth()->guard()->check())
-                                        <span class="mx-2.5 border-r-2 border-zinc-200"></span>
+                                        <span class="mx-2 h-4 border-r border-white/20"></span>
 
                                         <span
-                                            class="cursor-pointer text-base text-blue-700 max-sm:text-xs"
+                                            class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent max-sm:text-sm"
                                             role="button"
                                             tabindex="0"
                                             @click="moveToWishlistSelectedItems"
@@ -172,7 +175,7 @@
                                 class="grid gap-y-6"
                                 v-for="item in cart?.items"
                             >
-                                <div class="flex justify-between gap-x-2.5 border-b border-zinc-200 pb-5">
+                                <div class="flex justify-between gap-x-2.5 border-b border-white/10 pb-5">
                                     <div class="flex gap-x-5">
                                         <div class="mt-11 select-none max-md:mt-9 max-sm:mt-7">
                                             <input
@@ -184,7 +187,7 @@
                                             >
 
                                             <label
-                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-navyBlue peer-checked:text-navyBlue"
+                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 peer-checked:text-uf-accent"
                                                 :for="'item_' + item.id"
                                                 tabindex="0"
                                                 aria-label="@lang('shop::app.checkout.cart.index.select-cart-item')"
@@ -258,7 +261,7 @@
                                                                 <template v-if="attribute?.attribute_type === 'file'">
                                                                     <a
                                                                         :href="attribute.file_url"
-                                                                        class="text-blue-700"
+                                                                        class="text-uf-accent"
                                                                         target="_blank"
                                                                         :download="attribute.file_name"
                                                                     >
@@ -301,7 +304,7 @@
                                                 </p>
 
                                                 <span
-                                                    class="cursor-pointer text-base text-blue-700 max-md:hidden"
+                                                    class="cursor-pointer text-base text-uf-accent max-md:hidden"
                                                     role="button"
                                                     tabindex="0"
                                                     @click="removeItem(item.id)"
@@ -317,7 +320,7 @@
                                             <div class="flex items-center gap-2.5 max-md:mt-2.5">
                                                 <x-shop::quantity-changer
                                                     v-if="item.can_change_qty"
-                                                    class="flex max-w-max items-center gap-x-2.5 rounded-[54px] border border-navyBlue px-3.5 py-1.5 max-md:gap-x-1.5 max-md:px-1 max-md:py-0.5"
+                                                    class="flex max-w-max items-center gap-x-1.5 rounded-[54px] border border-white/20 px-2 py-0.5 max-md:gap-x-1 max-md:px-1"
                                                     name="quantity"
                                                     ::value="item?.quantity"
                                                     @change="setItemQuantity(item.id, $event)"
@@ -325,7 +328,7 @@
 
                                                 <!-- For Mobile view Remove Button -->
                                                 <span
-                                                    class="hidden cursor-pointer text-sm text-blue-700 max-md:block"
+                                                    class="hidden min-h-10 cursor-pointer items-center px-2 text-sm font-medium text-uf-accent max-md:inline-flex"
                                                     role="button"
                                                     tabindex="0"
                                                     @click="removeItem(item.id)"
@@ -371,7 +374,7 @@
 
                                         <!-- Cart Item Remove Button -->
                                         <span
-                                            class="cursor-pointer text-base text-blue-700"
+                                            class="cursor-pointer text-base text-uf-accent"
                                             role="button"
                                             tabindex="0"
                                             @click="removeItem(item.id)"
@@ -393,7 +396,7 @@
                                 {!! view_render_event('bagisto.shop.checkout.cart.continue_shopping.before') !!}
 
                                 <a
-                                    class="secondary-button max-h-14 rounded-2xl max-md:rounded-lg max-md:px-6 max-md:py-3 max-md:text-sm max-sm:py-2"
+                                    class="secondary-button max-h-14 rounded-2xl max-md:rounded-lg max-md:px-6 max-md:py-3 max-md:text-sm max-sm:py-3"
                                     href="{{ route('shop.home.index') }}"
                                 >
                                     @lang('shop::app.checkout.cart.index.continue-shopping')
@@ -404,7 +407,7 @@
                                 {!! view_render_event('bagisto.shop.checkout.cart.update_cart.before') !!}
 
                                 <x-shop::button
-                                    class="secondary-button max-h-14 rounded-2xl max-md:rounded-lg max-md:px-6 max-md:py-3 max-md:text-sm max-sm:py-2"
+                                    class="secondary-button max-h-14 rounded-2xl max-md:rounded-lg max-md:px-6 max-md:py-3 max-md:text-sm max-sm:py-3"
                                     :title="trans('shop::app.checkout.cart.index.update-cart')"
                                     ::loading="isStoring"
                                     ::disabled="isStoring"
@@ -444,6 +447,14 @@
                         >
                             @lang('shop::app.checkout.cart.index.empty-product')
                         </p>
+
+                        <!-- Empty-cart recovery CTA — never leave the shopper at a dead end -->
+                        <a
+                            href="{{ route('shop.home.index') }}"
+                            class="primary-button mt-8 rounded-2xl px-11 py-3.5 max-md:rounded-lg max-md:px-8 max-md:py-3"
+                        >
+                            @lang('shop::app.checkout.cart.index.continue-shopping')
+                        </a>
                     </div>
                 </template>
             </div>

@@ -24,36 +24,10 @@
 
 ## Auto-Verify After Every Task
 
-### Always (every task)
-
-```powershell
-php -l {changed_file}        # skip for .blade.php / .css / .js / .vue
-php artisan optimize:clear
-```
-
-### Only if a Blade file changed
-
-```powershell
-php artisan view:cache
-```
-
-If fails → read exact error, fix offending file, re-run. Do not continue until clean.
-
-### Only if routes or config changed
-
-```powershell
-php artisan route:list --path=api     # API routes
-php artisan route:list --path=shop    # shop routes
-php artisan config:show app           # config files
-```
-
-### Browser testing — DISABLED
-
-- Do NOT use Playwright / browser automation to verify changes. Do not take screenshots.
-- For visible changes, rebuild (`npm run build`) + clear caches and rely on a clean build / HTTP 200; the user will visually confirm in their own browser.
-
-### Tests — only if a test file exists for the touched class
-
-```powershell
-vendor/bin/pest --filter={ClassName}
-```
+- Changed `.php` (not blade/css/js/vue) → `php -l {file}`
+- Always → `php artisan optimize:clear`
+- Blade changed → `php artisan view:clear` — **never `view:cache`** (Windows rename lock → 500s)
+- Routes/config changed → `php artisan route:list --path=shop` / `config:show app`
+- Visible change → `npm run build`; user confirms in browser (no Playwright/screenshots)
+- Test file exists for touched class → `vendor/bin/pest --filter={ClassName}`
+- On failure: read the exact error, fix the offending file, re-run until clean

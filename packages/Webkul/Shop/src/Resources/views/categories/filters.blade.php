@@ -15,6 +15,7 @@
 <!-- Mobile Filters Navigation -->
 <div
     class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0"
+    style="padding-bottom: env(safe-area-inset-bottom, 0px);"
     v-if="isMobile"
 >
     <!-- Filter Drawer -->
@@ -234,7 +235,7 @@
                                     </label>
 
                                     <label
-                                        class="w-full cursor-pointer py-1.5 text-sm font-normal transition group-hover:text-uf-accent max-sm:text-xs ltr:pl-0 rtl:pr-0"
+                                        class="w-full cursor-pointer py-1.5 text-sm font-normal transition group-hover:text-uf-accent max-sm:py-2.5 max-sm:text-[13px] ltr:pl-0 rtl:pr-0"
                                         :id="'label_option_' + option.id"
                                         :for="`filter_${filter.id}_option_ ${option.id}`"
                                         role="button"
