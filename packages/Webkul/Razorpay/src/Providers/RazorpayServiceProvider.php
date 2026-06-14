@@ -24,6 +24,8 @@ class RazorpayServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../Resources/views', 'razorpay');
 
         $this->loadTranslationsFrom(__DIR__.'/../Resources/lang', 'razorpay');
+
+        $this->app->register(EventServiceProvider::class);
     }
 
     /**
