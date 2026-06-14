@@ -42,7 +42,7 @@ class Refund
             ?: OrderTransaction::where('order_id', $order->id)->value('transaction_id');
 
         if (! $paymentId) {
-            Log::error('Razorpay refund: no razorpay_payment_id found; refund manually in the dashboard.', [
+            $this->log('error', 'Razorpay refund: no razorpay_payment_id found; refund manually in the dashboard.', [
                 'order_id'  => $order->id,
                 'refund_id' => $refund->id,
             ]);
@@ -53,7 +53,7 @@ class Refund
         try {
             $payment = $this->razorpayPayment->getApi()->payment->fetch($paymentId);
         } catch (\Throwable $e) {
-            Log::error('Razorpay refund: could not fetch payment from gateway.', [
+            $this->log('error', 'Razorpay refund: could not fetch payment from gateway.', [
                 'order_id'   => $order->id,
                 'payment_id' => $paymentId,
                 'error'      => $e->getMessage(),
@@ -71,7 +71,7 @@ class Refund
          * twice — this also makes the listener safe to re-run.
          */
         if ($alreadyRefunded + $amount > $captured) {
-            Log::warning('Razorpay refund: gateway already refunded; recording credit-memo only.', [
+            $this->log('warning', 'Razorpay refund: gateway already refunded; recording credit-memo only.', [
                 'order_id'         => $order->id,
                 'payment_id'       => $paymentId,
                 'captured'         => $captured,
@@ -90,15 +90,8 @@ class Refund
                     'refund_id' => (string) $refund->id,
                 ],
             ]);
-
-            Log::info('Razorpay refund: processed at gateway.', [
-                'order_id'           => $order->id,
-                'refund_id'          => $refund->id,
-                'razorpay_refund_id' => $rpRefund['id'] ?? null,
-                'amount'             => $amount,
-            ]);
         } catch (\Throwable $e) {
-            Log::error('Razorpay refund FAILED at gateway; credit-memo rolled back.', [
+            $this->log('error', 'Razorpay refund FAILED at gateway; credit-memo rolled back.', [
                 'order_id'   => $order->id,
                 'refund_id'  => $refund->id,
                 'payment_id' => $paymentId,
@@ -107,6 +100,32 @@ class Refund
             ]);
 
             throw new \Exception(trans('razorpay::app.response.refund.failed'));
+        }
+
+        /*
+         * The money is now refunded at the gateway. Nothing past this point may
+         * throw, or RefundRepository would roll the credit-memo back and leave
+         * Bagisto out of sync with money already returned — hence safe logging.
+         */
+        $this->log('info', 'Razorpay refund: processed at gateway.', [
+            'order_id'           => $order->id,
+            'refund_id'          => $refund->id,
+            'razorpay_refund_id' => $rpRefund['id'] ?? null,
+            'amount'             => $amount,
+        ]);
+    }
+
+    /**
+     * Log without ever letting a logging failure (e.g. an unwritable log file)
+     * propagate — only an explicit gateway failure above should abort/roll back
+     * the refund, never a log write.
+     */
+    protected function log(string $level, string $message, array $context = []): void
+    {
+        try {
+            Log::$level($message, $context);
+        } catch (\Throwable $e) {
+            // swallow — logging must not influence the refund's control flow
         }
     }
 }
