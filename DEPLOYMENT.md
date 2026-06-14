@@ -157,6 +157,14 @@ curl -sI "https://urbanflaky.in/cache/medium/$P" | head -1   # 200, content-type
 
 ## 6. Per-release script
 
+**One command:** `uf-deploy` runs the entire flow below. It is installed once from
+`deploy/deploy.sh` → `/usr/local/bin/uf-deploy` (kept OUTSIDE the git tree so a deploy can't
+overwrite the running script), and relies on `/etc/sudoers.d/urbanflaky-deploy` (a scoped
+NOPASSWD rule for just the worker + php-fpm restart). It `git reset --hard`s to `origin/main`
+(discarding regenerable build artifacts; never touches `.env`/media/caches), rebuilds,
+migrates, re-caches, restarts, and smoke-tests. Re-install after editing the script:
+`sudo cp deploy/deploy.sh /usr/local/bin/uf-deploy`. Manual equivalent:
+
 ```bash
 cd /var/www/urbanflaky
 php artisan down --retry=30
