@@ -157,6 +157,7 @@
                                 class="mt-5 inline-flex items-center gap-1 text-sm font-semibold text-uf-text transition-colors group-hover:text-uf-accent"
                             >
                                 @lang('blog::app.shop.read-more')
+                                <span class="sr-only">{{ $blog->title }}</span>
                                 <span class="icon-arrow-right text-base transition-transform group-hover:translate-x-0.5"></span>
                             </a>
                         </div>

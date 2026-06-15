@@ -3115,16 +3115,17 @@ body.mh-search-locked { overflow: hidden; }
     .uf-mob-atc:disabled,
     .uf-mob-buy:disabled { opacity: .45; cursor: not-allowed; }
 
-    /* Wishlist circle — clean outline look per spec */
+    /* Wishlist circle — clean outline look per spec.
+       24px is the minimum tap target size (WCAG 2.2 / Lighthouse target-size). */
     .uf-card-icons { top: 10px; right: 10px; }
     .uf-icon-btn {
-        width: 18px;
-        height: 18px;
+        width: 24px;
+        height: 24px;
         background: rgba(10, 10, 10, 0.35);
         border-color: rgba(255, 255, 255, 0.55);
-        font-size: 12px;
-        top: -8px;
-        right: -10px;
+        font-size: 13px;
+        top: -5px;
+        right: -7px;
     }
 
     /* SALE badge — dark chip + accent text (theme colors), matching the spec style */
