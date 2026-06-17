@@ -1368,6 +1368,14 @@ return [
             'reach-via-phone' => 'Alternatively, you can reach us by phone at',
             'inquiry-from' => 'Inquiry from',
             'to' => 'To contact',
+
+            'ack-subject' => 'We\'ve received your message — Urbanflaky',
+            'ack-greeting' => 'Hi :name,',
+            'ack-intro' => 'Thank you for reaching out to Urbanflaky. We\'ve received your message and a member of our team is already on it.',
+            'ack-topic' => 'Topic',
+            'ack-your-message' => 'Your message',
+            'ack-response-time' => 'We typically reply within 24–48 hours (Mon–Sat). If your query is about an existing order, just reply to this email with your order number so we can help faster.',
+            'ack-cta' => 'Continue Shopping',
         ],
 
         'orders' => [

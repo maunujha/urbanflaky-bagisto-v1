@@ -36,7 +36,7 @@ class Customer extends Base
         }
 
         try {
-            if (! core()->getConfigData('emails.general.notifications.emails.general.notifications.registration')) {
+            if (! core()->getConfigData('emails.general.notifications.registration')) {
                 return;
             }
 
