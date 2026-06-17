@@ -269,6 +269,22 @@
                                 this.products = response.data.data;
 
                                 this.links = response.data.links;
+
+                                if (window.ufTrack) {
+                                    var total = (response.data.meta && response.data.meta.total) || response.data.data.length;
+
+                                    window.ufTrack.viewItemList(response.data.data, 'Search Results');
+
+                                    /* GA4 search — fire once per page load, with the live result count. */
+                                    if (! this._searchTracked) {
+                                        this._searchTracked = true;
+
+                                        window.ufTrack.push('search', null, {
+                                            search_term: @json($query ?? ''),
+                                            results_count: total,
+                                        });
+                                    }
+                                }
                             }).catch(error => {
                                 console.log(error);
                             });

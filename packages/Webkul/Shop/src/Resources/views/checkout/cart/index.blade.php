@@ -553,6 +553,9 @@
                     },
 
                     removeItem(itemId) {
+                        /* Capture the line before it is deleted so GA4 remove_from_cart has its data. */
+                        const removed = (this.cart.items || []).find(i => i.id === itemId);
+
                         this.$emitter.emit('open-confirm-modal', {
                             agree: () => {
                                 this.$axios.post('{{ route('shop.api.checkout.cart.destroy') }}', {
@@ -564,9 +567,29 @@
 
                                         this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
 
+                                        this.pushRemoveFromCart(removed);
                                     })
                                     .catch(error => {});
                             }
+                        });
+                    },
+
+                    /* GA4 remove_from_cart — maps a cart line (incl. selected options) to a GA4 item. */
+                    pushRemoveFromCart(item) {
+                        if (! item || ! window.ufTrack) return;
+
+                        const variant = (item.options || [])
+                            .map(o => o.option_label)
+                            .filter(Boolean)
+                            .join(' / ');
+
+                        window.ufTrack.removeFromCart({
+                            item_id: item.sku,
+                            item_name: item.name,
+                            item_brand: 'Urbanflaky',
+                            item_variant: variant || undefined,
+                            price: parseFloat(item.price) || 0,
+                            quantity: item.quantity || 1,
                         });
                     },
 

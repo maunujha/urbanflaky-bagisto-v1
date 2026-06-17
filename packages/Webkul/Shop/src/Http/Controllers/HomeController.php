@@ -9,6 +9,7 @@ use Webkul\Category\Repositories\CategoryRepository;
 use Webkul\Shop\Http\Requests\ContactRequest;
 use Webkul\Shop\Http\Resources\CategoryTreeResource;
 use Webkul\Shop\Mail\ContactUs;
+use Webkul\Shop\Mail\ContactUsAcknowledgement;
 use Webkul\Theme\Repositories\ThemeCustomizationRepository;
 
 class HomeController extends Controller
@@ -72,17 +73,34 @@ class HomeController extends Controller
      */
     public function sendContactUsMail(ContactRequest $contactRequest)
     {
+        $data = $contactRequest->only([
+            'name',
+            'email',
+            'contact',
+            'topic',
+            'message',
+        ]);
+
         try {
-            Mail::queue(new ContactUs($contactRequest->only([
-                'name',
-                'email',
-                'contact',
-                'topic',
-                'message',
-            ])));
+            /* Notify the store (admin inbox). */
+            Mail::queue(new ContactUs($data));
+
+            /* Send the customer an acknowledgement so they know it was received.
+             * Isolated so a failure here never blocks the admin notification. */
+            try {
+                Mail::queue(new ContactUsAcknowledgement($data));
+            } catch (\Exception $e) {
+                report($e);
+            }
 
             session()->forget(['contact_phone_verified', 'contact_otp_phone']);
             session()->flash('success', trans('shop::app.home.thanks-for-contact'));
+
+            /* GA4 generate_lead / Meta Lead — flushed on the next page render. */
+            \App\Support\DataLayer::flash([
+                'event'         => 'contact_submit',
+                'form_location' => 'contact_page',
+            ]);
         } catch (\Exception $e) {
             session()->flash('error', $e->getMessage());
 

@@ -821,6 +821,28 @@
                     return payload;
                 },
 
+                /* GA4 add_to_cart — resolves selected variant option labels (size/colour)
+                   from the chosen super-attributes so item_variant is populated. */
+                pushAddToCart() {
+                    if (! window.ufTrack) return;
+
+                    let extra = {};
+                    let labels = [];
+
+                    if (this.isConfigurable && this.product.super_attributes) {
+                        this.product.super_attributes.forEach((attr) => {
+                            const optId = this.selectedAttributes[attr.id];
+                            if (! optId) return;
+                            const opt = (attr.options || []).find(o => o.id == optId);
+                            if (opt) labels.push(opt.label);
+                        });
+                    }
+
+                    if (labels.length) extra.item_variant = labels.join(' / ');
+
+                    window.ufTrack.addToCart(this.product, 1, extra);
+                },
+
                 addToCart() {
                     this.variantError = null;
                     this.isAddingToCart = true;
@@ -829,6 +851,7 @@
                         .then(response => {
                             this.$emitter.emit('update-mini-cart', response.data.data);
                             this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
+                            this.pushAddToCart();
                             this.isAddingToCart = false;
                             if (this.variantSheetOpen) this.closeVariantSheet();
                             if (this.quickViewOpen)    this.closeQuickView();
@@ -845,6 +868,7 @@
 
                     this.$axios.post('{{ route("shop.api.checkout.cart.store") }}', this.buildCartPayload(true))
                         .then(response => {
+                            this.pushAddToCart();
                             window.location.href = response.data.redirect || '{{ route("shop.checkout.onepage.index") }}';
                         })
                         .catch(error => {

@@ -19,6 +19,9 @@
 >
     <head>
 
+        {{-- Tag Manager + Clarity + data layer — kept as high in <head> as possible --}}
+        <x-shop::layouts.tracking.head />
+
         {!! view_render_event('bagisto.shop.layout.head.before') !!}
 
         <title>{{ $title ?? "Urbanflaky — Men's Polo T-Shirts, Slim Fit & Casual Wear Online | Gabha Enterprise" }}</title>
@@ -130,6 +133,9 @@
     </head>
 
     <body>
+        <!-- Google Tag Manager (noscript) — must be first child of <body> -->
+        <x-shop::layouts.tracking.noscript />
+
         <!-- Premium "UF" site preloader — sibling before #app so Vue never manages it -->
         <x-shop::layouts.preloader />
 

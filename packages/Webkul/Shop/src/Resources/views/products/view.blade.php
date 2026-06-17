@@ -82,6 +82,19 @@
 </script>
 @endpush
 
+{{-- GA4 view_item — server-rendered so price / category are exact --}}
+@push('datalayer')
+<script>
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({ ecommerce: null });
+    window.dataLayer.push({
+        event: 'view_item',
+        page_type: 'product',
+        ecommerce: @json(\App\Support\DataLayer::viewItem($product)),
+    });
+</script>
+@endpush
+
 <!-- Page Layout -->
 <x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
@@ -912,6 +925,10 @@
 
                         is_buy_now: 0,
 
+                        // GA4 item for the add_to_cart data-layer push (price/category exact from PHP).
+                        trackItem: @json(\App\Support\DataLayer::productItem($product)),
+                        trackCurrency: @json(\App\Support\DataLayer::currency()),
+
                         isStoring: {
                             addToCart: false,
 
@@ -969,6 +986,8 @@
                                     this.$emitter.emit('update-mini-cart', response.data.data);
 
                                     this.$emitter.emit('add-flash', { type: 'success', message: response.data.message });
+
+                                    this.pushAddToCart(formData);
 
                                     if (response.data.redirect) {
                                         window.location.href= response.data.redirect;
@@ -1132,6 +1151,34 @@
                         if (! formData.has('quantity')) {
                             formData.append('quantity', 1);
                         }
+                    },
+
+                    /* GA4 add_to_cart — fires on a confirmed cart store. Reuses the
+                       PHP-built item so price/category are exact; quantity and the
+                       selected variant (colour/size) are read from the live form. */
+                    pushAddToCart(formData) {
+                        if (! window.dataLayer) return;
+
+                        const qty  = parseInt(formData.get('quantity') || 1, 10) || 1;
+                        const item = Object.assign({}, this.trackItem, { quantity: qty });
+
+                        const variantLabels = Array.from(document.querySelectorAll('[aria-selected="true"]'))
+                            .map(el => (el.getAttribute('aria-label') || el.textContent || '').trim())
+                            .filter(Boolean);
+
+                        if (variantLabels.length) {
+                            item.item_variant = variantLabels.join(' / ');
+                        }
+
+                        window.dataLayer.push({ ecommerce: null });
+                        window.dataLayer.push({
+                            event: 'add_to_cart',
+                            ecommerce: {
+                                currency: this.trackCurrency,
+                                value: +(item.price * qty).toFixed(2),
+                                items: [item],
+                            },
+                        });
                     },
 
                     shareFacebook() {

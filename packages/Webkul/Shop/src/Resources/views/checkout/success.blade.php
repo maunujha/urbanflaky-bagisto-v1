@@ -9,6 +9,20 @@
 		@lang('shop::app.checkout.success.thanks')
     </x-slot>
 
+	{{-- GA4 purchase — server-rendered from the placed order. Re-fires on refresh
+	     but GA4 dedupes on transaction_id, so revenue is never double-counted. --}}
+	@push('datalayer')
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		window.dataLayer.push({ ecommerce: null });
+		window.dataLayer.push({
+			event: 'purchase',
+			page_type: 'purchase',
+			ecommerce: @json(\App\Support\DataLayer::purchase($order)),
+		});
+	</script>
+	@endpush
+
 	<!-- Page content -->
 	<div class="container mt-8 px-[60px] max-lg:px-8">
 		<div class="grid place-items-center gap-y-5 max-md:gap-y-2.5">

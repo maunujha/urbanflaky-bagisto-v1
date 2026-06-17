@@ -300,6 +300,8 @@
                                 this.products = response.data.data;
 
                                 this.links = response.data.links;
+
+                                window.ufTrack && window.ufTrack.viewItemList(response.data.data, @json($category->name));
                             }).catch(error => {
                                 console.log(error);
                             });
@@ -319,6 +321,8 @@
                                 this.products = [...this.products, ...response.data.data];
 
                                 this.links = response.data.links;
+
+                                window.ufTrack && window.ufTrack.viewItemList(response.data.data, @json($category->name));
                             }).catch(error => {
                                 console.log(error);
                             });

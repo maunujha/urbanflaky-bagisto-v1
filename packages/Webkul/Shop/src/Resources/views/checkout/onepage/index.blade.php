@@ -1209,7 +1209,18 @@
                     this.cartItems = this.initialItems || [];
                 } finally {
                     this.cartLoaded = true;
+                    this.trackBeginCheckout();
                 }
+            },
+
+            /* GA4 begin_checkout — fires once when the checkout cart is first loaded. */
+            trackBeginCheckout() {
+                if (this._beginCheckoutTracked || ! window.ufTrack) return;
+                if (! this.cartItems || ! this.cartItems.length) return;
+                this._beginCheckoutTracked = true;
+                window.ufTrack.checkoutStep('begin_checkout', this.cart, this.cartItems, {
+                    coupon: this.cart.coupon_code || undefined,
+                });
             },
 
             stepCls(n) {
@@ -1333,6 +1344,11 @@
                     const cod = this.paymentMethods.find(m => m.method === 'cashondelivery');
                     this.selectedPayment = cod ? cod.method : (this.paymentMethods[0]?.method || null);
                     await this.fetchCart();
+
+                    window.ufTrack && window.ufTrack.checkoutStep('add_shipping_info', this.cart, this.cartItems, {
+                        shipping_tier: (this.shippingMethods.find(m => m.method === this.selectedShipping) || {}).method_title || this.selectedShipping,
+                    });
+
                     this.step = 3;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } catch {
@@ -1350,6 +1366,11 @@
                         { payment: { method: this.selectedPayment } }
                     );
                     await this.fetchCart();
+
+                    window.ufTrack && window.ufTrack.checkoutStep('add_payment_info', this.cart, this.cartItems, {
+                        payment_type: (this.paymentMethods.find(m => m.method === this.selectedPayment) || {}).method_title || this.selectedPayment,
+                    });
+
                     this.step = 4;
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } catch {

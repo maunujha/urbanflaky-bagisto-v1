@@ -275,7 +275,11 @@
         .then(({ ok, body }) => {
             msg.className = 'uf-nl-msg ' + (ok ? 'uf-ok' : 'uf-err');
             msg.textContent = body.message || (ok ? 'Subscribed.' : 'Something went wrong.');
-            if (ok) input.value = '';
+            if (ok) {
+                input.value = '';
+                /* GA4/Meta lead — mapped to generate_lead + Subscribe in GTM. */
+                window.ufTrack && window.ufTrack.push('newsletter_signup', null, { subscription_source: 'footer' });
+            }
         })
         .catch(() => {
             msg.className = 'uf-nl-msg uf-err';

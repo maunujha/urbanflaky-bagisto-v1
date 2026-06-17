@@ -1,0 +1,258 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-06-17 00:00:00",
+  "containerVersion": {
+    "path": "accounts/0000000000/containers/00000000/versions/0",
+    "accountId": "0000000000",
+    "containerId": "00000000",
+    "containerVersionId": "0",
+    "name": "Urbanflaky GA4 + Meta (data-layer)",
+    "container": {
+      "accountId": "0000000000",
+      "containerId": "00000000",
+      "name": "Urbanflaky",
+      "publicId": "GTM-TK3MV6Q3",
+      "usageContext": ["WEB"],
+      "fingerprint": "0",
+      "tagManagerUrl": "https://tagmanager.google.com/"
+    },
+    "tag": [
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "1",
+        "name": "GA4 - Configuration", "type": "gaawc",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "measurementId", "value": "{{const - GA4 Measurement ID}}" },
+          { "type": "BOOLEAN", "key": "sendPageView", "value": "true" }
+        ],
+        "firingTriggerId": ["2147479553"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "2",
+        "name": "GA4 - view_item", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "view_item" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["10"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "3",
+        "name": "GA4 - view_item_list", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "view_item_list" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["11"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "4",
+        "name": "GA4 - search", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "search" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "LIST", "key": "eventParameters", "list": [
+            { "type": "MAP", "map": [
+              { "type": "TEMPLATE", "key": "name", "value": "search_term" },
+              { "type": "TEMPLATE", "key": "value", "value": "{{dlv - search_term}}" } ] },
+            { "type": "MAP", "map": [
+              { "type": "TEMPLATE", "key": "name", "value": "results_count" },
+              { "type": "TEMPLATE", "key": "value", "value": "{{dlv - results_count}}" } ] }
+          ] }
+        ],
+        "firingTriggerId": ["12"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "5",
+        "name": "GA4 - add_to_cart", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "add_to_cart" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["13"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "6",
+        "name": "GA4 - remove_from_cart", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "remove_from_cart" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["14"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "7",
+        "name": "GA4 - begin_checkout", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "begin_checkout" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["15"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "8",
+        "name": "GA4 - add_shipping_info", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "add_shipping_info" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["16"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "9",
+        "name": "GA4 - add_payment_info", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "add_payment_info" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["17"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "10",
+        "name": "GA4 - purchase", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "purchase" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" },
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "ecommerceMacroData", "value": "{{dlv - ecommerce}}" }
+        ],
+        "firingTriggerId": ["18"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "11",
+        "name": "GA4 - generate_lead", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "generate_lead" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" }
+        ],
+        "firingTriggerId": ["19", "20"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "12",
+        "name": "GA4 - login", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "login" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" }
+        ],
+        "firingTriggerId": ["21"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "13",
+        "name": "GA4 - sign_up", "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "sign_up" },
+          { "type": "TAG_REFERENCE", "key": "measurementId", "value": "GA4 - Configuration" }
+        ],
+        "firingTriggerId": ["22"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "14",
+        "name": "Meta - Base Pixel", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');\nfbq('init','{{const - Meta Pixel ID}}');\nfbq('track','PageView');\n</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["2147479553"], "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "15",
+        "name": "Meta - ViewContent", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>(function(){var ec={{dlv - ecommerce}}||{};var ids=(ec.items||[]).map(function(i){return i.item_id;});fbq('track','ViewContent',{content_type:'product',content_ids:ids,value:ec.value,currency:ec.currency});})();</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["10"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "16",
+        "name": "Meta - AddToCart", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>(function(){var ec={{dlv - ecommerce}}||{};var ids=(ec.items||[]).map(function(i){return i.item_id;});fbq('track','AddToCart',{content_type:'product',content_ids:ids,contents:(ec.items||[]).map(function(i){return {id:i.item_id,quantity:i.quantity};}),value:ec.value,currency:ec.currency});})();</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["13"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "17",
+        "name": "Meta - InitiateCheckout", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>(function(){var ec={{dlv - ecommerce}}||{};var ids=(ec.items||[]).map(function(i){return i.item_id;});fbq('track','InitiateCheckout',{content_type:'product',content_ids:ids,num_items:(ec.items||[]).reduce(function(s,i){return s+(i.quantity||1);},0),value:ec.value,currency:ec.currency});})();</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["15"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "18",
+        "name": "Meta - Purchase", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>(function(){var ec={{dlv - ecommerce}}||{};var ids=(ec.items||[]).map(function(i){return i.item_id;});fbq('track','Purchase',{content_type:'product',content_ids:ids,contents:(ec.items||[]).map(function(i){return {id:i.item_id,quantity:i.quantity};}),value:ec.value,currency:ec.currency},{eventID:String(ec.transaction_id||'')});})();</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["18"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "19",
+        "name": "Meta - Search", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>fbq('track','Search',{search_string:{{dlv - search_term}}});</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["12"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      },
+      {
+        "accountId": "0000000000", "containerId": "00000000", "tagId": "20",
+        "name": "Meta - Lead", "type": "html",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "html", "value": "<script>fbq('track','Lead');</script>" },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["20"], "tagFiringOption": "ONCE_PER_EVENT", "setupTags": [{ "tagName": "Meta - Base Pixel", "stopOnSetupFailure": false }]
+      }
+    ],
+    "trigger": [
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "10", "name": "ce - view_item", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "view_item" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "11", "name": "ce - view_item_list", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "view_item_list" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "12", "name": "ce - search", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "search" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "13", "name": "ce - add_to_cart", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "add_to_cart" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "14", "name": "ce - remove_from_cart", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "remove_from_cart" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "15", "name": "ce - begin_checkout", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "begin_checkout" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "16", "name": "ce - add_shipping_info", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "add_shipping_info" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "17", "name": "ce - add_payment_info", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "add_payment_info" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "18", "name": "ce - purchase", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "purchase" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "19", "name": "ce - newsletter_signup", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "newsletter_signup" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "20", "name": "ce - contact_submit", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "contact_submit" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "21", "name": "ce - login", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "login" }] }] },
+      { "accountId": "0000000000", "containerId": "00000000", "triggerId": "22", "name": "ce - sign_up", "type": "CUSTOM_EVENT", "customEventFilter": [{ "type": "EQUALS", "parameter": [{ "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" }, { "type": "TEMPLATE", "key": "arg1", "value": "sign_up" }] }] }
+    ],
+    "variable": [
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "1", "name": "const - GA4 Measurement ID", "type": "c", "parameter": [{ "type": "TEMPLATE", "key": "value", "value": "G-XXXXXXXXXX" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "2", "name": "const - Meta Pixel ID", "type": "c", "parameter": [{ "type": "TEMPLATE", "key": "value", "value": "000000000000000" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "3", "name": "dlv - ecommerce", "type": "v", "parameter": [{ "type": "INTEGER", "key": "dataLayerVersion", "value": "2" }, { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" }, { "type": "TEMPLATE", "key": "name", "value": "ecommerce" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "4", "name": "dlv - search_term", "type": "v", "parameter": [{ "type": "INTEGER", "key": "dataLayerVersion", "value": "2" }, { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" }, { "type": "TEMPLATE", "key": "name", "value": "search_term" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "5", "name": "dlv - results_count", "type": "v", "parameter": [{ "type": "INTEGER", "key": "dataLayerVersion", "value": "2" }, { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" }, { "type": "TEMPLATE", "key": "name", "value": "results_count" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "6", "name": "dlv - page_type", "type": "v", "parameter": [{ "type": "INTEGER", "key": "dataLayerVersion", "value": "2" }, { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" }, { "type": "TEMPLATE", "key": "name", "value": "page_type" }] },
+      { "accountId": "0000000000", "containerId": "00000000", "variableId": "7", "name": "dlv - subscription_source", "type": "v", "parameter": [{ "type": "INTEGER", "key": "dataLayerVersion", "value": "2" }, { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" }, { "type": "TEMPLATE", "key": "name", "value": "subscription_source" }] }
+    ],
+    "builtInVariable": [
+      { "type": "PAGE_URL", "name": "Page URL" },
+      { "type": "PAGE_HOSTNAME", "name": "Page Hostname" },
+      { "type": "PAGE_PATH", "name": "Page Path" },
+      { "type": "REFERRER", "name": "Referrer" },
+      { "type": "EVENT", "name": "Event" }
+    ],
+    "fingerprint": "0"
+  }
+}

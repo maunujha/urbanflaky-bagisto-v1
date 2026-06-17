@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Support\DataLayer;
 use Barryvdh\Debugbar\Facades\Debugbar;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Request;
@@ -42,6 +44,34 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->configureRateLimiting();
+
+        $this->registerAnalyticsEvents();
+    }
+
+    /**
+     * Queue GA4 login / sign_up data-layer events for the redirect that follows.
+     *
+     * All login paths (password, OTP, Google) dispatch `customer.after.login`,
+     * and every registration dispatches `customer.registration.after`. Listening
+     * centrally here covers every entry point without touching each controller.
+     */
+    protected function registerAnalyticsEvents(): void
+    {
+        Event::listen('customer.registration.after', function () {
+            DataLayer::flash(['event' => 'sign_up']);
+        });
+
+        Event::listen('customer.after.login', function () {
+            // Registration also logs the customer in this same request — if a
+            // sign_up was already queued, don't double-count it as a login.
+            foreach (session()->get('datalayer_events', []) as $queued) {
+                if (($queued['event'] ?? null) === 'sign_up') {
+                    return;
+                }
+            }
+
+            DataLayer::flash(['event' => 'login']);
+        });
     }
 
     protected function configureRateLimiting(): void

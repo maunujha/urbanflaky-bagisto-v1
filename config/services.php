@@ -79,6 +79,28 @@ return [
         'redirect' => env('GITHUB_CALLBACK_URL'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Analytics & Tag Management
+    |--------------------------------------------------------------------------
+    |
+    | IDs are committed here as defaults so tracking works the moment the code
+    | is deployed (the .env file is git-ignored and never reaches the server).
+    | Any environment can still override via .env, and emptying the value acts
+    | as a kill-switch — the corresponding <script> is not rendered at all.
+    |
+    */
+
+    'gtm' => [
+        // Google Tag Manager container — fires GA4, Meta Pixel, etc. from one place.
+        'container_id' => env('GTM_CONTAINER_ID', 'GTM-TK3MV6Q3'),
+    ],
+
+    'clarity' => [
+        // Microsoft Clarity — session recordings, heatmaps, rage/dead clicks.
+        'project_id' => env('CLARITY_PROJECT_ID', 'x80ym5sh5u'),
+    ],
+
     'smsalert' => [
         'username'    => env('SMSALERT_USERNAME'),
         'apikey'      => env('SMSALERT_APIKEY'),
