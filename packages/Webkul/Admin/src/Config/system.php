@@ -828,6 +828,9 @@ return [
                     ], [
                         'title' => 'admin::app.configuration.index.catalog.products.search.elastic',
                         'value' => 'elastic',
+                    ], [
+                        'title' => 'admin::app.configuration.index.catalog.products.search.meilisearch',
+                        'value' => 'meilisearch',
                     ],
                 ],
             ], [

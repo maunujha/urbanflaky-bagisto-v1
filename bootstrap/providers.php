@@ -4,6 +4,7 @@ use App\Providers\AppServiceProvider;
 use App\Providers\LookbookServiceProvider;
 use Gabha\Blog\Providers\BlogServiceProvider;
 use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
+use Gabha\Search\Providers\SearchServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
 use Webkul\Attribute\Providers\AttributeServiceProvider;
 use Webkul\BookingProduct\Providers\BookingProductServiceProvider;
@@ -57,6 +58,7 @@ return [
     LookbookServiceProvider::class,
     BlogServiceProvider::class,
     RewardCoinsServiceProvider::class,
+    SearchServiceProvider::class,
 
     /**
      * Webkul's service providers.

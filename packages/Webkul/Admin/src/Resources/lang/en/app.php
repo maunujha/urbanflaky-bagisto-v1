@@ -4308,6 +4308,7 @@ return [
                         'admin-mode-info' => 'Mega Search, Datagrid, and other search functionalities in the admin panel will be based on the selected search engine.',
                         'database' => 'Database',
                         'elastic' => 'Elastic Search',
+                        'meilisearch' => 'Meilisearch',
                         'trending-searches' => 'Enable Trending Searches',
                         'trending-searches-info' => 'Show popular search keywords when customer focuses on an empty search bar.',
                         'trending-limit' => 'Trending Searches Limit',
