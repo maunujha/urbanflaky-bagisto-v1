@@ -52,10 +52,11 @@
         'contact-us'  => ['title' => 'Contact Us', 'url_key' => 'contact-us'],
         'faqs'        => ['title' => 'FAQs', 'url_key' => 'faqs'],
         'track-order' => ['title' => 'Track Order', 'url_key' => 'track-order'],
+        'blog'        => ['title' => 'Blog', 'url_key' => 'blog'],
     ]);
 
     $footerColumns = [
-        'Company' => ['about-us', 'our-story', 'whats-new', 'customer-service', 'wholesale'],
+        'Company' => ['about-us', 'our-story', 'whats-new', 'blog', 'customer-service', 'wholesale'],
         'Help'    => ['contact-us', 'faqs', 'track-order', 'size-chart', 'garment-care-guide'],
         'Policies'=> ['privacy-policy', 'terms-and-conditions', 'refund-policy', 'return-policy', 'shipping-policy', 'payment-policy'],
     ];
