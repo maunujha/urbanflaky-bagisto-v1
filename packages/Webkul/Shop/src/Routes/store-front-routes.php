@@ -8,6 +8,7 @@ use Webkul\Shop\Http\Controllers\HomeController;
 use Webkul\Shop\Http\Controllers\PageController;
 use Webkul\Shop\Http\Controllers\ProductController;
 use Webkul\Shop\Http\Controllers\ProductsCategoriesProxyController;
+use Webkul\Shop\Http\Controllers\SaleController;
 use Webkul\Shop\Http\Controllers\SearchController;
 use Webkul\Shop\Http\Controllers\SubscriptionController;
 
@@ -58,6 +59,15 @@ Route::get('search', [SearchController::class, 'index'])
     ->middleware('cache.response');
 
 Route::post('search/upload', [SearchController::class, 'upload'])->name('shop.search.upload');
+
+/**
+ * Sale collection page. Declared as a real route so "/sale" is served by the
+ * SaleController and never falls through to the product/category proxy fallback.
+ * Intentionally NOT response-cached: special-price windows expire on a clock, so
+ * the hero stats + JSON-LD must always reflect the current set of live markdowns.
+ */
+Route::get('sale', [SaleController::class, 'index'])
+    ->name('shop.sale.index');
 
 /**
  * Subscription routes.

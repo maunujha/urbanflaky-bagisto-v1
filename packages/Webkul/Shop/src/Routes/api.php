@@ -16,6 +16,7 @@ use Webkul\Shop\Http\Controllers\API\ProductController;
 use Webkul\Shop\Http\Controllers\API\ReviewController;
 use Webkul\Shop\Http\Controllers\API\ShiprocketWebhookController;
 use Webkul\Shop\Http\Controllers\API\WishlistController;
+use Webkul\Shop\Http\Controllers\SaleController;
 
 // Shiprocket webhook — no CSRF, no throttle, token-verified in controller
 Route::post('api/webhooks/shiprocket', [ShiprocketWebhookController::class, 'handle'])
@@ -55,6 +56,10 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
 
         Route::get('{id}/up-sell', 'upSellProducts')->name('shop.api.products.up-sell.index');
     });
+
+    // On-sale products feed for the /sale collection grid (biggest discount first).
+    Route::get('sale/products', [SaleController::class, 'products'])
+        ->name('shop.api.sale.products');
 
     Route::controller(ReviewController::class)->prefix('product/{id}')->group(function () {
         Route::get('reviews', 'index')->name('shop.api.products.reviews.index');
