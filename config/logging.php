@@ -86,6 +86,19 @@ return [
             'replace_placeholders' => true,
         ],
 
+        /*
+         * Natural-language search analytics. When analytics.driver = 'log', every
+         * parsed search lands here as a JSON line (storage/logs/search-analytics-*.log);
+         * with the 'database' driver this channel only catches degraded writes.
+         */
+        'search-analytics' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/search-analytics.log'),
+            'level' => env('GABHA_SEARCH_ANALYTICS_LOG_LEVEL', 'info'),
+            'days' => env('GABHA_SEARCH_ANALYTICS_LOG_DAYS', 30),
+            'replace_placeholders' => true,
+        ],
+
         'slack' => [
             'driver' => 'slack',
             'url' => env('LOG_SLACK_WEBHOOK_URL'),

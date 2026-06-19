@@ -11,6 +11,11 @@
             <directory suffix="Test.php">packages/Webkul/Admin/tests/Feature</directory>
         </testsuite>
 
+        <!-- Gabha Search (Meilisearch + NL) package testsuites. -->
+        <testsuite name="Gabha Search Unit Test">
+            <directory suffix="Test.php">packages/Gabha/Search/tests/Unit</directory>
+        </testsuite>
+
         <!-- Core package testsuites. -->
         <testsuite name="Core Unit Test">
             <directory suffix="Test.php">packages/Webkul/Core/tests/Unit</directory>

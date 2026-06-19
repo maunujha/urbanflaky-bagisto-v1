@@ -88,6 +88,39 @@
 
                     <!-- Product Listing Container -->
                     <div class="flex-1">
+                        <!-- Natural-language search feedback -->
+                        <template v-if="!isLoading && searchFeedback">
+                            <!-- Relaxation notice: we couldn't match every filter -->
+                            <div
+                                v-if="searchFeedback.relaxed"
+                                class="mb-4 flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+                                role="status"
+                            >
+                                <span class="icon-information mt-0.5 text-lg leading-none text-amber-500"></span>
+
+                                <span>
+                                    We couldn’t find an exact match for
+                                    <span class="font-semibold" v-text="searchFeedback.query"></span>.
+                                    Showing the closest results instead.
+                                </span>
+                            </div>
+
+                            <!-- How we understood the query -->
+                            <div
+                                v-if="searchFeedback.understood && searchFeedback.understood.length"
+                                class="mb-4 flex flex-wrap items-center gap-2"
+                            >
+                                <span class="text-xs font-medium text-gray-500">Showing results for</span>
+
+                                <span
+                                    v-for="chip in searchFeedback.understood"
+                                    :key="chip"
+                                    class="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700"
+                                    v-text="chip"
+                                ></span>
+                            </div>
+                        </template>
+
                         <!-- Desktop Product Listing Toolbar -->
                         <div class="max-md:hidden">
                             @include('shop::categories.toolbar')
@@ -219,6 +252,8 @@
                         products: [],
 
                         links: {},
+
+                        searchFeedback: null,
                     }
                 },
 
@@ -269,6 +304,8 @@
                                 this.products = response.data.data;
 
                                 this.links = response.data.links;
+
+                                this.searchFeedback = response.data.search || null;
 
                                 if (window.ufTrack) {
                                     var total = (response.data.meta && response.data.meta.total) || response.data.data.length;

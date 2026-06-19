@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Gabha\Search\Repositories;
 
+use Gabha\Search\Services\NaturalLanguage\FilterSet;
+use Gabha\Search\Services\NaturalLanguage\IntentFilterBuilder;
+use Gabha\Search\Services\NaturalLanguage\QueryParser;
+use Gabha\Search\Services\NaturalLanguage\SearchContext;
+use Gabha\Search\Services\SearchAnalytics;
 use Gabha\Search\Services\SearchService;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
@@ -87,6 +92,12 @@ class ProductRepository extends BaseProductRepository
      * the exact relevance order Meilisearch returned (FIELD()), wrapped in a
      * LengthAwarePaginator — identical contract to searchFromElastic(), so the
      * resources/Vue frontend need no changes.
+     *
+     * The natural-language layer sits in front of the server call: the raw query
+     * is parsed into structured intent (colour / price / gender / section), which
+     * becomes Meilisearch filters while the residual words drive the full-text
+     * search. Zero-result NL searches are progressively relaxed, and every search
+     * is recorded for analytics — all without changing the return contract.
      */
     public function searchFromMeilisearch(array $params = [])
     {
@@ -96,12 +107,44 @@ class ProductRepository extends BaseProductRepository
 
         $sortOptions = $this->getSortOptions($params);
 
-        $indices = app(SearchService::class)->search((string) ($params['query'] ?? ''), [
-            'page'   => $currentPage,
-            'limit'  => $limit,
-            'sort'   => $this->meilisearchSort($sortOptions),
-            'filter' => $this->meilisearchFilters($params),
-        ]);
+        $rawQuery = (string) ($params['query'] ?? '');
+
+        $nlEnabled = (bool) config('gabha-search.natural_language.enabled', true);
+
+        $intent = app(QueryParser::class)->parse($rawQuery);
+
+        $searchQuery = $nlEnabled ? $intent->cleanQuery : $rawQuery;
+
+        $filterSet = app(IntentFilterBuilder::class)->build($params, $intent);
+
+        [$indices, $appliedFilter, $relaxedTo] = $this->runMeilisearch($searchQuery, [
+            'page'  => $currentPage,
+            'limit' => $limit,
+            'sort'  => $this->meilisearchSort($sortOptions),
+        ], $filterSet, $nlEnabled);
+
+        /**
+         * Hand the parsed intent + relaxation to the request-scoped context so the
+         * Shop products API can surface shopper-facing feedback in this response.
+         */
+        if ($nlEnabled) {
+            app(SearchContext::class)->record($intent, $relaxedTo, $indices['total']);
+        }
+
+        /**
+         * Record once per search (first page only, so pagination does not inflate
+         * the counts). Fire-and-forget — SearchAnalytics swallows its own errors.
+         */
+        if ($currentPage === 1) {
+            app(SearchAnalytics::class)->record($intent, [
+                'results_count' => $indices['total'],
+                'relaxed_to'    => $relaxedTo,
+                'filters'       => $appliedFilter,
+                'channel'       => core()->getCurrentChannelCode(),
+                'locale'        => app()->getLocale(),
+                'customer_id'   => auth()->guard('customer')->id(),
+            ]);
+        }
 
         $query = $this->with([
             'attribute_family',
@@ -170,29 +213,55 @@ class ProductRepository extends BaseProductRepository
     }
 
     /**
-     * Build the Meilisearch filter expression for category + price params.
+     * Execute the Meilisearch read with progressive filter relaxation.
+     *
+     * The first attempt applies every filter (explicit + inferred). If that
+     * returns nothing and the query carried inferred (NL) filters, those are
+     * dropped one relaxation tier at a time (config order: colour → price →
+     * category) and the search retried, so a slightly-wrong guess still lands
+     * the shopper on relevant products instead of an empty page. The shopper's
+     * own explicit facet choices live in the FilterSet's fixed bucket and are
+     * never relaxed.
+     *
+     * @param  array{page:int,limit:int,sort:array<int,string>}  $base
+     * @return array{0: array{ids:array<int,int>,total:int}, 1: string|null, 2: string|null}
+     *         [indices, filter expression actually used, relaxation applied (csv|null)]
      */
-    protected function meilisearchFilters(array $params): ?string
+    protected function runMeilisearch(string $query, array $base, FilterSet $filterSet, bool $nlEnabled): array
     {
-        $filters = [];
+        $search = app(SearchService::class);
 
-        if (! empty($params['category_id'])) {
-            $ids = array_values(array_filter(array_map('intval', explode(',', (string) $params['category_id']))));
+        $appliedFilter = $filterSet->expression();
 
-            if ($ids) {
-                $filters[] = 'category_ids IN ['.implode(', ', $ids).']';
+        $indices = $search->search($query, $base + ['filter' => $appliedFilter]);
+
+        $relaxedTo = null;
+
+        $relax = (array) config('gabha-search.natural_language.relaxation', []);
+
+        if (
+            $nlEnabled
+            && ($relax['enabled'] ?? true)
+            && $indices['total'] === 0
+            && $filterSet->hasNlFilters()
+        ) {
+            $dropped = [];
+
+            foreach ($filterSet->relaxableTiers((array) ($relax['order'] ?? [])) as $tier) {
+                $dropped[] = $tier;
+
+                $appliedFilter = $filterSet->expression($dropped);
+
+                $indices = $search->search($query, $base + ['filter' => $appliedFilter]);
+
+                if ($indices['total'] > 0) {
+                    break;
+                }
             }
+
+            $relaxedTo = implode(',', $dropped);
         }
 
-        if (! empty($params['price'])) {
-            $range = explode(',', (string) $params['price']);
-
-            $min = core()->convertToBasePrice((float) current($range));
-            $max = core()->convertToBasePrice((float) end($range));
-
-            $filters[] = 'price >= '.$min.' AND price <= '.$max;
-        }
-
-        return $filters ? implode(' AND ', $filters) : null;
+        return [$indices, $appliedFilter, $relaxedTo];
     }
 }

@@ -59,7 +59,22 @@ class ProductController extends APIController
             }
         }
 
-        return ProductResource::collection($products);
+        $collection = ProductResource::collection($products);
+
+        /**
+         * Surface natural-language search feedback (how the query was understood +
+         * whether filters were relaxed) alongside the products, so the storefront
+         * can tell the shopper. Added as a sibling `search` key, leaving the
+         * standard data/links/meta contract untouched. No-op for non-NL searches.
+         */
+        if (
+            app()->bound(\Gabha\Search\Services\NaturalLanguage\SearchContext::class)
+            && $feedback = app(\Gabha\Search\Services\NaturalLanguage\SearchContext::class)->feedback()
+        ) {
+            $collection->additional(['search' => $feedback]);
+        }
+
+        return $collection;
     }
 
     /**
