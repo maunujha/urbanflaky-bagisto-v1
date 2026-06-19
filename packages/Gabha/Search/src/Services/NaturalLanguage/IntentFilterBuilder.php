@@ -49,10 +49,12 @@ class IntentFilterBuilder
         if (! empty($params['price'])) {
             $range = explode(',', (string) $params['price']);
 
-            $min = core()->convertToBasePrice((float) current($range));
-            $max = core()->convertToBasePrice((float) end($range));
+            $low = core()->convertToBasePrice((float) current($range));
+            $high = core()->convertToBasePrice((float) end($range));
 
-            $clauses[] = 'price >= '.$min.' AND price <= '.$max;
+            // Guard against a reversed slider value (max,min) producing an
+            // impossible range that would match nothing and never relax.
+            $clauses[] = 'price >= '.min($low, $high).' AND price <= '.max($low, $high);
         }
 
         return $clauses;

@@ -259,7 +259,13 @@ class ProductRepository extends BaseProductRepository
                 }
             }
 
-            $relaxedTo = implode(',', $dropped);
+            /**
+             * Only label the search as "relaxed" when dropping filters actually
+             * rescued it. If every tier was dropped and it is still empty, this is
+             * a genuine no-results search — leave relaxedTo null so the storefront
+             * shows a normal empty state, not a misleading "closest results" notice.
+             */
+            $relaxedTo = $indices['total'] > 0 ? implode(',', $dropped) : null;
         }
 
         return [$indices, $appliedFilter, $relaxedTo];
