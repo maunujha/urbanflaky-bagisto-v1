@@ -158,6 +158,11 @@
                 />
 
                 @break
+            @case ($customization::VIDEO_BANNER)
+                <!-- Full-width autoplay Video Banner -->
+                <x-shop::video-banner :options="$data" />
+
+                @break
             @case ($customization::INSTAGRAM_LOOKBOOK)
                 <!-- Urbanflaky Looks — Instagram Brand Lookbook -->
                 <x-shop::looks.grid

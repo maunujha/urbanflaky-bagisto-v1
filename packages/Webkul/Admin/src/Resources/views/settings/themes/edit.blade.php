@@ -106,6 +106,9 @@
 
                 <!-- Instagram Lookbook Template -->
                 @includeWhen($theme->type === 'instagram_lookbook', 'lookbook::admin.theme-customization')
+
+                <!-- Video Banner Template -->
+                @includeWhen($theme->type === 'video_banner', 'admin::settings.themes.edit.video-banner')
             </div>
 
             <!-- General -->

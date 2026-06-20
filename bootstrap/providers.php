@@ -1,6 +1,7 @@
 <?php
 
 use App\Providers\AppServiceProvider;
+use App\Providers\CookieConsentServiceProvider;
 use App\Providers\LookbookServiceProvider;
 use Gabha\Blog\Providers\BlogServiceProvider;
 use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
@@ -59,6 +60,7 @@ return [
     BlogServiceProvider::class,
     RewardCoinsServiceProvider::class,
     SearchServiceProvider::class,
+    CookieConsentServiceProvider::class,
 
     /**
      * Webkul's service providers.

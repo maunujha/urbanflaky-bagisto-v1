@@ -78,6 +78,13 @@ class ThemeCustomization extends TranslatableModel implements ThemeCustomization
     public const INSTAGRAM_LOOKBOOK = 'instagram_lookbook';
 
     /**
+     * Video banner precision.
+     *
+     * @var string
+     */
+    public const VIDEO_BANNER = 'video_banner';
+
+    /**
      * Cast options field to array.
      *
      * @var array

@@ -139,6 +139,11 @@
         <!-- Premium "UF" site preloader — sibling before #app so Vue never manages it -->
         <x-shop::layouts.preloader />
 
+        <!-- GDPR cookie consent — sibling before #app so Vue never manages it -->
+        @if (\App\Support\CookieConsent::enabled())
+            <x-shop::layouts.cookie />
+        @endif
+
         {!! view_render_event('bagisto.shop.layout.body.before') !!}
 
         <a
@@ -159,13 +164,6 @@
             <!-- Page Header Blade Component -->
             @if ($hasHeader)
                 <x-shop::layouts.header />
-            @endif
-
-            @if(
-                core()->getConfigData('general.gdpr.settings.enabled')
-                && core()->getConfigData('general.gdpr.cookie.enabled')
-            )
-                <x-shop::layouts.cookie />
             @endif
 
             {!! view_render_event('bagisto.shop.layout.content.before') !!}

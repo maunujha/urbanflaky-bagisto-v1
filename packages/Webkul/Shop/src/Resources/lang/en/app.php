@@ -767,6 +767,14 @@ return [
             'previous' => 'Previous',
         ],
 
+        'video-banner' => [
+            'label' => 'Featured video banner',
+            'logo-alt' => 'Brand logo',
+            'mute' => 'Mute video',
+            'shop-now' => 'Shop Now',
+            'unmute' => 'Unmute video',
+        ],
+
         'quantity-changer' => [
             'decrease-quantity' => 'Decrease Quantity',
             'increase-quantity' => 'Increase Quantity',

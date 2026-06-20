@@ -230,6 +230,9 @@
                     <a href="{{ url('terms-conditions') }}">Terms</a>
                 @endif
                 <a href="{{ url('sitemap.xml') }}">Sitemap</a>
+                @if (\App\Support\CookieConsent::enabled())
+                    <a href="#" class="js-cookie-preferences">Cookie Preferences</a>
+                @endif
             </div>
 
             {!! view_render_event('bagisto.shop.layout.footer.footer_text.after') !!}

@@ -56,7 +56,7 @@ class ThemeController extends Controller
         $validated = $this->validate(request(), [
             'name' => 'required',
             'sort_order' => 'required|numeric',
-            'type' => 'required|in:product_carousel,category_carousel,static_content,image_carousel,footer_links,services_content,instagram_lookbook',
+            'type' => 'required|in:product_carousel,category_carousel,static_content,image_carousel,footer_links,services_content,instagram_lookbook,video_banner',
             'channel_id' => 'required|in:'.implode(',', (core()->getAllChannels()->pluck('id')->toArray())),
             'theme_code' => 'required',
         ]);
@@ -94,9 +94,15 @@ class ThemeController extends Controller
         $this->validate(request(), [
             'name' => 'required',
             'sort_order' => 'required|numeric',
-            'type' => 'required|in:product_carousel,category_carousel,static_content,image_carousel,footer_links,services_content,instagram_lookbook',
+            'type' => 'required|in:product_carousel,category_carousel,static_content,image_carousel,footer_links,services_content,instagram_lookbook,video_banner',
             'channel_id' => 'required|in:'.implode(',', (core()->getAllChannels()->pluck('id')->toArray())),
             'theme_code' => 'required',
+
+            /* Video Banner uploads — only present when this block is a video_banner. */
+            'video_file'        => 'sometimes|file|mimetypes:video/mp4,video/webm|max:51200',
+            'mobile_video_file' => 'sometimes|file|mimetypes:video/mp4,video/webm|max:51200',
+            'logo_file'         => 'sometimes|image|extensions:jpeg,jpg,png,webp',
+            'poster_file'       => 'sometimes|image|extensions:jpeg,jpg,png,webp',
         ]);
 
         $locale = request('locale');

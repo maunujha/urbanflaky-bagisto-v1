@@ -12,6 +12,15 @@
     $gtmId     = config('services.gtm.container_id');
     $clarityId = config('services.clarity.project_id');
 
+    /* Cookie consent layer. When OFF the tags load exactly as before; when ON
+       they are deferred and gated by the visitor's category choices. */
+    $ccEnabled         = \App\Support\CookieConsent::enabled();
+    $ccVersion         = \App\Support\CookieConsent::version();
+    $ccValidityMonths  = \App\Support\CookieConsent::validityMonths();
+    $ccServerConsent   = $ccEnabled
+        ? \App\Support\CookieConsent::forUser(auth()->guard('customer')->user())
+        : null;
+
     /* Coarse page_type for every page. Catalog views (product/category share one
        Bagisto route) refine this in their own @push('datalayer') — last push wins. */
     $routeName = request()->route()?->getName() ?? '';
@@ -129,24 +138,165 @@
      before the container, so GTM picks them up on its initial replay. --}}
 @stack('datalayer')
 
-@if ($gtmId)
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','{{ $gtmId }}');</script>
-    <!-- End Google Tag Manager -->
-@endif
+@unless ($ccEnabled)
+    {{-- Consent layer OFF → original unconditional loading (unchanged behavior). --}}
+    @if ($gtmId)
+        <!-- Google Tag Manager -->
+        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','{{ $gtmId }}');</script>
+        <!-- End Google Tag Manager -->
+    @endif
 
-@if ($clarityId)
-    <!-- Microsoft Clarity -->
-    <script type="text/javascript">
-        (function(c,l,a,r,i,t,y){
-            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-        })(window, document, "clarity", "script", "{{ $clarityId }}");
+    @if ($clarityId)
+        <!-- Microsoft Clarity -->
+        <script type="text/javascript">
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "{{ $clarityId }}");
+        </script>
+        <!-- End Microsoft Clarity -->
+    @endif
+@else
+    {{--
+        Consent layer ON. Google Consent Mode v2 defaults are set to "denied"
+        BEFORE any tag loads, and GTM/Clarity are injected only once the matching
+        category is granted. A returning visitor with a valid stored consent is
+        re-applied synchronously here so their tags load without re-prompting.
+    --}}
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { window.dataLayer.push(arguments); }
+
+        window.ufConsent = {
+            STORAGE_KEY: 'cookie_consent',
+
+            config: {
+                version:        @json($ccVersion),
+                validityMonths: {{ (int) $ccValidityMonths }},
+                gtmId:          @json($gtmId),
+                clarityId:      @json($clarityId),
+            },
+
+            /* Active consent applied this page load (null = undecided). */
+            current: null,
+
+            _gtmLoaded: false,
+            _clarityLoaded: false,
+
+            /* Consent Mode v2 — everything off except security until told otherwise. */
+            setDefaults: function () {
+                gtag('consent', 'default', {
+                    ad_storage: 'denied',
+                    ad_user_data: 'denied',
+                    ad_personalization: 'denied',
+                    analytics_storage: 'denied',
+                    functionality_storage: 'denied',
+                    personalization_storage: 'denied',
+                    security_storage: 'granted',
+                    wait_for_update: 500,
+                });
+            },
+
+            read: function () {
+                try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY)); }
+                catch (e) { return null; }
+            },
+
+            isValid: function (c) {
+                if (! c || c.version !== this.config.version || ! c.timestamp) return false;
+                var age = Date.now() - new Date(c.timestamp).getTime();
+                return age < this.config.validityMonths * 30 * 24 * 60 * 60 * 1000;
+            },
+
+            /* Persist + apply a fresh choice (called by the banner/modal). */
+            set: function (c) {
+                c.essential = true;
+                c.version = this.config.version;
+                c.timestamp = new Date().toISOString();
+                try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(c)); } catch (e) {}
+                this.apply(c);
+                return c;
+            },
+
+            apply: function (c) {
+                this.current = c;
+                this.updateConsentMode(c);
+                this.loadScripts(c);
+                window.dataLayer.push({
+                    event: 'cookie_consent_update',
+                    cookie_consent: {
+                        analytics: !! c.analytics,
+                        marketing: !! c.marketing,
+                        preferences: !! c.preferences,
+                    },
+                });
+            },
+
+            updateConsentMode: function (c) {
+                gtag('consent', 'update', {
+                    analytics_storage:       c.analytics ? 'granted' : 'denied',
+                    ad_storage:              c.marketing ? 'granted' : 'denied',
+                    ad_user_data:            c.marketing ? 'granted' : 'denied',
+                    ad_personalization:      c.marketing ? 'granted' : 'denied',
+                    functionality_storage:   c.preferences ? 'granted' : 'denied',
+                    personalization_storage: c.preferences ? 'granted' : 'denied',
+                });
+            },
+
+            /* Hard block: a tag is only injected when its category is granted. */
+            loadScripts: function (c) {
+                if (c.analytics || c.marketing) this.loadGTM();
+                if (c.analytics) this.loadClarity();
+            },
+
+            loadGTM: function () {
+                if (this._gtmLoaded || ! this.config.gtmId) return;
+                this._gtmLoaded = true;
+                (function (w, d, s, l, i) {
+                    w[l] = w[l] || [];
+                    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+                    var f = d.getElementsByTagName(s)[0],
+                        j = d.createElement(s),
+                        dl = l != 'dataLayer' ? '&l=' + l : '';
+                    j.async = true;
+                    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                    f.parentNode.insertBefore(j, f);
+                })(window, document, 'script', 'dataLayer', this.config.gtmId);
+            },
+
+            loadClarity: function () {
+                if (this._clarityLoaded || ! this.config.clarityId) return;
+                this._clarityLoaded = true;
+                (function (c, l, a, r, i, t, y) {
+                    c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+                    t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+                    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+                })(window, document, 'clarity', 'script', this.config.clarityId);
+            },
+        };
+
+        ufConsent.setDefaults();
+
+        /* Re-apply an existing decision: localStorage first, then the logged-in
+           customer's server-stored copy (seeds a fresh device). */
+        (function () {
+            var local  = ufConsent.read();
+            var server = @json($ccServerConsent);
+            var stored = (local && ufConsent.isValid(local)) ? local
+                       : (server && ufConsent.isValid(server)) ? server
+                       : null;
+
+            if (stored) {
+                if (! local) {
+                    try { localStorage.setItem(ufConsent.STORAGE_KEY, JSON.stringify(stored)); } catch (e) {}
+                }
+                ufConsent.apply(stored);
+            }
+        })();
     </script>
-    <!-- End Microsoft Clarity -->
-@endif
+@endunless

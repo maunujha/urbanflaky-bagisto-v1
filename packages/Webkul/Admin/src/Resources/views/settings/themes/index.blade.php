@@ -207,6 +207,7 @@
                             footer_links: "@lang('admin::app.settings.themes.create.type.footer-links')",
                             services_content: "@lang('admin::app.settings.themes.create.type.services-content')",
                             instagram_lookbook: "@lang('lookbook::app.admin.menu.looks')",
+                            video_banner: "@lang('admin::app.settings.themes.create.type.video-banner')",
                         },
 
                         isLoading: false,
