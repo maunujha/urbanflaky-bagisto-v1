@@ -11,6 +11,15 @@ export default defineConfig(({ mode }) => {
     return {
         build: {
             emptyOutDir: true,
+            rollupOptions: {
+                output: {
+                    manualChunks: {
+                        vue: ["vue"],
+                        veeValidate: ["vee-validate", "@vee-validate/rules", "@vee-validate/i18n"],
+                        vendor: ["axios", "mitt"]
+                    }
+                }
+            }
         },
 
         envDir,

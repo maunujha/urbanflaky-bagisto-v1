@@ -1,4 +1,19 @@
 {
+  "_veeValidate-B3bogjtx.js": {
+    "file": "assets/veeValidate-B3bogjtx.js",
+    "name": "veeValidate",
+    "imports": [
+      "_vue-yeWSAkuM.js"
+    ]
+  },
+  "_vendor-x4txe7Lb.js": {
+    "file": "assets/vendor-x4txe7Lb.js",
+    "name": "vendor"
+  },
+  "_vue-yeWSAkuM.js": {
+    "file": "assets/vue-yeWSAkuM.js",
+    "name": "vue"
+  },
   "node_modules/vue-cal/dist/drag-and-drop.es.js": {
     "file": "assets/drag-and-drop.es-JkAdgoaa.js",
     "name": "drag-and-drop.es",
@@ -469,10 +484,15 @@
     "src": "src/Resources/assets/images/unpaid-invoices.svg"
   },
   "src/Resources/assets/js/app.js": {
-    "file": "assets/app-cl4JdaTV.js",
+    "file": "assets/app-D_T4Pmdp.js",
     "name": "app",
     "src": "src/Resources/assets/js/app.js",
     "isEntry": true,
+    "imports": [
+      "_vue-yeWSAkuM.js",
+      "_vendor-x4txe7Lb.js",
+      "_veeValidate-B3bogjtx.js"
+    ],
     "dynamicImports": [
       "node_modules/vue-cal/dist/i18n/ar.es.js",
       "node_modules/vue-cal/dist/i18n/bg.es.js",

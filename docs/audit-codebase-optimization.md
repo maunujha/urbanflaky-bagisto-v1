@@ -136,6 +136,25 @@ Audited routes, service providers, config files, events/listeners, views, and mi
 
 **Decision:** Phase 3 complete. Codebase was already in good shape — the only real findings were the 2 broken listener stubs.
 
+---
+
+## Phase 4 — Performance Optimization (2026-06-20)
+
+Caching was already extensively covered by the pre-existing `PERFORMANCE.md` (FPC/Redis, queue worker, OPcache, nginx, cron, plus documented code-level wins: footer/blog query caching, LCP preload, custom-table indexes, Vite chunking, Redis DB separation). Audited the two areas it didn't cover: N+1 queries and frontend bundle health.
+
+**N+1 query audit — most flagged candidates were false positives, verified directly before any change:**
+- `Gabha\Blog` (HomeBlogComposer, listing, show pages) — flagged as N+1-risk, but the `Blog` model has **zero relations defined at all**. Nothing to eager-load; false positive.
+- `Gabha\RewardCoins` transaction listing — flagged similarly, but `transaction-row.blade.php` and the admin customer-detail view only touch flat columns (amount/type/status/note/created_at), never `->order` or `->customer`. False positive.
+- **Genuine finding:** `Webkul\Checkout\Models\Cart::items()` eager-loads `child`/`children` but not `product` — and `Cart.php`'s core total-collection/stock/tax logic (`collectTotals()`, stock checks, tax category lookup) accesses `$item->product` per item, on every cart load and checkout step. Fixed: added `'product'` to the `items()` eager-load (`packages/Webkul/Checkout/src/Models/Cart.php`). Single-line, additive, safe — confirmed via the cart-flow test suite (no new failures; the 8 pre-existing failures are the already-documented stale payment-method-count assertions, unaffected by this purely-additive change).
+
+**Frontend bundle audit:**
+- `packages/Webkul/Shop/src/Resources/views/components/example.blade.php` — 322-line stock Bagisto demo/showcase component, zero references anywhere (no route, no `@include`, no other view uses it). Removed.
+- **Admin bundle was the real win:** `packages/Webkul/Admin/vite.config.js` had no `manualChunks` config (unlike Shop, which already splits vue/veeValidate/vendor). Admin's `app.js` was a single 552.54 kB chunk (188.48 kB gzipped) — Vite's oversized-chunk warning was firing. Added the same `manualChunks` split Shop already uses (`vue`, `veeValidate`, `vendor`). Result: `app.js` down to 344.87 kB (110.64 kB gzipped) — **~41% gzipped reduction** — with vue/veeValidate/vendor now in separately-cacheable chunks. No more oversized-chunk warning.
+- Minor duplicate-logic finding (Shop vs Admin have separately-maintained `debounce.js` directives with slightly different implementations) — noted but not touched; low impact, and "unifying" two small directive files across packages isn't worth the risk for the size of win.
+- `chart.js` (Admin, 206.51 kB / 72.67 kB gzipped) is intentionally vendored as its own Vite entry point (not bundled into app.js) — already isolated, not part of the bundling problem.
+
+**Verification:** `php -l` clean, `optimize:clear`/`view:clear` clean, both Shop and Admin `npm run build` clean with no missing-asset or oversized-chunk warnings. Ran the Admin+Shop test suites broadly (`--filter=Admin`, 424 passed / 12 failed) — spot-checked the failures: all are either the already-documented stale payment-method-count assertions, or pre-existing unrelated fixture/validation issues (e.g. a registration test missing a required `phone` field in its test data) confirmed to fail the same way in isolation, before and unrelated to this round's changes.
+
 ## Recommended next step
 
 Given the size of this codebase and the risk profile (live production store with revenue), I'd suggest we **scope down** to a short list of concrete, low-risk removals rather than running the full 5-phase plan as one sweep:
