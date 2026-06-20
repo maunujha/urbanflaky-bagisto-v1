@@ -117,6 +117,25 @@ Audited the rest of the original Phase 2 scope: Marketing/Customer features, adm
 
 **Decision:** treat current state as Phase 2 complete. Remaining items cost near-zero at idle (unused admin menu items see zero traffic) and removal effort/risk doesn't pay for itself for a store this size. Phases 3 (routes/providers/configs/events/views/migrations) and 4 (query/caching/frontend performance) and full Phase 5 smoke-test validation remain undone — out of scope unless requested.
 
+---
+
+## Phase 3 — Laravel Optimization (2026-06-20)
+
+Audited routes, service providers, config files, events/listeners, views, and migrations.
+
+**Clean — no action needed:**
+- **Routes** — no duplicate URIs, no broken controller references, no dead custom routes in `routes/web.php`.
+- **Service providers** — all 44 registered providers in `bootstrap/providers.php` do real work; no duplicates, no empty shells.
+- **Views** — no leftover/duplicate blade files, no orphaned view directories, no stragglers from the removed payment packages.
+- **Migrations** — documented only (per original instruction, never deleted): 16 project-level migrations, all legitimate (Laravel defaults + Lookbook/Shiprocket/cookie-consent/OTP-fix/perf-index features), no duplicates.
+
+**Config files — important correction:** a subagent's grep-based audit initially flagged `bagisto-vite.php`, `hashing.php`, `products.php`, `responsecache.php`, `themes.php`, `translatable.php`, `view.php` as having "zero references" and recommended removal. I verified each one directly before touching anything — **every single one was a false positive.** `bagisto-vite.php`/`themes.php`/`products.php` are read internally by core Bagisto theme/product code (confirmed via grep in `packages/Webkul/Theme`, `packages/Webkul/Product`, `packages/Webkul/Shop/Http/Middleware/Theme.php`); `hashing.php`/`view.php` are Laravel framework stubs always required regardless of explicit `config()` calls; `responsecache.php`/`translatable.php`/`sanctum.php`/`purify.php` are vendor package configs read internally by those packages, not by app code. **Zero config files removed.** This is the second time a grep-only "zero references" claim turned out wrong (first was the theme-image audit) — confirms these audits need a human/manual verification pass before any deletion, not just subagent grep output.
+
+**Events & Listeners — removed:**
+- `app/Listeners/SendCancellationSms.php` and `app/Listeners/SendShipmentSms.php` — found unregistered in `Webkul\Shop\Providers\EventServiceProvider`, AND calling `SmsAlertService` methods that don't exist (`sendOrderCancelled`, `sendAdminOrderStatus`, `sendOrderShipped` — the service only has `sendOtp`/`sendWelcome`/`sendRegistration`/`sendOrderPlaced`/`sendOrderDelivered`/`sendOrderRefunded`/`sendAbandonedCart`/`sendAdminInquiry`). Would have fatally errored if ever wired up. No `SMSALERT_TEMPLATE_*` env keys existed for them either, ruling out an in-progress feature. User confirmed: delete (not worth completing). Removed, zero other references confirmed via grep, `optimize:clear` clean afterward.
+
+**Decision:** Phase 3 complete. Codebase was already in good shape — the only real findings were the 2 broken listener stubs.
+
 ## Recommended next step
 
 Given the size of this codebase and the risk profile (live production store with revenue), I'd suggest we **scope down** to a short list of concrete, low-risk removals rather than running the full 5-phase plan as one sweep:
