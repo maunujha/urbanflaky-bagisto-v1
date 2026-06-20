@@ -3,7 +3,7 @@
         @lang('inventory::app.admin.purchases.index.title')
     </x-slot>
 
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between gap-4 max-sm:flex-wrap">
         <p class="text-xl font-bold text-gray-800 dark:text-white">
             @lang('inventory::app.admin.purchases.index.title')
         </p>

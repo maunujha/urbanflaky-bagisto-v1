@@ -14,7 +14,7 @@
         {!! view_render_event('bagisto.admin.settings.data_transfer.imports.create.create_form_controls.before', ['import' => $import]) !!}
 
         <!-- Page Header -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4 max-sm:flex-wrap">
             <p class="text-xl font-bold text-gray-800 dark:text-white">
                 @lang('admin::app.settings.data-transfer.imports.edit.title')
             </p>

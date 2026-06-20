@@ -32,7 +32,7 @@
     </div>
 
     <div class="mt-5 flex-wrap items-center justify-between gap-x-1 gap-y-2">
-        <div class="flex gap-1.5">
+        <div class="flex flex-wrap gap-1.5">
             {!! view_render_event('bagisto.admin.sales.order.page_action.before', ['order' => $order]) !!}
 
             @if (
@@ -133,7 +133,7 @@
                         @foreach ($order->items as $item)
                             {!! view_render_event('bagisto.admin.sales.order.list.item.before', ['order' => $order, 'item' => $item]) !!}
 
-                            <div class="flex justify-between gap-2.5 border-b border-slate-300 px-4 py-6 dark:border-gray-800">
+                            <div class="flex flex-wrap justify-between gap-2.5 border-b border-slate-300 px-4 py-6 dark:border-gray-800">
                                 <div class="flex gap-2.5">
                                     @if($item?->product?->base_image_url)
                                         <img

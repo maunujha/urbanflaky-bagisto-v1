@@ -10,7 +10,7 @@
 
         {!! view_render_event('bagisto.admin.settings.roles.create.create_form_controls.before') !!}
 
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4 max-sm:flex-wrap">
             <p class="text-xl font-bold text-gray-800 dark:text-white">
                 @lang('admin::app.settings.roles.create.title')
             </p>

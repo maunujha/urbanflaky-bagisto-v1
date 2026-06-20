@@ -12,9 +12,9 @@
     </div>
 
     <!-- Dashboard Cards -->
-    <div class="mt-4 grid grid-cols-4 gap-4 max-lg:grid-cols-2 max-sm:grid-cols-1">
+    <div class="mt-4 flex flex-wrap gap-4">
         <!-- Total Inventory Units -->
-        <div class="box-shadow rounded bg-white p-4 dark:bg-gray-900">
+        <div class="box-shadow min-w-[220px] flex-1 rounded bg-white p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-300">
                 @lang('inventory::app.admin.stock.index.cards.total-units')
             </p>
@@ -25,7 +25,7 @@
         </div>
 
         <!-- Total Inventory Value -->
-        <div class="box-shadow rounded bg-white p-4 dark:bg-gray-900">
+        <div class="box-shadow min-w-[220px] flex-1 rounded bg-white p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-300">
                 @lang('inventory::app.admin.stock.index.cards.total-value')
             </p>
@@ -35,7 +35,7 @@
         </div>
 
         <!-- Low Stock Products -->
-        <div class="box-shadow rounded bg-white p-4 dark:bg-gray-900">
+        <div class="box-shadow min-w-[220px] flex-1 rounded bg-white p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-300">
                 @lang('inventory::app.admin.stock.index.cards.low-stock')
             </p>
@@ -49,7 +49,7 @@
         </div>
 
         <!-- Total Vendors -->
-        <div class="box-shadow rounded bg-white p-4 dark:bg-gray-900">
+        <div class="box-shadow min-w-[220px] flex-1 rounded bg-white p-4 dark:bg-gray-900">
             <p class="text-sm text-gray-500 dark:text-gray-300">
                 @lang('inventory::app.admin.stock.index.cards.total-vendors')
             </p>

@@ -37,7 +37,10 @@
                             :style="`grid-template-columns: repeat(${gridsCount}, minmax(150px, 1fr))`"
                         >
                             <!-- Mass Actions -->
-                            <p v-if="available.massActions.length">
+                            <p
+                                v-if="available.massActions.length"
+                                class="max-sm:sticky max-sm:left-0 max-sm:z-10 max-sm:bg-gray-50 max-sm:pr-1.5 max-sm:shadow-[8px_0_8px_-8px_rgba(0,0,0,0.12)] dark:max-sm:bg-gray-900"
+                            >
                                 <label for="mass_action_select_all_records">
                                     <input
                                         type="checkbox"
@@ -49,7 +52,7 @@
                                     >
 
                                     <span
-                                        class="icon-uncheckbox cursor-pointer rounded-md text-2xl"
+                                        class="icon-uncheckbox cursor-pointer rounded-md p-1 text-2xl"
                                         :class="[
                                             applied.massActions.meta.mode === 'all' ? 'peer-checked:icon-checked peer-checked:text-blue-600 ' : (
                                                 applied.massActions.meta.mode === 'partial' ? 'peer-checked:icon-checkbox-partial peer-checked:text-blue-600' : ''
@@ -80,7 +83,7 @@
 
                             <!-- Actions -->
                             <p
-                                class="place-self-end"
+                                class="place-self-end max-sm:sticky max-sm:right-0 max-sm:z-10 max-sm:bg-gray-50 max-sm:pl-1.5 max-sm:shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)] dark:max-sm:bg-gray-900"
                                 v-if="available.actions.length"
                             >
                                 @lang('admin::app.components.datagrid.table.actions')
@@ -110,7 +113,10 @@
                                 :style="`grid-template-columns: repeat(${gridsCount}, minmax(150px, 1fr))`"
                             >
                                 <!-- Mass Actions -->
-                                <p v-if="available.massActions.length">
+                                <p
+                                    v-if="available.massActions.length"
+                                    class="max-sm:sticky max-sm:left-0 max-sm:z-10 max-sm:bg-white max-sm:pr-1.5 max-sm:shadow-[8px_0_8px_-8px_rgba(0,0,0,0.12)] dark:max-sm:bg-gray-900"
+                                >
                                     <label :for="`mass_action_select_record_${record[available.meta.primary_column]}`">
                                         <input
                                             type="checkbox"
@@ -121,7 +127,7 @@
                                             v-model="applied.massActions.indices"
                                         >
 
-                                        <span class="icon-uncheckbox peer-checked:icon-checked cursor-pointer rounded-md text-2xl peer-checked:text-blue-600">
+                                        <span class="icon-uncheckbox peer-checked:icon-checked cursor-pointer rounded-md p-1 text-2xl peer-checked:text-blue-600">
                                         </span>
                                     </label>
                                 </p>
@@ -138,11 +144,11 @@
 
                                 <!-- Actions -->
                                 <p
-                                    class="place-self-end"
+                                    class="place-self-end max-sm:sticky max-sm:right-0 max-sm:z-10 max-sm:bg-white max-sm:pl-1.5 max-sm:shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.12)] dark:max-sm:bg-gray-900"
                                     v-if="available.actions.length"
                                 >
                                     <span
-                                        class="cursor-pointer rounded-md p-1.5 text-2xl transition-all hover:bg-gray-200 dark:hover:bg-gray-800 max-sm:place-self-center"
+                                        class="cursor-pointer rounded-md p-2 text-2xl transition-all hover:bg-gray-200 dark:hover:bg-gray-800 max-sm:place-self-center"
                                         :class="action.icon"
                                         v-text="! action.icon ? action.title : ''"
                                         v-for="action in record.actions"

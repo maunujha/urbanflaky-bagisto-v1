@@ -326,7 +326,7 @@
 
                                     <template v-if="selectedType == 'editInventories'">
                                         <div class="border-b pb-2.5 dark:border-gray-800">
-                                            <div class="mb-2.5 grid grid-cols-3 gap-4">
+                                            <div class="mb-2.5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                                                 <x-admin::form.control-group
                                                     class="!mb-0"
                                                     v-for='inventorySource in inventorySources'
@@ -617,7 +617,7 @@
 
                                 <template v-if="selectedType == 'editInventories'">
                                     <x-admin::form.control-group class="mb-0 mt-2.5">
-                                        <div class="mb-2.5 grid grid-cols-3 gap-4">
+                                        <div class="mb-2.5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                                             <x-admin::form.control-group
                                                 class="!mb-0"
                                                 v-for='inventorySource in inventorySources'
@@ -705,7 +705,7 @@
         type="text/x-template"
         id="v-product-variation-item-template"
     >
-        <div class="flex justify-between gap-2.5 border-b border-slate-300 px-4 py-6 dark:border-gray-800">
+        <div class="flex flex-wrap justify-between gap-2.5 border-b border-slate-300 px-4 py-6 dark:border-gray-800">
 
             <!-- Information -->
             <div class="flex gap-2.5">
@@ -1016,7 +1016,7 @@
                                                 @lang('admin::app.catalog.products.edit.types.configurable.edit.quantities')
                                             </p>
 
-                                            <div class="mb-2.5 grid grid-cols-3 gap-4">
+                                            <div class="mb-2.5 grid grid-cols-2 gap-4 sm:grid-cols-3">
                                                 <x-admin::form.control-group
                                                     class="!mb-0"
                                                     v-for='inventorySource in inventorySources'

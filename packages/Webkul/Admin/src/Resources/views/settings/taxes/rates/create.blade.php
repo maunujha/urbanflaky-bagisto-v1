@@ -6,7 +6,7 @@
     {!! view_render_event('bagisto.admin.settings.taxes.rates.create.before') !!}
 
     <x-admin::form :action="route('admin.settings.taxes.rates.store')">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-4 max-sm:flex-wrap">
             <p class="text-xl font-bold text-gray-800 dark:text-white">
                 @lang('admin::app.settings.taxes.rates.create.title')
             </p>
