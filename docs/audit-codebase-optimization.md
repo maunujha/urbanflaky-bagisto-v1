@@ -92,6 +92,31 @@ User approved: delete unused lang folders, remove Sentry entirely (also to be re
 - DB-side: existing `core_config` rows for `sales.payment_methods.{stripe,payu,paypal_standard,paypal_smart_button}` and Sentry env values on the **production** server are untouched by this branch (code-only). User confirmed they'll handle removing Sentry from prod separately; the leftover DB config rows for the removed payment methods are dormant data, harmless, but worth clearing via Admin → Settings → Payment Methods (or a config cleanup) at deploy time.
 - `laravel/cashier` — confirmed zero code references anywhere (grepped again to be sure: only composer.lock/composer.json mentioned it). Removed via `composer remove laravel/cashier`; `composer validate` and `optimize:clear` still clean afterward.
 
+---
+
+## Phase 2 — Remaining items audited, closed out (2026-06-20)
+
+Audited the rest of the original Phase 2 scope: Marketing/Customer features, admin menus/settings/reports, and frontend assets.
+
+**Removed (zero-risk, confirmed dead):**
+- `paypal.png`, `payu.png`, `stripe.png` theme images — orphaned once those gateway packages were removed.
+- `hero-image.jpg`/`.webp`, `empty-dwn-product.png` — unreferenced stock Bagisto demo assets, confirmed via full-tree grep (including `bagisto_asset()` string-construction call sites, not just blade-template references).
+- Verified via `npm run build` (Shop theme) — clean build, no missing-asset warnings, manifest correctly drops the removed files.
+
+**False positives caught before deletion** (the asset-audit subagent's grep missed PHP string-constructed asset paths):
+- `cash-on-delivery.png`, `money-transfer.png` — referenced via `bagisto_asset('images/...', 'shop')` in `Webkul\Payment\Payment\{CashOnDelivery,MoneyTransfer}::getImage()`.
+- `razorpay.png` — same pattern in `Webkul\Razorpay\Payment\RazorpayPayment::getImage()`.
+- `large-product-placeholder.webp` — same pattern in `Webkul\Product\ProductImage`.
+
+**Audited, explicitly NOT removed (user decision: stop here for Phase 2):**
+- **GDPR data-request module** — no custom code uses it, but removing data-subject-rights tooling is a legal/compliance call (India's DPDP Act), not a tech-debt one. Left alone.
+- **BookingProduct, RMA, DataTransfer** — core Bagisto packages with deeper entanglement than the payment gateways (e.g. "booking" is a product-type enum referenced elsewhere in core Product code; RMA ties into the order/refund pipeline). Not separable the clean way Stripe/PayPal/PayU were. Left alone.
+- **Marketing → Campaigns/Events/Email Templates** — 0–1 seeded items, no usage evidence, but live inside the same `Webkul\Marketing` package as URL Rewrites/Search Terms/Synonyms (used for SEO) — not a separable sub-package. Left alone.
+- **Reports menu (Sales/Customer/Product)** — stock reports embedded in core Admin package, no custom dashboard usage found, but not separable without core surgery. Left alone.
+- **Settings → Channels/Exchange Rates UI** — already covered in the original Phase 1 audit; core Bagisto infra, not worth patching vendor code to hide a settings tab.
+
+**Decision:** treat current state as Phase 2 complete. Remaining items cost near-zero at idle (unused admin menu items see zero traffic) and removal effort/risk doesn't pay for itself for a store this size. Phases 3 (routes/providers/configs/events/views/migrations) and 4 (query/caching/frontend performance) and full Phase 5 smoke-test validation remain undone — out of scope unless requested.
+
 ## Recommended next step
 
 Given the size of this codebase and the risk profile (live production store with revenue), I'd suggest we **scope down** to a short list of concrete, low-risk removals rather than running the full 5-phase plan as one sweep:
