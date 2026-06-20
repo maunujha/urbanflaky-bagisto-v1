@@ -41,10 +41,6 @@ return Application::configure(basePath: dirname(__DIR__))
          */
         $middleware->replaceInGroup('web', BaseEncryptCookies::class, EncryptCookies::class);
 
-        $middleware->validateCsrfTokens(except: [
-            'stripe/*',
-        ]);
-
         /*
          * Trust only the proxies listed in TRUSTED_PROXIES (comma-separated).
          * Trusting '*' lets any client spoof its IP via X-Forwarded-For, which
@@ -59,6 +55,4 @@ return Application::configure(basePath: dirname(__DIR__))
         /* Reset search term use counts weekly to keep trending fresh */
         $schedule->command('search:reset-trending')->weekly();
     })
-    ->withExceptions(function (Exceptions $exceptions) {
-        \Sentry\Laravel\Integration::handles($exceptions);
-    })->create();
+    ->withExceptions(function (Exceptions $exceptions) {})->create();

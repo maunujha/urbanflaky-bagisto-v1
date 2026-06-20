@@ -83,7 +83,6 @@ These are the features developed on top of stock Bagisto (derived from the proje
 ### 2.9 Security & Reliability
 - **Google reCAPTCHA v3** on all public forms.
 - **Rate limiting** on API (`throttle:api`), OTP (`throttle:api-otp`, strictest to protect SMS cost), and auth (`throttle:api-auth`, anti credential-stuffing) endpoints.
-- **Sentry** error monitoring integrated.
 - **Google social login** (`GoogleController` + `Webkul\SocialLogin`).
 
 ### 2.10 CMS
@@ -146,9 +145,7 @@ These ship with Bagisto and are available even if not all are actively used/styl
 | **Shiprocket** | Shipping rates, label, tracking, webhook | Active |
 | **SMSAlert (DLT)** | Transactional SMS (14 templates) | Active |
 | **Google reCAPTCHA v3** | Bot protection on forms | Active |
-| **Sentry** | Error monitoring | Active |
 | **Google OAuth** | Social login | Active |
-| PayU / PayPal / Stripe | Alternative payments | Available |
 | Elasticsearch | Search backend | Available |
 
 ---
@@ -201,6 +198,6 @@ These ship with Bagisto and are available even if not all are actively used/styl
 | SMS listeners | `app/Listeners/Send*Sms.php` |
 | Scheduled commands | `app/Console/Commands/SyncShiprocketAwb.php`, `ResetTrendingSearches.php` |
 | Custom routes | `routes/web.php`, `packages/Webkul/Shop/src/Routes/*.php` |
-| Integration config | `config/shiprocket.php`, `config/services.php` (SMSAlert templates), `config/sentry.php` |
+| Integration config | `config/shiprocket.php`, `config/services.php` (SMSAlert templates) |
 </content>
 </invoke>

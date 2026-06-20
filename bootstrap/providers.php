@@ -31,8 +31,6 @@ use Webkul\MagicAI\Providers\MagicAIServiceProvider;
 use Webkul\Marketing\Providers\MarketingServiceProvider;
 use Webkul\Notification\Providers\NotificationServiceProvider;
 use Webkul\Payment\Providers\PaymentServiceProvider;
-use Webkul\Paypal\Providers\PaypalServiceProvider;
-use Webkul\PayU\Providers\PayUServiceProvider;
 use Webkul\Product\Providers\ProductServiceProvider;
 use Webkul\Razorpay\Providers\RazorpayServiceProvider;
 use Webkul\RMA\Providers\RMAServiceProvider;
@@ -43,7 +41,6 @@ use Webkul\Shop\Providers\ShopServiceProvider;
 use Webkul\Sitemap\Providers\SitemapServiceProvider;
 use Webkul\SocialLogin\Providers\SocialLoginServiceProvider;
 use Webkul\SocialShare\Providers\SocialShareServiceProvider;
-use Webkul\Stripe\Providers\StripeServiceProvider;
 use Webkul\Tax\Providers\TaxServiceProvider;
 use Webkul\Theme\Providers\ThemeServiceProvider;
 use Webkul\User\Providers\UserServiceProvider;
@@ -90,9 +87,7 @@ return [
     MagicAIServiceProvider::class,
     MarketingServiceProvider::class,
     NotificationServiceProvider::class,
-    PayUServiceProvider::class,
     PaymentServiceProvider::class,
-    PaypalServiceProvider::class,
     ProductServiceProvider::class,
     RMAServiceProvider::class,
     RazorpayServiceProvider::class,
@@ -103,7 +98,6 @@ return [
     SitemapServiceProvider::class,
     SocialLoginServiceProvider::class,
     SocialShareServiceProvider::class,
-    StripeServiceProvider::class,
     TaxServiceProvider::class,
     ThemeServiceProvider::class,
     UserServiceProvider::class,

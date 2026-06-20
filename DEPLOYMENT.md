@@ -39,7 +39,6 @@ deploy script repeats on each release.
    - `SESSION_SECURE_COOKIE=true`, `SESSION_ENCRYPT=true`
    - `QUEUE_CONNECTION=redis` (+ worker, §4)
    - `RESPONSE_CACHE_ENABLED=true`
-   - `SENTRY_SEND_DEFAULT_PII=false`
    - `TRUSTED_PROXIES` = real proxy IPs only, never `*`; empty if no proxy
 4. Razorpay **live** keys: Admin → Configure → Payment Methods → Razorpay,
    sandbox OFF. Add a webhook in the Razorpay dashboard pointing to
@@ -186,7 +185,7 @@ php artisan up
 - Reconcile Razorpay dashboard payments against orders daily until the
   webhook has proven itself (look for `Razorpay webhook: recovered order`
   in the logs).
-- Watch Sentry for new exceptions; watch `storage/logs` for
+- Watch `storage/logs` for
   `Shiprocket webhook: invalid token` (means panel token mismatch).
 - Verify SMS templates fire (place a ₹1 test order end-to-end, then refund).
 - Run Lighthouse on `/`, a category and a product page; the heavy work
