@@ -6,8 +6,6 @@ namespace Gabha\RewardCoins\Listeners;
 
 use Gabha\RewardCoins\Models\CoinSetting;
 use Gabha\RewardCoins\Services\CoinRedemptionService;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -18,24 +16,20 @@ use Throwable;
  *
  * Both admin cancellation and the Shiprocket cancellation webhook flow through
  * OrderRepository::cancel() → updateOrderStatus(), so both fire this event.
+ *
+ * Deliberately NOT queued (unlike the sibling RewardCoins listeners): the
+ * $order payload this event dispatches can carry a non-serializable closure
+ * somewhere in its loaded relation graph (root cause not in this package -
+ * surfaced as "Serialization of 'Closure' is not allowed" when Laravel
+ * builds the queued job, before handle() ever runs). Running inline avoids
+ * the queue's serialize/unserialize round-trip entirely; the reversal work
+ * itself is a couple of lightweight DB updates, not worth the queue risk.
  */
-class ReverseCoinsOnCancellation implements ShouldQueue
+class ReverseCoinsOnCancellation
 {
-    use InteractsWithQueue;
-
     public function __construct(
         private readonly CoinRedemptionService $redemptionService,
     ) {
-    }
-
-    /**
-     * Route this listener onto the dedicated coins queue.
-     *
-     * @return string
-     */
-    public function viaQueue(): string
-    {
-        return (string) config('reward_coins.queue', 'coins');
     }
 
     /**
@@ -56,21 +50,13 @@ class ReverseCoinsOnCancellation implements ShouldQueue
             return;
         }
 
-        $this->redemptionService->reverse((int) $order->id);
-    }
-
-    /**
-     * Log a failed run.
-     *
-     * @param  mixed  $order
-     * @param  Throwable  $e
-     * @return void
-     */
-    public function failed($order, Throwable $e): void
-    {
-        Log::error('RewardCoins: failed to reverse coins on cancellation.', [
-            'order_id' => $order->id ?? null,
-            'error'    => $e->getMessage(),
-        ]);
+        try {
+            $this->redemptionService->reverse((int) $order->id);
+        } catch (Throwable $e) {
+            Log::error('RewardCoins: failed to reverse coins on cancellation.', [
+                'order_id' => $order->id ?? null,
+                'error'    => $e->getMessage(),
+            ]);
+        }
     }
 }

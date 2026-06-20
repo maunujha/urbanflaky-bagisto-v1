@@ -8,6 +8,7 @@
         'pending'   => 'bg-yellow-100 text-yellow-700',
         'expired'   => 'bg-gray-100 text-gray-600',
         'cancelled' => 'bg-red-100 text-red-600',
+        'reversed'  => 'bg-red-100 text-red-600',
         default     => 'bg-gray-100 text-gray-600',
     };
 @endphp

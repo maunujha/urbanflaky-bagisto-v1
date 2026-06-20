@@ -10,6 +10,8 @@ namespace Gabha\RewardCoins\Enums;
  * Coins are granted as `Pending` (held during the post-delivery confirmation
  * window), promoted to `Confirmed` once spendable, and end as `Expired` or
  * `Cancelled` (e.g. order cancellation reverses a pending/confirmed grant).
+ * A confirmed `Redeemed` spend is reversed to `Reversed` instead (e.g. the
+ * order it was spent on is refunded/cancelled after the spend was confirmed).
  */
 enum TransactionStatus: string
 {
@@ -17,6 +19,7 @@ enum TransactionStatus: string
     case Confirmed = 'confirmed';
     case Expired   = 'expired';
     case Cancelled = 'cancelled';
+    case Reversed  = 'reversed';
 
     /**
      * Human-readable, translated label for display.
@@ -30,6 +33,7 @@ enum TransactionStatus: string
             self::Confirmed => trans('reward-coins::reward_coins.transaction.statuses.confirmed'),
             self::Expired   => trans('reward-coins::reward_coins.transaction.statuses.expired'),
             self::Cancelled => trans('reward-coins::reward_coins.transaction.statuses.cancelled'),
+            self::Reversed  => trans('reward-coins::reward_coins.transaction.statuses.reversed'),
         };
     }
 
@@ -51,7 +55,7 @@ enum TransactionStatus: string
     public function isTerminal(): bool
     {
         return match ($this) {
-            self::Expired, self::Cancelled => true,
+            self::Expired, self::Cancelled, self::Reversed => true,
             self::Pending, self::Confirmed => false,
         };
     }

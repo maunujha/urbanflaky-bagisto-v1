@@ -6,8 +6,6 @@ namespace Gabha\RewardCoins\Listeners;
 
 use Gabha\RewardCoins\Models\CoinSetting;
 use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -26,24 +24,21 @@ use Throwable;
  * until that window elapses, when {@see \Gabha\RewardCoins\Console\ConfirmAvailableCoinsCommand}
  * promotes them. Cancellation/void of pending coins is handled separately by
  * {@see ReverseCoinsOnCancellation}.
+ *
+ * Deliberately NOT queued (unlike most event listeners elsewhere in this
+ * package): the $order payload this event dispatches can carry a
+ * non-serializable closure somewhere in its loaded relation graph (root cause
+ * not in this package - surfaced as "Serialization of 'Closure' is not
+ * allowed" when Laravel builds the queued job, before handle() ever runs, and
+ * crashes the whole event dispatch for every listener on this event, not just
+ * this one). Running inline avoids the queue's serialize/unserialize
+ * round-trip entirely; stamping a timestamp is a single lightweight DB update.
  */
-class ConfirmCoinsOnDelivery implements ShouldQueue
+class ConfirmCoinsOnDelivery
 {
-    use InteractsWithQueue;
-
     public function __construct(
         private readonly CoinTransactionRepositoryInterface $transactions,
     ) {
-    }
-
-    /**
-     * Route this listener onto the dedicated coins queue.
-     *
-     * @return string
-     */
-    public function viaQueue(): string
-    {
-        return (string) config('reward_coins.queue', 'coins');
     }
 
     /**
@@ -64,30 +59,22 @@ class ConfirmCoinsOnDelivery implements ShouldQueue
             return;
         }
 
-        // Return-window length (days) before delivered coins become spendable.
-        $windowDays = (int) CoinSetting::active()->pending_confirmation_days;
+        try {
+            // Return-window length (days) before delivered coins become spendable.
+            $windowDays = (int) CoinSetting::active()->pending_confirmation_days;
 
-        $availableAt = $windowDays > 0
-            ? Carbon::now()->addDays($windowDays)
-            : Carbon::now();
+            $availableAt = $windowDays > 0
+                ? Carbon::now()->addDays($windowDays)
+                : Carbon::now();
 
-        // Idempotent: only stamps rows not already carrying an unlock time, so a
-        // repeated status save never resets a running window.
-        $this->transactions->stampAvailableAt((int) $order->id, $availableAt);
-    }
-
-    /**
-     * Log a failed run.
-     *
-     * @param  mixed  $order
-     * @param  Throwable  $e
-     * @return void
-     */
-    public function failed($order, Throwable $e): void
-    {
-        Log::error('RewardCoins: failed to open the coin return window on delivery.', [
-            'order_id' => $order->id ?? null,
-            'error'    => $e->getMessage(),
-        ]);
+            // Idempotent: only stamps rows not already carrying an unlock time, so a
+            // repeated status save never resets a running window.
+            $this->transactions->stampAvailableAt((int) $order->id, $availableAt);
+        } catch (Throwable $e) {
+            Log::error('RewardCoins: failed to open the coin return window on delivery.', [
+                'order_id' => $order->id ?? null,
+                'error'    => $e->getMessage(),
+            ]);
+        }
     }
 }
