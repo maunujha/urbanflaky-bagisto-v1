@@ -4,6 +4,7 @@ use App\Providers\AppServiceProvider;
 use App\Providers\CookieConsentServiceProvider;
 use App\Providers\LookbookServiceProvider;
 use Gabha\Blog\Providers\BlogServiceProvider;
+use Gabha\Inventory\Providers\InventoryServiceProvider as GabhaInventoryServiceProvider;
 use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
 use Gabha\Search\Providers\SearchServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
@@ -58,6 +59,7 @@ return [
      */
     LookbookServiceProvider::class,
     BlogServiceProvider::class,
+    GabhaInventoryServiceProvider::class,
     RewardCoinsServiceProvider::class,
     SearchServiceProvider::class,
     CookieConsentServiceProvider::class,

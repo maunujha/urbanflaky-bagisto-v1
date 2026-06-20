@@ -72,6 +72,7 @@
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/",
             "Gabha\\Blog\\": "packages/Gabha/Blog/src",
+            "Gabha\\Inventory\\": "packages/Gabha/Inventory/src",
             "Gabha\\RewardCoins\\": "packages/Gabha/RewardCoins/src",
             "Gabha\\Search\\": "packages/Gabha/Search/src",
             "Webkul\\Admin\\": "packages/Webkul/Admin/src",

@@ -5,6 +5,7 @@ module.exports = {
         "./src/Resources/**/*.js",
         "../../Gabha/RewardCoins/resources/**/*.blade.php",
         "../../Gabha/Search/src/Resources/**/*.blade.php",
+        "../../Gabha/Inventory/src/Resources/**/*.blade.php",
     ],
 
     theme: {
