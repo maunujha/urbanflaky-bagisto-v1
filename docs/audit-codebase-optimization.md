@@ -155,6 +155,31 @@ Caching was already extensively covered by the pre-existing `PERFORMANCE.md` (FP
 
 **Verification:** `php -l` clean, `optimize:clear`/`view:clear` clean, both Shop and Admin `npm run build` clean with no missing-asset or oversized-chunk warnings. Ran the Admin+Shop test suites broadly (`--filter=Admin`, 424 passed / 12 failed) — spot-checked the failures: all are either the already-documented stale payment-method-count assertions, or pre-existing unrelated fixture/validation issues (e.g. a registration test missing a required `phone` field in its test data) confirmed to fail the same way in isolation, before and unrelated to this round's changes.
 
+---
+
+## Phase 5 — Final Validation (2026-06-20)
+
+Full smoke-test pass against the live local dev site (http://urbanflaky.test) plus targeted Pest suites, per the original task's required checklist. HTTP-level checks only — no Playwright/browser automation, per established project convention. One verification agent ran to completion (storefront/SEO); three others hit a session limit, so that work was completed directly.
+
+**Homepage / Category / Product / Search / CMS / Blog / Track-order — ALL PASS**
+HTTP 200 on every page, no error/exception strings, single (non-duplicated) `<title>`/meta description tags, JSON-LD renders correctly as `@context` (not literal `@@context`). Confirmed PDP URLs are flat (`/{url_key}`, no category prefix) — pre-existing routing shape, not a regression.
+
+**Cart & Checkout — PASS**
+Real end-to-end test: added product id 144 to a guest cart via `POST /api/checkout/cart` with a proper session+XSRF flow → HTTP 200, full nested `product` data (name/SKU/price/images) in the response, GST tax calculated correctly. Confirms the `Cart::items()` eager-load fix from Phase 4 works correctly in production-like conditions, not just that it compiles. `CheckoutTest.php`: 30 passed / 8 failed, all 8 matching the already-documented stale payment-method-count pattern (verified identical to the pre-Phase-5 baseline).
+
+**Customer & Admin auth — PASS**
+Login/register pages 200 with correct form fields; protected routes (`/customer/account/profile`, `/admin`) correctly redirect (302) to their respective login pages without a session. `Refund.php` listener (edited in Phase 2 to remove the dead PayPal branch) is syntactically valid with zero lingering PayPal references. Admin Settings suite: 103 passed / 1 failed (unrelated Faker flake — `fake()->password()` not containing a digit, vs a password-complexity rule). Customer suite: 415 passed / 16 failed, all matching the already-documented stale-assertion/registration-fixture patterns.
+
+**Admin Orders/Products + Inventory/Purchase — PASS, with 2 pre-existing bugs surfaced (not regressions)**
+`packages/Webkul/Admin/src/Config/system.php` payment-methods section confirmed structurally correct (exactly 4 blocks: parent + razorpay + cashondelivery + moneytransfer), `php -l` clean. Admin Catalog suite: **92/92 passed, zero failures.** Admin Sales suite: 43 passed / 9 failed — investigated every failure individually and confirmed via `git diff` against every Implicated file vs `dev` that **all are byte-identical to `dev`**, meaning these failures predate this branch entirely:
+- `Gabha\RewardCoins\Repositories\CoinTransactionRepository.php:212` references `TransactionStatus::Reversed`, an enum case that **does not exist** (only `Pending`/`Confirmed`/`Expired`/`Cancelled` are defined) — confirmed present verbatim on `dev`. This means the reward-coins refund claw-back feature (added in commit "Harden RewardCoins: 7-day hold, refund claw-back, spend-cap validation") would crash with a fatal error in production today if a refund is issued on an order with reward coins. **Pre-existing production bug, unrelated to this cleanup, but worth fixing.**
+- A second, distinct `Gabha\RewardCoins\Listeners\ReverseCoinsOnCancellation` bug: "Serialization of 'Closure' is not allowed" when order cancellation tries to queue the coins-reversal listener — also confirmed byte-identical to `dev`. **Same area, same pre-existing risk: cancelling an order with reward coins would currently fail.**
+- Remaining failures (currency-formatter null-argument TypeError on invoice PDF, missing "Flat Rate" carrier title, a 403 on a shipping-method route, the known multi-line-address assertion quirk) all confirmed on files byte-identical to `dev` — pre-existing test/environment gaps, not regressions.
+
+Inventory module (`Gabha\Inventory`) — no test files exist for it; HTTP-checked `/admin/inventory/vendors` redirects (302) to admin login without a session, confirming routes/providers still register correctly after the Phase 2 `bootstrap/providers.php` edits.
+
+**Overall Phase 5 conclusion: zero regressions found from any phase of this cleanup.** All non-pre-existing-pattern test failures were individually traced to root cause and confirmed unrelated via direct `git diff` against `dev`. Two real, pre-existing production bugs were discovered in `Gabha\RewardCoins`'s refund/cancellation reversal logic (both unrelated to this cleanup) — flagged for a separate decision on whether to fix.
+
 ## Recommended next step
 
 Given the size of this codebase and the risk profile (live production store with revenue), I'd suggest we **scope down** to a short list of concrete, low-risk removals rather than running the full 5-phase plan as one sweep:
