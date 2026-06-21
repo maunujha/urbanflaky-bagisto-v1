@@ -134,10 +134,10 @@ body::after {
     position: relative;
 }
 @media (min-width: 768px) {
-    .uf-cat-section { padding: 96px 40px 72px; }
+    .uf-cat-section { padding: 40px 40px 72px; }
 }
 @media (min-width: 1280px) {
-    .uf-cat-section { padding: 120px 56px 88px; }
+    .uf-cat-section { padding: 60px 56px 88px; }
 }
 
 .uf-cat-container {
@@ -3315,6 +3315,8 @@ body.mh-search-locked { overflow: hidden; }
         height: 86vh;
         min-height: 560px;
         max-height: 900px;
+        width: calc(100% - 4rem);
+        margin-left: 2rem;
     }
 }
 
