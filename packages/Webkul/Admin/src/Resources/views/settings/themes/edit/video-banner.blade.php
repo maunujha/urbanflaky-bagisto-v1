@@ -12,9 +12,19 @@
 
     /* Pre-selected product (when this banner already links to one) for display. */
     $vbProduct = null;
+    $vbSelectedProduct = null;
 
     if (($options['link_type'] ?? '') === 'product' && ! empty($options['link_id'])) {
         $vbProduct = app(\Webkul\Product\Repositories\ProductRepository::class)->find($options['link_id']);
+    }
+
+    if ($vbProduct) {
+        $vbSelectedProduct = [
+            'id'     => $vbProduct->id,
+            'name'   => $vbProduct->name,
+            'sku'    => $vbProduct->sku,
+            'images' => $vbProduct->images->map(fn ($image) => ['url' => $image->url]),
+        ];
     }
 @endphp
 
@@ -352,7 +362,7 @@
 
                     categories: @json($vbCategories),
 
-                    selectedProduct: @json($vbProduct ? ['id' => $vbProduct->id, 'name' => $vbProduct->name, 'sku' => $vbProduct->sku, 'images' => $vbProduct->images->map(fn ($i) => ['url' => $i->url])] : null),
+                    selectedProduct: @json($vbSelectedProduct),
 
                     previews: {
                         video: @json(! empty($options['video']) ? asset($options['video']) : null),

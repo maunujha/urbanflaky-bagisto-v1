@@ -30,7 +30,7 @@
                 @lang('inventory::app.admin.stock.index.cards.total-value')
             </p>
             <p class="mt-2 text-2xl font-bold text-gray-800 dark:text-white">
-                {{ core()->formatBasePrice($stats['total_value']) }}
+                {{ core()->formatBasePrice((float) $stats['total_value']) }}
             </p>
         </div>
 

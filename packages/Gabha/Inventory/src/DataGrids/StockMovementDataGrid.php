@@ -104,6 +104,18 @@ class StockMovementDataGrid extends DataGrid
         ]);
 
         $this->addColumn([
+            'index'      => 'quantity',
+            'label'      => trans('inventory::app.admin.movements.index.datagrid.quantity'),
+            'type'       => 'integer',
+            'sortable'   => true,
+            'closure'    => function ($row) {
+                $sign = MovementType::from($row->movement_type)->isInbound() ? '+' : '−';
+
+                return $sign.$row->quantity;
+            },
+        ]);
+
+        $this->addColumn([
             'index'              => 'movement_type',
             'label'              => trans('inventory::app.admin.movements.index.datagrid.movement-type'),
             'type'               => 'string',
@@ -119,18 +131,6 @@ class StockMovementDataGrid extends DataGrid
                 $class = $type->isInbound() ? 'badge-success' : 'badge-warning';
 
                 return '<span class="badge badge-md '.$class.'">'.$type->label().'</span>';
-            },
-        ]);
-
-        $this->addColumn([
-            'index'      => 'quantity',
-            'label'      => trans('inventory::app.admin.movements.index.datagrid.quantity'),
-            'type'       => 'integer',
-            'sortable'   => true,
-            'closure'    => function ($row) {
-                $sign = MovementType::from($row->movement_type)->isInbound() ? '+' : '−';
-
-                return $sign.$row->quantity;
             },
         ]);
 

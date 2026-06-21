@@ -1134,11 +1134,20 @@
                         return;
                     }
 
-                    const optionIds = Object.values(params);
+                    const skuParts = Object.entries(params).map(([code, optionId]) => {
+                        const attribute = this.superAttributes.find((attribute) => attribute.code === code);
+
+                        const option = attribute?.options.find((option) => option.id == optionId);
+
+                        return (option?.admin_name ?? optionId).toString()
+                            .toUpperCase()
+                            .replace(/[^A-Z0-9]+/g, '-')
+                            .replace(/^-+|-+$/g, '');
+                    });
 
                     this.variants.push(Object.assign({
                         id: 'variant_' + this.variants.length,
-                        sku: '{{ $product->sku }}' + '-variant-' + optionIds.join('-'),
+                        sku: '{{ $product->sku }}' + '-' + skuParts.join('-'),
                         name: '',
                         price: 0,
                         status: 1,

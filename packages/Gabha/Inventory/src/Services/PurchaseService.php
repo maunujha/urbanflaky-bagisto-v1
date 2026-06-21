@@ -124,6 +124,51 @@ class PurchaseService
     }
 
     /**
+     * Append new line items to an existing purchase (the original lines,
+     * vendor, and dates stay immutable — this only adds new ones).
+     *
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    public function addItems(Purchase $purchase, array $items): Purchase
+    {
+        [$additionalQuantity, $additionalAmount] = $this->totals($items);
+
+        DB::transaction(function () use ($purchase, $items, $additionalQuantity, $additionalAmount) {
+            foreach ($items as $item) {
+                $variantId = (int) $item['product_variant_id'];
+                $quantity = (int) $item['quantity'];
+                $unitCost = (float) $item['unit_cost'];
+
+                $this->purchaseItemRepository->create([
+                    'purchase_id'        => $purchase->id,
+                    'product_variant_id' => $variantId,
+                    'quantity'           => $quantity,
+                    'unit_cost'          => $unitCost,
+                    'total_cost'         => $quantity * $unitCost,
+                ]);
+
+                $this->stockMovementService->record([
+                    'product_variant_id' => $variantId,
+                    'movement_type'      => MovementType::PURCHASE,
+                    'quantity'           => $quantity,
+                    'reference_type'     => 'purchase',
+                    'reference_id'       => $purchase->id,
+                    'notes'              => $purchase->notes,
+                ], reindex: false);
+            }
+
+            $purchase->increment('total_quantity', $additionalQuantity);
+            $purchase->increment('total_amount', $additionalAmount);
+        });
+
+        UpdateCreateInventoryIndex::dispatch(
+            collect($items)->pluck('product_variant_id')->unique()->values()->all()
+        );
+
+        return $purchase->refresh();
+    }
+
+    /**
      * Sum the line items into [total_quantity, total_amount].
      *
      * @param  array<int, array<string, mixed>>  $items

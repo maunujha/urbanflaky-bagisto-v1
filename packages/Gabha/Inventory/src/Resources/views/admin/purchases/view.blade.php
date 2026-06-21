@@ -14,12 +14,23 @@
             {{ trans('inventory::app.admin.purchases.view.title', ['number' => $purchase->purchase_number]) }}
         </p>
 
-        <a
-            href="{{ route('admin.inventory.purchases.index') }}"
-            class="transparent-button hover:bg-gray-200 dark:text-white dark:hover:bg-gray-800"
-        >
-            @lang('inventory::app.admin.purchases.view.back-btn')
-        </a>
+        <div class="flex items-center gap-x-2.5">
+            <a
+                href="{{ route('admin.inventory.purchases.index') }}"
+                class="transparent-button hover:bg-gray-200 dark:text-white dark:hover:bg-gray-800"
+            >
+                @lang('inventory::app.admin.purchases.view.back-btn')
+            </a>
+
+            @if (bouncer()->hasPermission('inventory.purchases.add-items'))
+                <a
+                    href="{{ route('admin.inventory.purchases.add-items', $purchase->id) }}"
+                    class="primary-button"
+                >
+                    @lang('inventory::app.admin.purchases.view.add-items-btn')
+                </a>
+            @endif
+        </div>
     </div>
 
     <div class="mt-3.5 flex gap-2.5 max-xl:flex-wrap">
@@ -59,10 +70,10 @@
                                         {{ $item->quantity }}
                                     </td>
                                     <td class="px-2.5 py-2.5 text-right text-gray-800 dark:text-white">
-                                        {{ core()->formatBasePrice($item->unit_cost) }}
+                                        {{ core()->formatBasePrice((float) $item->unit_cost) }}
                                     </td>
                                     <td class="px-2.5 py-2.5 text-right text-gray-800 dark:text-white">
-                                        {{ core()->formatBasePrice($item->total_cost) }}
+                                        {{ core()->formatBasePrice((float) $item->total_cost) }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -80,7 +91,7 @@
                                     @lang('inventory::app.admin.purchases.view.grand-total')
                                 </td>
                                 <td class="px-2.5 py-2.5 text-right">
-                                    {{ core()->formatBasePrice($purchase->total_amount) }}
+                                    {{ core()->formatBasePrice((float) $purchase->total_amount) }}
                                 </td>
                             </tr>
                         </tfoot>
