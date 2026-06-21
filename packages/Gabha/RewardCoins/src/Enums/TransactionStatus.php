@@ -10,8 +10,9 @@ namespace Gabha\RewardCoins\Enums;
  * Coins are granted as `Pending` (held during the post-delivery confirmation
  * window), promoted to `Confirmed` once spendable, and end as `Expired` or
  * `Cancelled` (e.g. order cancellation reverses a pending/confirmed grant).
- * A confirmed `Redeemed` spend is reversed to `Reversed` instead (e.g. the
- * order it was spent on is refunded/cancelled after the spend was confirmed).
+ * A `Confirmed` transaction of type `Redeemed` (see {@see TransactionType})
+ * is reversed to `Reversed` instead (e.g. the order it was spent on is
+ * refunded/cancelled after the spend was confirmed).
  */
 enum TransactionStatus: string
 {

@@ -5,32 +5,28 @@ declare(strict_types=1);
 namespace Gabha\RewardCoins\Listeners;
 
 use Gabha\RewardCoins\DTOs\CoinEarningPayload;
-use Gabha\RewardCoins\Enums\TransactionStatus;
-use Gabha\RewardCoins\Enums\TransactionType;
+use Gabha\RewardCoins\Jobs\AwardCoinsForOrder;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Gabha\RewardCoins\Services\CoinEarningCalculator;
 use Gabha\RewardCoins\Services\CoinRedemptionService;
-use Gabha\RewardCoins\Services\CoinWalletService;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
  * Awards pending coins when an order is placed (checkout.order.save.after).
  *
- * Deliberately NOT queued: the $order payload this event dispatches can carry
- * a non-serializable closure somewhere in its loaded relation graph (root
- * cause not in this package - surfaced elsewhere in the order lifecycle as
- * "Serialization of 'Closure' is not allowed" when Laravel builds the queued
- * job, before handle() ever runs, and crashes the whole event dispatch for
- * every listener on that event). Running inline avoids the queue's
- * serialize/unserialize round-trip entirely; the wallet credit is a single
- * lightweight DB write, not worth the queue risk.
+ * Runs synchronously itself (it only reads scalar/relation data already
+ * loaded on $order — cheap, and never serializes the order model), then
+ * queues the actual wallet credit as {@see AwardCoinsForOrder}, carrying
+ * only the fully-primitive {@see CoinEarningPayload}. Queueing the live
+ * $order model directly used to crash with "Serialization of 'Closure' is
+ * not allowed" — something in core Bagisto's order relation graph isn't
+ * reliably serializable. Building the payload here and queueing that instead
+ * sidesteps the crash while keeping the wallet write off the checkout
+ * request's critical path.
  */
 class AwardCoinsOnOrder
 {
     public function __construct(
-        private readonly CoinEarningCalculator $calculator,
-        private readonly CoinWalletService $walletService,
         private readonly CoinRedemptionService $redemption,
     ) {
     }
@@ -62,22 +58,9 @@ class AwardCoinsOnOrder
                 orderIncrementId: (string) $order->increment_id,
             );
 
-            $coins = $this->calculator->calculate($payload);
-
-            if ($coins <= 0) {
-                return;
-            }
-
-            $this->walletService->credit(
-                customerId: $payload->customerId,
-                amount: $coins,
-                type: TransactionType::Earned,
-                orderId: $payload->orderId,
-                note: sprintf('Earned on order #%s', $payload->orderIncrementId),
-                status: TransactionStatus::Pending,
-            );
+            AwardCoinsForOrder::dispatch($payload);
         } catch (Throwable $e) {
-            Log::error('RewardCoins: failed to award coins on order.', [
+            Log::error('RewardCoins: failed to build the coin-earning payload for order.', [
                 'order_id' => $order->id ?? null,
                 'error'    => $e->getMessage(),
             ]);

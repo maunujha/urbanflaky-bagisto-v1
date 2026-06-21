@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Gabha\RewardCoins\Listeners;
 
+use Gabha\RewardCoins\Jobs\ReverseCoinsForOrder;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Gabha\RewardCoins\Services\CoinRedemptionService;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Reverses coin movements when an order is cancelled or closed
@@ -17,21 +15,16 @@ use Throwable;
  * Both admin cancellation and the Shiprocket cancellation webhook flow through
  * OrderRepository::cancel() → updateOrderStatus(), so both fire this event.
  *
- * Deliberately NOT queued (unlike the sibling RewardCoins listeners): the
- * $order payload this event dispatches can carry a non-serializable closure
- * somewhere in its loaded relation graph (root cause not in this package -
- * surfaced as "Serialization of 'Closure' is not allowed" when Laravel
- * builds the queued job, before handle() ever runs). Running inline avoids
- * the queue's serialize/unserialize round-trip entirely; the reversal work
- * itself is a couple of lightweight DB updates, not worth the queue risk.
+ * Runs synchronously itself (it only reads $order->status/$order->id, both
+ * scalar columns), then queues the actual reversal as
+ * {@see ReverseCoinsForOrder}, carrying only the order id. Queueing the live
+ * $order model directly used to crash with "Serialization of 'Closure' is
+ * not allowed" — something in core Bagisto's order relation graph isn't
+ * reliably serializable. Queueing just the id sidesteps the crash while
+ * keeping the reversal off the cancellation request's critical path.
  */
 class ReverseCoinsOnCancellation
 {
-    public function __construct(
-        private readonly CoinRedemptionService $redemptionService,
-    ) {
-    }
-
     /**
      * Handle the order status-change event.
      *
@@ -50,13 +43,6 @@ class ReverseCoinsOnCancellation
             return;
         }
 
-        try {
-            $this->redemptionService->reverse((int) $order->id);
-        } catch (Throwable $e) {
-            Log::error('RewardCoins: failed to reverse coins on cancellation.', [
-                'order_id' => $order->id ?? null,
-                'error'    => $e->getMessage(),
-            ]);
-        }
+        ReverseCoinsForOrder::dispatch((int) $order->id);
     }
 }

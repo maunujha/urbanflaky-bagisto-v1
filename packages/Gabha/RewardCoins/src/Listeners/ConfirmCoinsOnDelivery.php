@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Gabha\RewardCoins\Listeners;
 
+use Gabha\RewardCoins\Jobs\ConfirmCoinsForOrderDelivery;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Opens the post-delivery return window on a customer's pending coins once their
@@ -25,22 +23,17 @@ use Throwable;
  * promotes them. Cancellation/void of pending coins is handled separately by
  * {@see ReverseCoinsOnCancellation}.
  *
- * Deliberately NOT queued (unlike most event listeners elsewhere in this
- * package): the $order payload this event dispatches can carry a
- * non-serializable closure somewhere in its loaded relation graph (root cause
- * not in this package - surfaced as "Serialization of 'Closure' is not
- * allowed" when Laravel builds the queued job, before handle() ever runs, and
- * crashes the whole event dispatch for every listener on this event, not just
- * this one). Running inline avoids the queue's serialize/unserialize
- * round-trip entirely; stamping a timestamp is a single lightweight DB update.
+ * Runs synchronously itself (it only reads $order->status/$order->id, both
+ * scalar columns), then queues the actual write as
+ * {@see ConfirmCoinsForOrderDelivery}, carrying only the order id and the
+ * computed unlock timestamp. Queueing the live $order model directly used to
+ * crash with "Serialization of 'Closure' is not allowed" — something in core
+ * Bagisto's order relation graph isn't reliably serializable. Queueing just
+ * these primitives sidesteps the crash while keeping the write off this
+ * request's critical path.
  */
 class ConfirmCoinsOnDelivery
 {
-    public function __construct(
-        private readonly CoinTransactionRepositoryInterface $transactions,
-    ) {
-    }
-
     /**
      * Handle the order status-change event.
      *
@@ -59,22 +52,13 @@ class ConfirmCoinsOnDelivery
             return;
         }
 
-        try {
-            // Return-window length (days) before delivered coins become spendable.
-            $windowDays = (int) CoinSetting::active()->pending_confirmation_days;
+        // Return-window length (days) before delivered coins become spendable.
+        $windowDays = (int) CoinSetting::active()->pending_confirmation_days;
 
-            $availableAt = $windowDays > 0
-                ? Carbon::now()->addDays($windowDays)
-                : Carbon::now();
+        $availableAt = $windowDays > 0
+            ? Carbon::now()->addDays($windowDays)
+            : Carbon::now();
 
-            // Idempotent: only stamps rows not already carrying an unlock time, so a
-            // repeated status save never resets a running window.
-            $this->transactions->stampAvailableAt((int) $order->id, $availableAt);
-        } catch (Throwable $e) {
-            Log::error('RewardCoins: failed to open the coin return window on delivery.', [
-                'order_id' => $order->id ?? null,
-                'error'    => $e->getMessage(),
-            ]);
-        }
+        ConfirmCoinsForOrderDelivery::dispatch((int) $order->id, $availableAt);
     }
 }

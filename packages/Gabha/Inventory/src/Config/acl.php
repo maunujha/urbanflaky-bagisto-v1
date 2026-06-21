@@ -58,6 +58,11 @@ return [
         'route' => 'admin.inventory.purchases.add-items',
         'sort'  => 3,
     ], [
+        'key'   => 'inventory.purchases.add-items',
+        'name'  => 'inventory::app.acl.add-items',
+        'route' => 'admin.inventory.purchases.add-items.store',
+        'sort'  => 3,
+    ], [
         'key'   => 'inventory.stock',
         'name'  => 'inventory::app.acl.stock',
         'route' => 'admin.inventory.stock.index',

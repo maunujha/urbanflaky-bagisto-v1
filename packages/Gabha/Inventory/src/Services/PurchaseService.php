@@ -91,31 +91,11 @@ class PurchaseService
         ]);
 
         foreach ($items as $item) {
-            $variantId = (int) $item['product_variant_id'];
-            $quantity = (int) $item['quantity'];
-            $unitCost = (float) $item['unit_cost'];
-
             /*
              * Create the line FIRST so average-cost recalculation (driven by the
              * PURCHASE movement below) sees it.
              */
-            $this->purchaseItemRepository->create([
-                'purchase_id'        => $purchase->id,
-                'product_variant_id' => $variantId,
-                'quantity'           => $quantity,
-                'unit_cost'          => $unitCost,
-                'total_cost'         => $quantity * $unitCost,
-            ]);
-
-            /* Stock is increased only through the movement pipeline. */
-            $this->stockMovementService->record([
-                'product_variant_id' => $variantId,
-                'movement_type'      => MovementType::PURCHASE,
-                'quantity'           => $quantity,
-                'reference_type'     => 'purchase',
-                'reference_id'       => $purchase->id,
-                'notes'              => $purchase->notes,
-            ], reindex: false);
+            $this->addLineItem($purchase, $item);
         }
 
         Event::dispatch('inventory.purchase.create.after', $purchase);
@@ -131,34 +111,23 @@ class PurchaseService
      */
     public function addItems(Purchase $purchase, array $items): Purchase
     {
-        [$additionalQuantity, $additionalAmount] = $this->totals($items);
-
-        DB::transaction(function () use ($purchase, $items, $additionalQuantity, $additionalAmount) {
+        DB::transaction(function () use ($purchase, $items) {
             foreach ($items as $item) {
-                $variantId = (int) $item['product_variant_id'];
-                $quantity = (int) $item['quantity'];
-                $unitCost = (float) $item['unit_cost'];
-
-                $this->purchaseItemRepository->create([
-                    'purchase_id'        => $purchase->id,
-                    'product_variant_id' => $variantId,
-                    'quantity'           => $quantity,
-                    'unit_cost'          => $unitCost,
-                    'total_cost'         => $quantity * $unitCost,
-                ]);
-
-                $this->stockMovementService->record([
-                    'product_variant_id' => $variantId,
-                    'movement_type'      => MovementType::PURCHASE,
-                    'quantity'           => $quantity,
-                    'reference_type'     => 'purchase',
-                    'reference_id'       => $purchase->id,
-                    'notes'              => $purchase->notes,
-                ], reindex: false);
+                $this->addLineItem($purchase, $item);
             }
 
-            $purchase->increment('total_quantity', $additionalQuantity);
-            $purchase->increment('total_amount', $additionalAmount);
+            /*
+             * Recompute from the full item set (not an increment) so totals
+             * are always derived from the source of truth, the same way
+             * persist() derives them — keeps the invariant self-correcting
+             * if a future feature ever edits/removes a line item.
+             */
+            [$totalQuantity, $totalAmount] = $this->totals($purchase->items()->get()->toArray());
+
+            $purchase->update([
+                'total_quantity' => $totalQuantity,
+                'total_amount'   => $totalAmount,
+            ]);
         });
 
         UpdateCreateInventoryIndex::dispatch(
@@ -169,7 +138,42 @@ class PurchaseService
     }
 
     /**
-     * Sum the line items into [total_quantity, total_amount].
+     * Create one purchase line item and its corresponding PURCHASE stock
+     * movement. Shared by create() and addItems() so the line-item shape and
+     * stock-movement payload can never drift between the two flows.
+     *
+     * @param  array<string, mixed>  $item
+     */
+    protected function addLineItem(Purchase $purchase, array $item): void
+    {
+        $variantId = (int) $item['product_variant_id'];
+        $quantity = (int) $item['quantity'];
+        $unitCost = (float) $item['unit_cost'];
+
+        $this->purchaseItemRepository->create([
+            'purchase_id'        => $purchase->id,
+            'product_variant_id' => $variantId,
+            'quantity'           => $quantity,
+            'unit_cost'          => $unitCost,
+            'total_cost'         => $quantity * $unitCost,
+        ]);
+
+        /* Stock is increased only through the movement pipeline. */
+        $this->stockMovementService->record([
+            'product_variant_id' => $variantId,
+            'movement_type'      => MovementType::PURCHASE,
+            'quantity'           => $quantity,
+            'reference_type'     => 'purchase',
+            'reference_id'       => $purchase->id,
+            'notes'              => $purchase->notes,
+        ], reindex: false);
+    }
+
+    /**
+     * Sum line items into [total_quantity, total_amount]. Items may be plain
+     * validated-request arrays (string keys) or PurchaseItem model arrays
+     * (from ->toArray()) — both carry 'quantity' and either 'unit_cost' or
+     * 'total_cost'.
      *
      * @param  array<int, array<string, mixed>>  $items
      * @return array{0: int, 1: float}
@@ -181,10 +185,10 @@ class PurchaseService
 
         foreach ($items as $item) {
             $quantity = (int) $item['quantity'];
-            $unitCost = (float) $item['unit_cost'];
+            $unitCost = isset($item['unit_cost']) ? (float) $item['unit_cost'] : null;
 
             $totalQuantity += $quantity;
-            $totalAmount += $quantity * $unitCost;
+            $totalAmount += $unitCost !== null ? $quantity * $unitCost : (float) $item['total_cost'];
         }
 
         return [$totalQuantity, $totalAmount];
