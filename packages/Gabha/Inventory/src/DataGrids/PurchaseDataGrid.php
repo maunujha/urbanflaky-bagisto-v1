@@ -107,7 +107,7 @@ class PurchaseDataGrid extends DataGrid
             'label'      => trans('inventory::app.admin.purchases.index.datagrid.total-amount'),
             'type'       => 'string',
             'sortable'   => true,
-            'closure'    => fn ($row) => core()->formatBasePrice($row->total_amount),
+            'closure'    => fn ($row) => core()->formatBasePrice((float) $row->total_amount),
         ]);
 
         $this->addColumn([

@@ -1134,11 +1134,35 @@
                         return;
                     }
 
-                    const optionIds = Object.values(params);
+                    const skuParts = Object.entries(params).map(([code, optionId]) => {
+                        const attribute = this.superAttributes.find((attribute) => attribute.code === code);
+
+                        const option = attribute?.options.find((option) => option.id == optionId);
+
+                        const slug = (option?.admin_name ?? optionId).toString()
+                            .toUpperCase()
+                            .replace(/[^A-Z0-9]+/g, '-')
+                            .replace(/^-+|-+$/g, '');
+
+                        // Fall back to the raw option id when the admin_name
+                        // doesn't yield a usable slug (e.g. non-Latin text
+                        // stripped to nothing).
+                        return slug || optionId;
+                    });
+
+                    let variantSku = '{{ $product->sku }}' + '-' + skuParts.join('-');
+
+                    // Two different attribute combinations can slugify to the
+                    // same SKU (e.g. admin_names "Royal Blue" vs "Royal-Blue").
+                    // Disambiguate with the raw option ids instead of hitting
+                    // the DB's unique(sku) constraint as a confusing save error.
+                    if (this.variants.some((variant) => variant.sku === variantSku)) {
+                        variantSku += '-' + Object.values(params).join('-');
+                    }
 
                     this.variants.push(Object.assign({
                         id: 'variant_' + this.variants.length,
-                        sku: '{{ $product->sku }}' + '-variant-' + optionIds.join('-'),
+                        sku: variantSku,
                         name: '',
                         price: 0,
                         status: 1,

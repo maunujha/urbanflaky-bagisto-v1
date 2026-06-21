@@ -15,10 +15,11 @@ return [
         'purchases' => 'Purchases',
         'stock'     => 'Inventory',
         'movements' => 'Stock Movements',
-        'create'    => 'Create',
-        'edit'      => 'Edit',
-        'delete'    => 'Delete',
-        'view'      => 'View',
+        'create'     => 'Create',
+        'edit'       => 'Edit',
+        'delete'     => 'Delete',
+        'view'       => 'View',
+        'add-items'  => 'Add Items',
     ],
 
     'admin' => [
@@ -143,6 +144,15 @@ return [
                 'total-quantity'  => 'Total Quantity',
                 'grand-total'     => 'Grand Total',
                 'deleted-variant' => 'Variant removed from catalog',
+                'add-items-btn'   => 'Add Items',
+            ],
+
+            'add-items' => [
+                'title'         => 'Add Items — Purchase :number',
+                'back-btn'      => 'Back',
+                'save-btn'      => 'Save Items',
+                'step-products' => 'Add Products',
+                'success'       => 'Items added to purchase :number and stock updated successfully.',
             ],
 
             'create-success' => 'Purchase :number created and stock updated successfully.',
@@ -174,6 +184,9 @@ return [
                     'low-stock'       => 'Stock Status',
                     'low'             => 'Low Stock',
                     'in-stock'        => 'In Stock',
+                    'view-product'    => 'View Product',
+                    'vendor'          => 'Vendor',
+                    'all-vendors'     => 'All Vendors',
                 ],
             ],
         ],

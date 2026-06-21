@@ -67,7 +67,7 @@ class Cart extends Model implements CartContract
     {
         return $this->hasMany(CartItemProxy::modelClass())
             ->whereNull('parent_id')
-            ->with(['child', 'children']);
+            ->with(['child', 'children', 'product']);
     }
 
     /**

@@ -43,6 +43,10 @@ Route::group(['middleware' => ['web', 'admin', NoCacheMiddleware::class], 'prefi
         Route::get('view/{id}', 'show')->name('admin.inventory.purchases.view');
 
         Route::get('view/{id}/bill', 'downloadBill')->name('admin.inventory.purchases.bill');
+
+        Route::get('view/{id}/add-items', 'addItems')->name('admin.inventory.purchases.add-items');
+
+        Route::post('view/{id}/add-items', 'storeAddItems')->name('admin.inventory.purchases.add-items.store');
     });
 
     /**

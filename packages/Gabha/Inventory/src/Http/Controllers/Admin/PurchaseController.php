@@ -3,6 +3,7 @@
 namespace Gabha\Inventory\Http\Controllers\Admin;
 
 use Gabha\Inventory\DataGrids\PurchaseDataGrid;
+use Gabha\Inventory\Http\Requests\PurchaseAddItemsRequest;
 use Gabha\Inventory\Http\Requests\PurchaseStoreRequest;
 use Gabha\Inventory\Repositories\PurchaseRepository;
 use Gabha\Inventory\Repositories\VendorRepository;
@@ -73,6 +74,34 @@ class PurchaseController extends Controller
             ->findOrFail($id);
 
         return view('inventory::admin.purchases.view', compact('purchase'));
+    }
+
+    /**
+     * Show the form to append new line items to an existing purchase.
+     */
+    public function addItems(int $id): View
+    {
+        $purchase = $this->purchaseRepository
+            ->with('vendor')
+            ->findOrFail($id);
+
+        return view('inventory::admin.purchases.add-items', compact('purchase'));
+    }
+
+    /**
+     * Persist the new line items onto an existing purchase.
+     */
+    public function storeAddItems(PurchaseAddItemsRequest $request, int $id): RedirectResponse
+    {
+        $purchase = $this->purchaseRepository->findOrFail($id);
+
+        $this->purchaseService->addItems($purchase, $request->validated()['items']);
+
+        session()->flash('success', trans('inventory::app.admin.purchases.add-items.success', [
+            'number' => $purchase->purchase_number,
+        ]));
+
+        return redirect()->route('admin.inventory.purchases.view', $purchase->id);
     }
 
     /**

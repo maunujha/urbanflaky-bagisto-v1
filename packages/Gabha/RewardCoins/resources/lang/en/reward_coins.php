@@ -26,6 +26,7 @@ return [
             'confirmed' => 'Confirmed',
             'expired'   => 'Expired',
             'cancelled' => 'Cancelled',
+            'reversed'  => 'Reversed',
         ],
     ],
 

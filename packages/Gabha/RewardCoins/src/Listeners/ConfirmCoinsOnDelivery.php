@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace Gabha\RewardCoins\Listeners;
 
+use Gabha\RewardCoins\Jobs\ConfirmCoinsForOrderDelivery;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 /**
  * Opens the post-delivery return window on a customer's pending coins once their
@@ -26,26 +22,18 @@ use Throwable;
  * until that window elapses, when {@see \Gabha\RewardCoins\Console\ConfirmAvailableCoinsCommand}
  * promotes them. Cancellation/void of pending coins is handled separately by
  * {@see ReverseCoinsOnCancellation}.
+ *
+ * Runs synchronously itself (it only reads $order->status/$order->id, both
+ * scalar columns), then queues the actual write as
+ * {@see ConfirmCoinsForOrderDelivery}, carrying only the order id and the
+ * computed unlock timestamp. Queueing the live $order model directly used to
+ * crash with "Serialization of 'Closure' is not allowed" — something in core
+ * Bagisto's order relation graph isn't reliably serializable. Queueing just
+ * these primitives sidesteps the crash while keeping the write off this
+ * request's critical path.
  */
-class ConfirmCoinsOnDelivery implements ShouldQueue
+class ConfirmCoinsOnDelivery
 {
-    use InteractsWithQueue;
-
-    public function __construct(
-        private readonly CoinTransactionRepositoryInterface $transactions,
-    ) {
-    }
-
-    /**
-     * Route this listener onto the dedicated coins queue.
-     *
-     * @return string
-     */
-    public function viaQueue(): string
-    {
-        return (string) config('reward_coins.queue', 'coins');
-    }
-
     /**
      * Handle the order status-change event.
      *
@@ -71,23 +59,6 @@ class ConfirmCoinsOnDelivery implements ShouldQueue
             ? Carbon::now()->addDays($windowDays)
             : Carbon::now();
 
-        // Idempotent: only stamps rows not already carrying an unlock time, so a
-        // repeated status save never resets a running window.
-        $this->transactions->stampAvailableAt((int) $order->id, $availableAt);
-    }
-
-    /**
-     * Log a failed run.
-     *
-     * @param  mixed  $order
-     * @param  Throwable  $e
-     * @return void
-     */
-    public function failed($order, Throwable $e): void
-    {
-        Log::error('RewardCoins: failed to open the coin return window on delivery.', [
-            'order_id' => $order->id ?? null,
-            'error'    => $e->getMessage(),
-        ]);
+        ConfirmCoinsForOrderDelivery::dispatch((int) $order->id, $availableAt);
     }
 }

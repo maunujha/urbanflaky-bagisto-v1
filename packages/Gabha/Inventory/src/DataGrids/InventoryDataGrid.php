@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Gabha\Inventory\DataGrids;
 
+use Gabha\Inventory\Repositories\VendorRepository;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Webkul\DataGrid\DataGrid;
@@ -23,6 +24,22 @@ class InventoryDataGrid extends DataGrid
 
         $colorId = (int) DB::table('attributes')->where('code', 'color')->value('id');
         $sizeId = (int) DB::table('attributes')->where('code', 'size')->value('id');
+
+        /*
+         * A variant's "vendor" is the vendor of its most recent purchase. The
+         * inventories table has no vendor_id (a variant can be restocked from
+         * different vendors over time, hence the blended average_cost), so
+         * this scalar subquery picks the latest one for filtering/display.
+         */
+        $latestVendorSubquery = '(
+            select '.$prefix.'purchases.vendor_id
+            from '.$prefix.'stock_movements
+            inner join '.$prefix.'purchases on '.$prefix.'purchases.id = '.$prefix.'stock_movements.reference_id
+                and '.$prefix.'stock_movements.reference_type = \'purchase\'
+            where '.$prefix.'stock_movements.product_variant_id = '.$prefix.'inventories.product_variant_id
+            order by '.$prefix.'stock_movements.created_at desc
+            limit 1
+        )';
 
         $queryBuilder = DB::table('inventories')
             ->leftJoin('products', 'products.id', '=', 'inventories.product_variant_id')
@@ -44,6 +61,7 @@ class InventoryDataGrid extends DataGrid
                     ->where('size_pav.attribute_id', $sizeId);
             })
             ->leftJoin('attribute_options as size_opt', 'size_opt.id', '=', 'size_pav.integer_value')
+            ->leftJoin('vendors', 'vendors.id', '=', DB::raw($latestVendorSubquery))
             ->select(
                 'inventories.id',
                 'inventories.product_variant_id',
@@ -55,6 +73,7 @@ class InventoryDataGrid extends DataGrid
                 DB::raw('color_opt.admin_name as color'),
                 DB::raw('size_opt.admin_name as size'),
                 DB::raw('('.$prefix.'inventories.current_stock <= '.$threshold.') as is_low_stock'),
+                DB::raw('vendors.name as vendor_name'),
             );
 
         /*
@@ -68,6 +87,7 @@ class InventoryDataGrid extends DataGrid
         $this->addFilter('current_stock', 'inventories.current_stock');
         $this->addFilter('inventory_value', 'inventories.inventory_value');
         $this->addFilter('is_low_stock', DB::raw('('.$prefix.'inventories.current_stock <= '.$threshold.')'));
+        $this->addFilter('vendor_name', DB::raw($latestVendorSubquery));
 
         return $queryBuilder;
     }
@@ -86,6 +106,21 @@ class InventoryDataGrid extends DataGrid
             'searchable' => true,
             'filterable' => true,
             'sortable'   => true,
+        ]);
+
+        $this->addColumn([
+            'index'              => 'vendor_name',
+            'label'              => trans('inventory::app.admin.stock.index.datagrid.vendor'),
+            'type'               => 'string',
+            'filterable'         => true,
+            'filterable_type'    => 'dropdown',
+            'filterable_options' => app(VendorRepository::class)->all()
+                ->sortBy('name')
+                ->map(fn ($vendor) => ['label' => $vendor->name, 'value' => (string) $vendor->id])
+                ->values()
+                ->all(),
+            'sortable'           => false,
+            'closure'            => fn ($row) => $row->vendor_name ?: '—',
         ]);
 
         $this->addColumn([
@@ -127,7 +162,7 @@ class InventoryDataGrid extends DataGrid
             'label'      => trans('inventory::app.admin.stock.index.datagrid.average-cost'),
             'type'       => 'string',
             'sortable'   => true,
-            'closure'    => fn ($row) => core()->formatBasePrice($row->average_cost),
+            'closure'    => fn ($row) => core()->formatBasePrice((float) $row->average_cost),
         ]);
 
         $this->addColumn([
@@ -135,7 +170,7 @@ class InventoryDataGrid extends DataGrid
             'label'      => trans('inventory::app.admin.stock.index.datagrid.inventory-value'),
             'type'       => 'string',
             'sortable'   => true,
-            'closure'    => fn ($row) => core()->formatBasePrice($row->inventory_value),
+            'closure'    => fn ($row) => core()->formatBasePrice((float) $row->inventory_value),
         ]);
 
         $this->addColumn([
@@ -162,5 +197,22 @@ class InventoryDataGrid extends DataGrid
                 return '<span class="badge badge-md badge-success">'.trans('inventory::app.admin.stock.index.datagrid.in-stock').'</span>';
             },
         ]);
+    }
+
+    /**
+     * Prepare actions.
+     *
+     * @return void
+     */
+    public function prepareActions()
+    {
+        if (bouncer()->hasPermission('catalog.products.edit')) {
+            $this->addAction([
+                'icon'   => 'icon-view',
+                'title'  => trans('inventory::app.admin.stock.index.datagrid.view-product'),
+                'method' => 'GET',
+                'url'    => fn ($row) => route('admin.catalog.products.edit', $row->product_variant_id),
+            ]);
+        }
     }
 }
