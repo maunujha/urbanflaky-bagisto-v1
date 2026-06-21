@@ -129,12 +129,12 @@ body::after {
 
 .uf-cat-section {
     width: 100%;
-    padding: 25px 12px 12px;
+    padding: 12px 12px 12px;
     background: transparent;
     position: relative;
 }
 @media (min-width: 768px) {
-    .uf-cat-section { padding: 40px 40px 72px; }
+    .uf-cat-section { padding: 16px 40px 72px; }
 }
 @media (min-width: 1280px) {
     .uf-cat-section { padding: 60px 56px 88px; }
@@ -3160,10 +3160,11 @@ body.mh-search-locked { overflow: hidden; }
     height: 78vh;
     min-height: 460px;
     margin-top: 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     overflow: hidden;
     background: var(--uf-black);
     isolation: isolate;
+    border-radius: 12px;
 }
 
 .uf-vbanner-clickable { cursor: pointer; }

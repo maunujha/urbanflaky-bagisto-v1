@@ -19,7 +19,7 @@
 
 <!-- Features / Trust Badges -->
 @if ($customization)
-    <section class="w-full px-5 py-16 md:px-10 md:py-24 xl:px-14 xl:py-28" v-pre>
+    <section class="w-full px-5 py-8 md:px-10 md:py-12 xl:px-14 xl:py-14" v-pre>
         <div class="relative mx-auto max-w-[1360px]">
             <div class="grid grid-cols-2 gap-3.5 md:grid-cols-4 md:gap-5 xl:gap-6">
                 @foreach ($customization->options['services'] as $service)
