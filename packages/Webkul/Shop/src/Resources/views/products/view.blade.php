@@ -49,6 +49,13 @@
     $shareDesc = trim(html_entity_decode(strip_tags($product->description ?? ''), ENT_QUOTES));
 
     $productCanonical = route('shop.product_or_category.index', $product->url_key);
+
+    /* Catalog mode: hides purchase actions storefront-wide; wishlist/compare stay on unless explicitly disabled. */
+    $catalogModeEnabled = core()->getConfigData('general.catalog_mode.settings.enabled');
+    $catalogModeMessage = core()->getConfigData('general.catalog_mode.settings.message');
+    $catalogModeHidePrices = $catalogModeEnabled && core()->getConfigData('general.catalog_mode.settings.hide_prices');
+    $catalogModeAllowWishlist = ! $catalogModeEnabled || core()->getConfigData('general.catalog_mode.settings.allow_wishlist');
+    $catalogModeAllowCompare = ! $catalogModeEnabled || core()->getConfigData('general.catalog_mode.settings.allow_compare');
 @endphp
 
 <!-- SEO Meta Content — full product-specific block; flags layout to skip its generic fallback -->
@@ -431,7 +438,7 @@
                                         {{ $product->name }}
                                     </h1>
 
-                                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
+                                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option') && $catalogModeAllowWishlist)
                                         <div
                                             class="flex max-h-[44px] min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full border border-white/15 bg-white/5 text-xl text-white backdrop-blur-md transition-all hover:border-[#c7eb31] hover:bg-[#c7eb31] hover:text-black max-sm:text-lg"
                                             role="button"
@@ -469,29 +476,31 @@
                                 {!! view_render_event('bagisto.shop.products.rating.after', ['product' => $product]) !!}
 
                                 <!-- Pricing -->
-                                {!! view_render_event('bagisto.shop.products.price.before', ['product' => $product]) !!}
+                                @unless ($catalogModeHidePrices)
+                                    {!! view_render_event('bagisto.shop.products.price.before', ['product' => $product]) !!}
 
-                                <p class="mt-[22px] flex items-center gap-2.5 text-2xl !font-medium max-sm:mt-2 max-sm:gap-x-2.5 max-sm:gap-y-0 max-sm:text-md">
-                                    {!! $product->getTypeInstance()->getPriceHtml() !!}
-                                </p>
+                                    <p class="mt-[22px] flex items-center gap-2.5 text-2xl !font-medium max-sm:mt-2 max-sm:gap-x-2.5 max-sm:gap-y-0 max-sm:text-md">
+                                        {!! $product->getTypeInstance()->getPriceHtml() !!}
+                                    </p>
 
-                                @if (\Webkul\Tax\Facades\Tax::isInclusiveTaxProductPrices())
-                                    <span class="text-sm font-normal text-zinc-500 max-sm:text-xs">
-                                        (@lang('shop::app.products.view.tax-inclusive'))
-                                    </span>
-                                @endif
+                                    @if (\Webkul\Tax\Facades\Tax::isInclusiveTaxProductPrices())
+                                        <span class="text-sm font-normal text-zinc-500 max-sm:text-xs">
+                                            (@lang('shop::app.products.view.tax-inclusive'))
+                                        </span>
+                                    @endif
 
-                                @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
-                                    <div class="mt-2.5 grid gap-1.5">
-                                        @foreach ($product->getTypeInstance()->getCustomerGroupPricingOffers() as $offer)
-                                            <p class="text-zinc-500 [&>*]:text-black">
-                                                {!! $offer !!}
-                                            </p>
-                                        @endforeach
-                                    </div>
-                                @endif
+                                    @if (count($product->getTypeInstance()->getCustomerGroupPricingOffers()))
+                                        <div class="mt-2.5 grid gap-1.5">
+                                            @foreach ($product->getTypeInstance()->getCustomerGroupPricingOffers() as $offer)
+                                                <p class="text-zinc-500 [&>*]:text-black">
+                                                    {!! $offer !!}
+                                                </p>
+                                            @endforeach
+                                        </div>
+                                    @endif
 
-                                {!! view_render_event('bagisto.shop.products.price.after', ['product' => $product]) !!}
+                                    {!! view_render_event('bagisto.shop.products.price.after', ['product' => $product]) !!}
+                                @endunless
 
                                 @php
                                     $isConfigurable = $product->type === 'configurable';
@@ -536,66 +545,73 @@
 
                                 @include('shop::products.view.types.booking')
 
-                                <!-- Product Actions and Quantity Box -->
-                                <div id="product-atc-actions" class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-6">
+                                @if ($catalogModeEnabled)
+                                    <!-- Catalog Mode: purchase actions are disabled, show message instead -->
+                                    <div class="mt-8 max-w-[470px] rounded-xl border border-white/10 bg-white/[0.02] p-4 text-sm text-zinc-300">
+                                        {{ $catalogModeMessage }}
+                                    </div>
+                                @else
+                                    <!-- Product Actions and Quantity Box -->
+                                    <div id="product-atc-actions" class="mt-8 flex max-w-[470px] gap-4 max-sm:mt-6">
 
-                                    {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
+                                        {!! view_render_event('bagisto.shop.products.view.quantity.before', ['product' => $product]) !!}
 
-                                    @if ($product->getTypeInstance()->showQuantityBox())
-                                        <x-shop::quantity-changer
-                                            name="quantity"
-                                            value="1"
-                                            class="shrink-0 gap-x-4 rounded-xl px-5 py-2 max-md:py-1.5 max-sm:gap-x-1 max-sm:rounded-lg max-sm:px-2 max-sm:py-1"
-                                        />
-                                    @endif
+                                        @if ($product->getTypeInstance()->showQuantityBox())
+                                            <x-shop::quantity-changer
+                                                name="quantity"
+                                                value="1"
+                                                class="shrink-0 gap-x-4 rounded-xl px-5 py-2 max-md:py-1.5 max-sm:gap-x-1 max-sm:rounded-lg max-sm:px-2 max-sm:py-1"
+                                            />
+                                        @endif
 
-                                    {!! view_render_event('bagisto.shop.products.view.quantity.after', ['product' => $product]) !!}
+                                        {!! view_render_event('bagisto.shop.products.view.quantity.after', ['product' => $product]) !!}
 
+                                        @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                                            <!-- Add To Cart Button -->
+                                            {!! view_render_event('bagisto.shop.products.view.add_to_cart.before', ['product' => $product]) !!}
+
+                                            <x-shop::button
+                                                type="submit"
+                                                class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
+                                                button-type="secondary-button"
+                                                :loading="false"
+                                                :title="trans('shop::app.products.view.add-to-cart')"
+                                                :disabled="! $product->isSaleable(1)"
+                                                ::loading="isStoring.addToCart"
+                                                ::disabled="isStoring.addToCart"
+                                                @click="is_buy_now=0;"
+                                            />
+
+                                            {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
+                                        @else
+                                            <button
+                                                type="button"
+                                                class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
+                                                @click="$refs.contactUsModal.open()"
+                                            >
+                                                @lang('shop::app.components.layouts.footer.contact-us')
+                                            </button>
+                                        @endif
+                                    </div>
+
+                                    <!-- Buy Now Button -->
                                     @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                                        <!-- Add To Cart Button -->
-                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.before', ['product' => $product]) !!}
+                                        {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}
 
-                                        <x-shop::button
-                                            type="submit"
-                                            class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
-                                            button-type="secondary-button"
-                                            :loading="false"
-                                            :title="trans('shop::app.products.view.add-to-cart')"
-                                            :disabled="! $product->isSaleable(1)"
-                                            ::loading="isStoring.addToCart"
-                                            ::disabled="isStoring.addToCart"
-                                            @click="is_buy_now=0;"
-                                        />
+                                        @if (core()->getConfigData('catalog.products.storefront.buy_now_button_display'))
+                                            <x-shop::button
+                                                type="submit"
+                                                class="primary-button mt-4 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-3.5"
+                                                button-type="primary-button"
+                                                ::title="buyNowLabel"
+                                                ::loading="isStoring.buyNow"
+                                                ::disabled="isStoring.buyNow || ! variantSelected || ! {{ $product->isSaleable(1) ? 'true' : 'false' }}"
+                                                @click="is_buy_now=1;"
+                                            />
+                                        @endif
 
-                                        {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
-                                    @else
-                                        <button
-                                            type="button"
-                                            class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
-                                            @click="$refs.contactUsModal.open()"
-                                        >
-                                            @lang('shop::app.components.layouts.footer.contact-us')
-                                        </button>
+                                        {!! view_render_event('bagisto.shop.products.view.buy_now.after', ['product' => $product]) !!}
                                     @endif
-                                </div>
-
-                                <!-- Buy Now Button -->
-                                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                                    {!! view_render_event('bagisto.shop.products.view.buy_now.before', ['product' => $product]) !!}
-
-                                    @if (core()->getConfigData('catalog.products.storefront.buy_now_button_display'))
-                                        <x-shop::button
-                                            type="submit"
-                                            class="primary-button mt-4 w-full max-w-[470px] max-md:py-3 max-sm:mt-3 max-sm:rounded-lg max-sm:py-3.5"
-                                            button-type="primary-button"
-                                            ::title="buyNowLabel"
-                                            ::loading="isStoring.buyNow"
-                                            ::disabled="isStoring.buyNow || ! variantSelected || ! {{ $product->isSaleable(1) ? 'true' : 'false' }}"
-                                            @click="is_buy_now=1;"
-                                        />
-                                    @endif
-
-                                    {!! view_render_event('bagisto.shop.products.view.buy_now.after', ['product' => $product]) !!}
                                 @endif
 
                                 <!-- Trust Badges -->
@@ -740,7 +756,7 @@
                                         <div class="flex flex-wrap items-center gap-3 max-md:w-full max-md:justify-start">
                                             {!! view_render_event('bagisto.shop.products.view.compare.before', ['product' => $product]) !!}
 
-                                            @if (core()->getConfigData('catalog.products.settings.compare_option'))
+                                            @if (core()->getConfigData('catalog.products.settings.compare_option') && $catalogModeAllowCompare)
                                                 <button
                                                     type="button"
                                                     class="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-white/5 text-zinc-300 transition-colors hover:bg-white/10 hover:text-uf-accent"

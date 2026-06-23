@@ -1,5 +1,7 @@
 <div class="max-md:[&>*]:leading-6 max-sm:[&>*]:leading-4 grid gap-1.5 max-md:flex">
-    @if ($prices['from']['regular']['price'] != $prices['from']['final']['price'])
+    @if (core()->getConfigData('general.catalog_mode.settings.enabled') && core()->getConfigData('general.catalog_mode.settings.hide_prices'))
+        {{-- Catalog mode: prices hidden storefront-wide --}}
+    @elseif ($prices['from']['regular']['price'] != $prices['from']['final']['price'])
         <p class="flex items-center gap-4 max-sm:flex-col max-sm:items-start max-sm:gap-0.5 max-sm:text-sm">
             <span
                 class="final-price text-zinc-500 line-through max-sm:text-sm"
@@ -17,8 +19,11 @@
     @endif
 
     @if (
-        $prices['from']['regular']['price'] != $prices['to']['regular']['price']
-        || $prices['from']['final']['price'] != $prices['to']['final']['price']
+        ! (core()->getConfigData('general.catalog_mode.settings.enabled') && core()->getConfigData('general.catalog_mode.settings.hide_prices'))
+        && (
+            $prices['from']['regular']['price'] != $prices['to']['regular']['price']
+            || $prices['from']['final']['price'] != $prices['to']['final']['price']
+        )
     )
         <p class="text-base font-normal max-sm:text-sm">To</p>
         

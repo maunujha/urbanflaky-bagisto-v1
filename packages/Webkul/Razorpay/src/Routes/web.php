@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Webkul\Razorpay\Http\Controllers\RazorpayController;
 
 Route::controller(RazorpayController::class)
-    ->middleware('web')
+    ->middleware(['web', 'catalog_mode.guard'])
     ->prefix('razorpay/payment')
     ->group(function () {
         Route::get('redirect', 'redirect')
@@ -22,5 +22,8 @@ Route::controller(RazorpayController::class)
          */
         Route::post('webhook', 'webhook')
             ->name('razorpay.payment.webhook')
-            ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class]);
+            ->withoutMiddleware([
+                \Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class,
+                \Webkul\Shop\Http\Middleware\PreventCheckoutInCatalogMode::class,
+            ]);
     });

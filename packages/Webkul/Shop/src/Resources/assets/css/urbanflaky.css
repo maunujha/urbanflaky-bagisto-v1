@@ -1836,6 +1836,7 @@ body.mh-search-locked { overflow: hidden; }
     border-right: none;
     font-size: 13px;
     background: #fff;
+    color: #000;
     outline: none;
     font-family: inherit;
 }

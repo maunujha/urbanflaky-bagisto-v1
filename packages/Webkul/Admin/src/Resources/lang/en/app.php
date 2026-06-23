@@ -4146,6 +4146,21 @@ return [
                     ],
                 ],
 
+                'catalog-mode' => [
+                    'title' => 'Catalog Mode',
+                    'info' => 'Run the store as a catalog-only showcase by disabling checkout, cart purchase actions, and pricing.',
+
+                    'settings' => [
+                        'title' => 'Catalog Mode Settings',
+                        'info' => 'Enable catalog mode to disable checkout and purchase actions storefront-wide.',
+                        'enabled' => 'Enable Catalog Mode',
+                        'message' => 'Catalog Mode Message',
+                        'hide-prices' => 'Hide Product Prices',
+                        'allow-wishlist' => 'Allow Wishlist',
+                        'allow-compare' => 'Allow Compare',
+                    ],
+                ],
+
                 'exchange-rates' => [
                     'info' => 'Configure exchange rate API services and credentials.',
                     'title' => 'Exchange Rates',

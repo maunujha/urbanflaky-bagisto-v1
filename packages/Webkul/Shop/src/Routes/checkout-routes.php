@@ -11,7 +11,7 @@ Route::controller(CartController::class)->prefix('checkout/cart')->group(functio
     Route::get('', 'index')->name('shop.checkout.cart.index');
 });
 
-Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {
+Route::controller(OnepageController::class)->prefix('checkout/onepage')->middleware('catalog_mode.guard')->group(function () {
     Route::get('', 'index')->name('shop.checkout.onepage.index');
 
     Route::get('success', 'success')->name('shop.checkout.onepage.success');

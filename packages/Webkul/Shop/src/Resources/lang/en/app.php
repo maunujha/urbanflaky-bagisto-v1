@@ -1034,6 +1034,10 @@ return [
     ],
 
     'checkout' => [
+        'catalog-mode' => [
+            'unavailable' => 'Checkout is currently unavailable.',
+        ],
+
         'success' => [
             'info' => 'We will email you, your order details and tracking information',
             'order-id-info' => 'Your order id is #:order_id',
@@ -1068,6 +1072,7 @@ return [
                 'cart' => 'Cart',
                 'continue-shopping' => 'Continue Shopping',
                 'empty-product' => 'You don’t have a product in your cart.',
+                'empty-product-info' => 'Looks like you haven\'t added anything yet. Let\'s fix that.',
                 'excl-tax' => 'Excl. Tax:',
                 'home' => 'Home',
                 'items-selected' => ':count Items Selected',

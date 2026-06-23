@@ -1,3 +1,10 @@
+@php
+    /* Catalog mode: hides purchase actions storefront-wide; wishlist/compare stay on unless explicitly disabled. */
+    $catalogModeEnabled = core()->getConfigData('general.catalog_mode.settings.enabled');
+    $catalogModeAllowWishlist = ! $catalogModeEnabled || core()->getConfigData('general.catalog_mode.settings.allow_wishlist');
+    $catalogModeAllowCompare = ! $catalogModeEnabled || core()->getConfigData('general.catalog_mode.settings.allow_compare');
+@endphp
+
 <v-product-card
     {{ $attributes }}
     :product="product"
@@ -56,7 +63,7 @@
 
                     {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.before') !!}
 
-                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
+                    @if (core()->getConfigData('customer.settings.wishlist.wishlist_option') && $catalogModeAllowWishlist)
                         <span
                             class="uf-icon-btn"
                             role="button"
@@ -349,23 +356,25 @@
 
                         <p class="mb-3 text-xs text-red-400" v-if="variantError">@{{ variantError }}</p>
 
-                        <div class="uf-cta-row">
-                            <button
-                                type="button"
-                                class="uf-btn-atc"
-                                :disabled="! product.is_saleable || isAddingToCart"
-                                @click="addToCart()"
-                            >
-                                <span v-if="isAddingToCart">···</span>
-                                <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
-                            </button>
-                            <button
-                                type="button"
-                                class="uf-btn-buy"
-                                :disabled="! product.is_saleable || isAddingToCart"
-                                @click="buyNow()"
-                            >Buy Now</button>
-                        </div>
+                        @unless ($catalogModeEnabled)
+                            <div class="uf-cta-row">
+                                <button
+                                    type="button"
+                                    class="uf-btn-atc"
+                                    :disabled="! product.is_saleable || isAddingToCart"
+                                    @click="addToCart()"
+                                >
+                                    <span v-if="isAddingToCart">···</span>
+                                    <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="uf-btn-buy"
+                                    :disabled="! product.is_saleable || isAddingToCart"
+                                    @click="buyNow()"
+                                >Buy Now</button>
+                            </div>
+                        @endunless
                     </div>
                 </div>
             </teleport>
@@ -451,23 +460,25 @@
                                 >@{{ variantError }}</p>
 
                                 <!-- CTAs -->
-                                <div class="uf-cta-row mt-2 flex gap-2">
-                                    <button
-                                        type="button"
-                                        class="uf-btn-atc"
-                                        :disabled="! product.is_saleable || isAddingToCart"
-                                        @click="addToCart()"
-                                    >
-                                        <span v-if="isAddingToCart">···</span>
-                                        <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
-                                    </button>
-                                    <button
-                                        type="button"
-                                        class="uf-btn-buy"
-                                        :disabled="! product.is_saleable || isAddingToCart"
-                                        @click="buyNow()"
-                                    >Buy Now</button>
-                                </div>
+                                @unless ($catalogModeEnabled)
+                                    <div class="uf-cta-row mt-2 flex gap-2">
+                                        <button
+                                            type="button"
+                                            class="uf-btn-atc"
+                                            :disabled="! product.is_saleable || isAddingToCart"
+                                            @click="addToCart()"
+                                        >
+                                            <span v-if="isAddingToCart">···</span>
+                                            <span v-else>@lang('shop::app.components.products.card.add-to-cart')</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="uf-btn-buy"
+                                            :disabled="! product.is_saleable || isAddingToCart"
+                                            @click="buyNow()"
+                                        >Buy Now</button>
+                                    </div>
+                                @endunless
 
                                 <a
                                     :href="productUrl"
@@ -526,7 +537,7 @@
 
                         {!! view_render_event('bagisto.shop.components.products.card.wishlist_option.before') !!}
 
-                        @if (core()->getConfigData('customer.settings.wishlist.wishlist_option'))
+                        @if (core()->getConfigData('customer.settings.wishlist.wishlist_option') && $catalogModeAllowWishlist)
                             <span
                                 class="absolute top-5 flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-md bg-white text-2xl ltr:right-5 rtl:left-5"
                                 role="button"
@@ -542,7 +553,7 @@
 
                         {!! view_render_event('bagisto.shop.components.products.card.compare_option.before') !!}
 
-                        @if (core()->getConfigData('catalog.products.settings.compare_option'))
+                        @if (core()->getConfigData('catalog.products.settings.compare_option') && $catalogModeAllowCompare)
                             <span
                                 class="icon-compare absolute top-16 flex h-[30px] w-[30px] cursor-pointer items-center justify-center rounded-md bg-white text-2xl ltr:right-5 rtl:left-5"
                                 role="button"
@@ -615,7 +626,7 @@
 
                 {!! view_render_event('bagisto.shop.components.products.card.average_ratings.after') !!}
 
-                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
+                @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page') && ! $catalogModeEnabled)
 
                     {!! view_render_event('bagisto.shop.components.products.card.add_to_cart.before') !!}
 

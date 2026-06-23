@@ -1,4 +1,6 @@
-@if ($prices['final']['price'] < $prices['regular']['price'])
+@if (core()->getConfigData('general.catalog_mode.settings.enabled') && core()->getConfigData('general.catalog_mode.settings.hide_prices'))
+    {{-- Catalog mode: prices hidden storefront-wide --}}
+@elseif ($prices['final']['price'] < $prices['regular']['price'])
     <p
         class="final-price font-medium text-zinc-500 line-through max-sm:leading-4"
         aria-label="{{ $prices['regular']['formatted_price'] }}"

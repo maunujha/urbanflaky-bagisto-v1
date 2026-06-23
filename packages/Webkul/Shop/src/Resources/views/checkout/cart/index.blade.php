@@ -14,56 +14,26 @@
         @lang('shop::app.checkout.cart.index.cart')
     </x-slot>
 
-    {!! view_render_event('bagisto.shop.checkout.cart.header.before') !!}
+    {!! view_render_event('bagisto.shop.checkout.cart.breadcrumbs.before') !!}
 
-    <!-- Page Header -->
-    <div class="flex flex-wrap">
-        <div class="flex w-full justify-between border border-b border-l-0 border-r-0 border-t-0 px-[60px] py-4 max-lg:px-8 max-md:px-4">
-            <div class="flex items-center gap-x-14 max-[1180px]:gap-x-9">
-                {!! view_render_event('bagisto.shop.checkout.cart.logo.before') !!}
-
-                <a
-                    href="{{ route('shop.home.index') }}"
-                    class="flex min-h-[30px]"
-                    aria-label="@lang('shop::app.checkout.cart.index.bagisto')"
-                >
-                    <img
-                        src="{{ core()->getCurrentChannel()->logo_url ?? bagisto_asset('images/logo.svg') }}"
-                        alt="{{ config('app.name') }}"
-                        width="131"
-                        height="29"
-                    >
-                </a>
-
-                {!! view_render_event('bagisto.shop.checkout.cart.logo.after') !!}
-            </div>
-
-            @guest('customer')
-                @include('shop::checkout.login')
-            @endguest
+    <!-- Breadcrumbs — the global site header (logo + account) already renders above; no second header here -->
+    @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
+        <div class="flex justify-center px-7 max-lg:hidden">
+            <x-shop::breadcrumbs name="cart" />
         </div>
-    </div>
+    @endif
 
-    {!! view_render_event('bagisto.shop.checkout.cart.header.after') !!}
+    {!! view_render_event('bagisto.shop.checkout.cart.breadcrumbs.after') !!}
 
     <div class="flex-auto">
-        <div class="container px-[60px] max-lg:px-8 max-md:px-4">
-
-            {!! view_render_event('bagisto.shop.checkout.cart.breadcrumbs.before') !!}
-
-            <!-- Breadcrumbs -->
-            @if ((core()->getConfigData('general.general.breadcrumbs.shop')))
-                <x-shop::breadcrumbs name="cart" />
-            @endif
-
-            {!! view_render_event('bagisto.shop.checkout.cart.breadcrumbs.after') !!}
+        <div class="container px-[60px] pt-8 max-lg:px-8 max-lg:pt-6 max-md:px-4 max-md:pt-4">
 
             @php
                 $errors = \Webkul\Checkout\Facades\Cart::getErrors();
             @endphp
 
             @if (! empty($errors) && $errors['error_code'] === 'MINIMUM_ORDER_AMOUNT')
-                <div class="mt-5 w-full gap-12 rounded-lg bg-[#FFF3CD] px-5 py-3 text-[#383D41] max-sm:px-3 max-sm:py-2 max-sm:text-sm">
+                <div class="mt-5 w-full rounded-xl border border-darkPink/30 bg-darkPink/[0.08] px-5 py-3 text-sm text-uf-text max-sm:px-3 max-sm:py-2 max-sm:text-xs">
                     {{ $errors['message'] }}: {{ $errors['amount'] }}
                 </div>
             @endif
@@ -110,7 +80,7 @@
                             {!! view_render_event('bagisto.shop.checkout.cart.cart_mass_actions.before') !!}
 
                             <!-- Cart Mass Action Container -->
-                            <div class="flex items-center justify-between border-b border-white/10 pb-2.5 max-md:py-2.5">
+                            <div class="flex items-center justify-between rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 max-md:px-4 max-md:py-2.5">
                                 <div class="flex select-none items-center">
                                     <input
                                         type="checkbox"
@@ -121,7 +91,7 @@
                                     >
 
                                     <label
-                                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 peer-checked:text-uf-accent"
+                                        class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 transition-colors peer-checked:text-uf-accent"
                                         for="select-all"
                                         tabindex="0"
                                         aria-label="@lang('shop::app.checkout.cart.index.select-all')"
@@ -143,7 +113,7 @@
                                     v-if="selectedItemsCount"
                                 >
                                     <span
-                                        class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent max-sm:text-sm"
+                                        class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent transition-colors hover:text-uf-accentHover max-sm:text-sm"
                                         role="button"
                                         tabindex="0"
                                         @click="removeSelectedItems"
@@ -155,7 +125,7 @@
                                         <span class="mx-2 h-4 border-r border-white/20"></span>
 
                                         <span
-                                            class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent max-sm:text-sm"
+                                            class="inline-flex min-h-10 cursor-pointer items-center px-1.5 text-base font-medium text-uf-accent transition-colors hover:text-uf-accentHover max-sm:text-sm"
                                             role="button"
                                             tabindex="0"
                                             @click="moveToWishlistSelectedItems"
@@ -172,10 +142,10 @@
 
                             <!-- Cart Item Listing Container -->
                             <div
-                                class="grid gap-y-6"
+                                class="grid gap-y-4"
                                 v-for="item in cart?.items"
                             >
-                                <div class="flex justify-between gap-x-2.5 border-b border-white/10 pb-5">
+                                <div class="flex justify-between gap-x-2.5 rounded-xl border border-white/10 bg-white/[0.02] p-5 transition-colors hover:border-uf-accent/20 max-md:p-4">
                                     <div class="flex gap-x-5">
                                         <div class="mt-11 select-none max-md:mt-9 max-sm:mt-7">
                                             <input
@@ -187,7 +157,7 @@
                                             >
 
                                             <label
-                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 peer-checked:text-uf-accent"
+                                                class="icon-uncheck peer-checked:icon-check-box cursor-pointer text-2xl text-white/60 transition-colors peer-checked:text-uf-accent"
                                                 :for="'item_' + item.id"
                                                 tabindex="0"
                                                 aria-label="@lang('shop::app.checkout.cart.index.select-cart-item')"
@@ -304,7 +274,7 @@
                                                 </p>
 
                                                 <span
-                                                    class="cursor-pointer text-base text-uf-accent max-md:hidden"
+                                                    class="cursor-pointer text-base text-uf-accent transition-colors hover:text-uf-accentHover max-md:hidden"
                                                     role="button"
                                                     tabindex="0"
                                                     @click="removeItem(item.id)"
@@ -320,7 +290,7 @@
                                             <div class="flex items-center gap-2.5 max-md:mt-2.5">
                                                 <x-shop::quantity-changer
                                                     v-if="item.can_change_qty"
-                                                    class="flex max-w-max items-center gap-x-1.5 rounded-[54px] border border-white/20 px-2 py-0.5 max-md:gap-x-1 max-md:px-1"
+                                                    class="flex max-w-max items-center gap-x-1.5 rounded-[54px] border border-white/15 px-2 py-0.5 transition-colors focus-within:border-uf-accent/40 max-md:gap-x-1 max-md:px-1"
                                                     name="quantity"
                                                     ::value="item?.quantity"
                                                     @change="setItemQuantity(item.id, $event)"
@@ -328,7 +298,7 @@
 
                                                 <!-- For Mobile view Remove Button -->
                                                 <span
-                                                    class="hidden min-h-10 cursor-pointer items-center px-2 text-sm font-medium text-uf-accent max-md:inline-flex"
+                                                    class="hidden min-h-10 cursor-pointer items-center px-2 text-sm font-medium text-uf-accent transition-colors hover:text-uf-accentHover max-md:inline-flex"
                                                     role="button"
                                                     tabindex="0"
                                                     @click="removeItem(item.id)"
@@ -374,7 +344,7 @@
 
                                         <!-- Cart Item Remove Button -->
                                         <span
-                                            class="cursor-pointer text-base text-uf-accent"
+                                            class="cursor-pointer text-base text-uf-accent transition-colors hover:text-uf-accentHover"
                                             role="button"
                                             tabindex="0"
                                             @click="removeItem(item.id)"
@@ -430,28 +400,26 @@
 
                     <!-- Empty Cart Section -->
                     <div
-                        class="m-auto grid w-full place-content-center items-center justify-items-center py-32 text-center"
+                        class="m-auto grid w-full max-w-md place-content-center items-center justify-items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-8 py-20 text-center max-md:py-14"
                         v-else
                     >
-                        <img
-                            class="max-md:h-[100px] max-md:w-[100px]"
-                            src="{{ bagisto_asset('images/thank-you.png') }}"
-                            alt="@lang('shop::app.checkout.cart.index.empty-product')"
-                            loading="lazy"
-                            decoding="async"
-                        />
+                        <span class="icon-cart text-5xl text-white/20 max-md:text-4xl"></span>
 
                         <p
-                            class="text-xl max-md:text-sm"
+                            class="mt-2 text-xl font-medium text-uf-text max-md:text-base"
                             role="heading"
                         >
                             @lang('shop::app.checkout.cart.index.empty-product')
                         </p>
 
+                        <p class="text-sm text-uf-muted max-md:text-xs">
+                            @lang('shop::app.checkout.cart.index.empty-product-info')
+                        </p>
+
                         <!-- Empty-cart recovery CTA — never leave the shopper at a dead end -->
                         <a
                             href="{{ route('shop.home.index') }}"
-                            class="primary-button mt-8 rounded-2xl px-11 py-3.5 max-md:rounded-lg max-md:px-8 max-md:py-3"
+                            class="primary-button mt-6 px-11 py-3.5 max-md:px-8 max-md:py-3"
                         >
                             @lang('shop::app.checkout.cart.index.continue-shopping')
                         </a>

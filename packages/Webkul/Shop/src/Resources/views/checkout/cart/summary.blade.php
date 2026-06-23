@@ -212,12 +212,18 @@
 
         {!! view_render_event('bagisto.shop.checkout.cart.summary.proceed_to_checkout.before') !!}
 
-        <a
-            href="{{ route('shop.checkout.onepage.index') }}"
-            class="primary-button mt-4 place-self-end rounded-2xl px-11 py-3 text-center max-md:my-4 max-md:max-w-full max-md:rounded-lg max-md:py-3.5 max-md:text-sm max-sm:w-full max-sm:py-3.5"
-        >
-            @lang('shop::app.checkout.cart.summary.proceed-to-checkout')
-        </a>
+        @if (core()->getConfigData('general.catalog_mode.settings.enabled'))
+            <p class="mt-4 place-self-end rounded-2xl border border-white/10 bg-white/[0.02] px-5 py-3 text-right text-sm text-zinc-300 max-md:my-4 max-md:max-w-full max-sm:w-full">
+                {{ core()->getConfigData('general.catalog_mode.settings.message') }}
+            </p>
+        @else
+            <a
+                href="{{ route('shop.checkout.onepage.index') }}"
+                class="primary-button mt-4 place-self-end rounded-2xl px-11 py-3 text-center max-md:my-4 max-md:max-w-full max-md:rounded-lg max-md:py-3.5 max-md:text-sm max-sm:w-full max-sm:py-3.5"
+            >
+                @lang('shop::app.checkout.cart.summary.proceed-to-checkout')
+            </a>
+        @endif
 
         {!! view_render_event('bagisto.shop.checkout.cart.summary.proceed_to_checkout.after') !!}
     </div>

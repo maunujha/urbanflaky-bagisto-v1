@@ -538,6 +538,58 @@ return [
                 'locale_based' => true,
             ],
         ],
+    ], [
+        'key' => 'general.catalog_mode',
+        'name' => 'admin::app.configuration.index.general.catalog-mode.title',
+        'info' => 'admin::app.configuration.index.general.catalog-mode.info',
+        'icon' => 'settings/store.svg',
+        'sort' => 7,
+    ], [
+        'key' => 'general.catalog_mode.settings',
+        'name' => 'admin::app.configuration.index.general.catalog-mode.settings.title',
+        'info' => 'admin::app.configuration.index.general.catalog-mode.settings.info',
+        'sort' => 1,
+        'fields' => [
+            [
+                'name' => 'enabled',
+                'title' => 'admin::app.configuration.index.general.catalog-mode.settings.enabled',
+                'type' => 'boolean',
+                'channel_based' => true,
+                'locale_based' => true,
+            ], [
+                'name' => 'message',
+                'title' => 'admin::app.configuration.index.general.catalog-mode.settings.message',
+                'type' => 'text',
+                'default' => 'Checkout is currently unavailable. Please contact us to place an order.',
+                'validation' => 'max:255',
+                'depends' => 'enabled:true',
+                'channel_based' => true,
+                'locale_based' => true,
+            ], [
+                'name' => 'hide_prices',
+                'title' => 'admin::app.configuration.index.general.catalog-mode.settings.hide-prices',
+                'type' => 'boolean',
+                'depends' => 'enabled:true',
+                'channel_based' => true,
+                'locale_based' => true,
+            ], [
+                'name' => 'allow_wishlist',
+                'title' => 'admin::app.configuration.index.general.catalog-mode.settings.allow-wishlist',
+                'type' => 'boolean',
+                'default' => 1,
+                'depends' => 'enabled:true',
+                'channel_based' => true,
+                'locale_based' => true,
+            ], [
+                'name' => 'allow_compare',
+                'title' => 'admin::app.configuration.index.general.catalog-mode.settings.allow-compare',
+                'type' => 'boolean',
+                'default' => 1,
+                'depends' => 'enabled:true',
+                'channel_based' => true,
+                'locale_based' => true,
+            ],
+        ],
     ],
 
     /**

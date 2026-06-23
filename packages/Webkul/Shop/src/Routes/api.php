@@ -119,7 +119,7 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
             Route::post('verify', 'verify')->name('shop.api.contact.otp.verify');
         });
 
-    Route::controller(OnepageController::class)->prefix('checkout/onepage')->group(function () {
+    Route::controller(OnepageController::class)->prefix('checkout/onepage')->middleware('catalog_mode.guard')->group(function () {
         Route::get('summary', 'summary')->name('shop.checkout.onepage.summary');
 
         Route::post('addresses', 'storeAddress')->name('shop.checkout.onepage.addresses.store');

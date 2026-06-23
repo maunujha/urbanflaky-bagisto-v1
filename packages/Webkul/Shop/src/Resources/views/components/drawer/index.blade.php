@@ -18,12 +18,12 @@
 
     @isset($header)
         <template v-slot:header="{ close }">
-            <div {{ $header->attributes->merge(['class' => 'grid gap-y-2.5 p-6 pb-5 text-white max-md:gap-y-1.5 max-md:border-b max-md:border-white/10 max-md:p-4 max-md:gap-y-1 max-md:font-semibold']) }}>
+            <div {{ $header->attributes->merge(['class' => 'grid gap-y-2.5 border-b border-white/10 p-6 pb-5 text-uf-text max-md:gap-y-1.5 max-md:p-4 max-md:gap-y-1 max-md:font-semibold']) }}>
                 {{ $header }}
 
                 <div class="absolute top-5 max-sm:top-4 ltr:right-5 rtl:left-5">
                     <span
-                        class="icon-cancel cursor-pointer text-3xl text-white transition hover:uf-text-accent max-md:text-2xl"
+                        class="icon-cancel cursor-pointer text-3xl text-white/70 transition-colors hover:text-uf-accent max-md:text-2xl"
                         @click="close"
                     >
                     </span>
@@ -78,7 +78,7 @@
                     leave-to-class="opacity-0"
                 >
                     <div
-                        class="fixed inset-0 z-[60] bg-black/60 transition-opacity"
+                        class="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm transition-opacity"
                         v-show="isOpen"
                         @click="close"
                     ></div>
@@ -96,17 +96,17 @@
                     :leave-to-class="enterFromLeaveToClasses"
                 >
                     <div
-                        class="fixed z-[1000] overflow-hidden bg-zinc-900 max-md:!w-full"
+                        class="fixed z-[1000] overflow-hidden bg-uf-bg shadow-[0_0_40px_rgba(0,0,0,0.5)] max-md:!w-full"
                         :class="{
-                            'inset-x-0 top-0': position == 'top',
-                            'inset-x-0 bottom-0 max-sm:max-h-full': position == 'bottom',
-                            'inset-y-0 ltr:right-0 rtl:left-0': position == 'right',
-                            'inset-y-0 ltr:left-0 rtl:right-0': position == 'left'
+                            'inset-x-0 top-0 border-b border-white/10': position == 'top',
+                            'inset-x-0 bottom-0 border-t border-white/10 max-sm:max-h-full': position == 'bottom',
+                            'inset-y-0 ltr:right-0 rtl:left-0 ltr:border-l rtl:border-r border-white/10': position == 'right',
+                            'inset-y-0 ltr:left-0 rtl:right-0 ltr:border-r rtl:border-l border-white/10': position == 'left'
                         }"
                         :style="'width:' + width"
                         v-show="isOpen"
                     >
-                        <div class="pointer-events-auto h-full w-full overflow-auto bg-zinc-900 text-zinc-100">
+                        <div class="pointer-events-auto h-full w-full overflow-auto bg-uf-bg text-uf-text">
                             <div class="flex h-full w-full flex-col">
                                 <div class="min-h-0 min-w-0 flex-1 overflow-auto">
                                     <div class="flex h-full flex-col">
