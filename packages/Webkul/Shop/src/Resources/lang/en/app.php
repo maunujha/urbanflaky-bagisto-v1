@@ -669,6 +669,14 @@ return [
                     'targeting-and-advertising' => 'Targeting and Advertising',
                 ],
             ],
+
+            'exit-intent-popup' => [
+                'offer' => 'Get :percent% OFF Your First Order',
+                'continue-browsing' => 'Continue Browsing',
+                'close' => 'Close',
+                'copied' => 'Coupon code copied successfully.',
+                'copy-failed' => 'Could not copy automatically — the code is :code',
+            ],
         ],
 
         'datagrid' => [

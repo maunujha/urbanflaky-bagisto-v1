@@ -161,6 +161,11 @@
             <!-- Confirm Modal Blade Component -->
             <x-shop::modal.confirm />
 
+            <!-- Exit Intent Welcome Discount Popup -->
+            @if (\App\Support\ExitIntentPopup::enabled())
+                <x-shop::layouts.exit-intent-popup />
+            @endif
+
             <!-- Page Header Blade Component -->
             @if ($hasHeader)
                 <x-shop::layouts.header />

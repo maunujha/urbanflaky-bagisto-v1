@@ -5142,6 +5142,30 @@ return [
                     'build-views' => 'Cache Views',
                 ],
             ],
+
+            'marketing' => [
+                'title' => 'Marketing',
+                'info' => 'Configure promotional and lead-recovery features for the storefront.',
+
+                'exit-intent-popup' => [
+                    'title' => 'Exit Intent Popup',
+                    'info' => 'Show a welcome discount popup to visitors who are about to leave the site.',
+
+                    'settings' => [
+                        'title' => 'Exit Intent Popup Settings',
+                        'info' => 'Configure the welcome discount popup shown on exit intent (desktop) and back-button press (mobile).',
+                        'enabled' => 'Enable Popup',
+                        'popup-title' => 'Popup Title',
+                        'popup-description' => 'Popup Description',
+                        'coupon-code' => 'Coupon Code',
+                        'discount-percentage' => 'Discount Percentage',
+                        'cta-text' => 'CTA Button Text',
+                        'desktop-image' => 'Desktop Image',
+                        'mobile-image' => 'Mobile Image',
+                        'frequency-days' => 'Popup Frequency (Days)',
+                    ],
+                ],
+            ],
         ],
     ],
 
