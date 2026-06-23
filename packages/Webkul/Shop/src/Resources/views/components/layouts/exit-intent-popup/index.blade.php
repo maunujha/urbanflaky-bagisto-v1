@@ -55,16 +55,16 @@
         <teleport to="body">
             <!-- Desktop: centered modal -->
             <transition
-                enter-active-class="transition duration-300 ease-out"
+                enter-active-class="transition duration-300 ease-out motion-reduce:transition-none"
                 enter-from-class="opacity-0"
                 enter-to-class="opacity-100"
-                leave-active-class="transition duration-200 ease-in"
+                leave-active-class="transition duration-200 ease-in motion-reduce:transition-none"
                 leave-from-class="opacity-100"
                 leave-to-class="opacity-0"
             >
                 <div
                     v-if="isOpen && ! isMobile"
-                    class="fixed inset-0 z-[1100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+                    class="fixed inset-0 z-[9990] flex items-center justify-center bg-black/80 p-4 backdrop-blur-[3px]"
                     @click.self="close"
                 >
                     <div
@@ -73,56 +73,67 @@
                         aria-modal="true"
                         aria-labelledby="uf-eip-title"
                         tabindex="-1"
-                        class="grid w-full max-w-[880px] overflow-hidden rounded-2xl border border-white/10 bg-uf-bg shadow-[0_24px_64px_rgba(0,0,0,0.6)] max-md:grid-cols-1"
-                        :class="hasDesktopImage ? 'grid-cols-2' : 'max-w-[540px] grid-cols-1'"
+                        class="relative w-full overflow-hidden rounded-xl border border-white/10 bg-uf-bg shadow-[0_40px_90px_-30px_rgba(0,0,0,0.85)]"
+                        :class="hasDesktopImage ? 'grid max-w-[680px] md:grid-cols-[270px_minmax(0,1fr)]' : 'max-w-[420px]'"
                         @keydown.esc="close"
                     >
                         <!-- Image -->
                         <div
                             v-if="hasDesktopImage"
-                            class="relative hidden min-h-[480px] bg-uf-surface md:block"
+                            class="relative hidden bg-uf-surface md:block"
                         >
                             <img
                                 :src="desktopImage"
                                 alt=""
-                                class="absolute inset-0 h-full w-full object-cover"
+                                class="absolute inset-0 h-full w-full object-cover grayscale-[15%]"
                                 loading="lazy"
                                 decoding="async"
                             >
+                            <div class="absolute inset-0 bg-gradient-to-r from-black/20 to-uf-bg/70"></div>
                         </div>
 
-                        <!-- Content -->
-                        <div class="relative flex flex-col justify-center gap-5 p-10 max-sm:p-6">
-                            <button
-                                type="button"
-                                class="icon-cancel absolute right-5 top-5 text-2xl text-white/60 transition-colors hover:text-uf-accent"
-                                :aria-label="closeLabel"
-                                @click="close"
-                            ></button>
+                        <!-- Close -->
+                        <button
+                            type="button"
+                            class="absolute right-3.5 top-3.5 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-white/55 transition-colors hover:bg-white/10 hover:text-white"
+                            :aria-label="closeLabel"
+                            @click="close"
+                        >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                        </button>
 
-                            <p
+                        <!-- Content -->
+                        <div class="flex flex-col gap-4 px-8 py-9 max-sm:px-6 max-sm:py-7">
+                            <h2
                                 id="uf-eip-title"
-                                class="font-poppins text-2xl font-extrabold uppercase tracking-[2px] text-uf-text max-sm:text-xl"
+                                class="font-poppins text-[22px] font-bold uppercase leading-[1.1] tracking-[0.14em] text-uf-text"
+                                style="text-wrap: balance;"
                             >
                                 @{{ popupTitle }}
-                            </p>
+                            </h2>
 
-                            <p class="text-sm leading-relaxed text-uf-muted">
+                            <p class="max-w-[44ch] text-[13px] leading-relaxed text-uf-muted">
                                 @{{ popupDescription }}
                             </p>
 
-                            <p class="text-lg font-semibold text-uf-accent">
+                            <p class="text-[15px] font-medium text-uf-text">
                                 @{{ offerText }}
                             </p>
 
-                            <div class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-uf-accent/40 bg-white/[0.03] px-5 py-3.5">
-                                <span class="font-poppins text-lg font-bold tracking-[3px] text-uf-text">@{{ couponCode }}</span>
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-uf-accent" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                            </div>
+                            <button
+                                type="button"
+                                class="group flex items-center justify-between gap-3 rounded-md border border-dashed border-white/25 bg-white/[0.02] px-4 py-3 text-left transition-colors hover:border-white/45"
+                                @click="claim"
+                            >
+                                <span class="font-poppins text-base font-bold tracking-[0.28em] text-uf-text">@{{ couponCode }}</span>
+                                <span class="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/45 transition-colors group-hover:text-white/70">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                </span>
+                            </button>
 
                             <button
                                 type="button"
-                                class="primary-button w-full py-3.5"
+                                class="mt-1 w-full rounded-md bg-white px-6 py-3 font-poppins text-[13px] font-semibold uppercase tracking-[0.16em] text-uf-bg transition hover:bg-white/90 active:scale-[0.99]"
                                 @click="claim"
                             >
                                 @{{ ctaText }}
@@ -130,7 +141,7 @@
 
                             <button
                                 type="button"
-                                class="text-center text-sm text-uf-muted underline-offset-4 transition-colors hover:text-uf-accent hover:underline"
+                                class="-mb-1 text-center text-[12px] tracking-wide text-white/45 underline-offset-4 transition-colors hover:text-white/80 hover:underline"
                                 @click="close"
                             >
                                 @{{ continueText }}
@@ -142,22 +153,25 @@
 
             <!-- Mobile: bottom sheet -->
             <transition
-                enter-active-class="transition duration-300 ease-out"
+                enter-active-class="transition duration-300 ease-out motion-reduce:transition-none"
                 enter-from-class="opacity-0"
                 enter-to-class="opacity-100"
+                leave-active-class="transition duration-200 ease-in motion-reduce:transition-none"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
             >
                 <div
                     v-if="isOpen && isMobile"
-                    class="fixed inset-0 z-[1100] bg-black/70"
+                    class="fixed inset-0 z-[9990] bg-black/80"
                     @click.self="close"
                 ></div>
             </transition>
 
             <transition
-                enter-active-class="transition duration-300 ease-out"
+                enter-active-class="transition-transform duration-300 ease-out motion-reduce:transition-none"
                 enter-from-class="translate-y-full"
                 enter-to-class="translate-y-0"
-                leave-active-class="transition duration-200 ease-in"
+                leave-active-class="transition-transform duration-200 ease-in motion-reduce:transition-none"
                 leave-from-class="translate-y-0"
                 leave-to-class="translate-y-full"
             >
@@ -168,61 +182,76 @@
                     aria-modal="true"
                     aria-labelledby="uf-eip-title-mobile"
                     tabindex="-1"
-                    class="fixed inset-x-0 bottom-0 z-[1101] max-h-[78vh] w-full overflow-y-auto rounded-t-2xl border-t border-white/10 bg-uf-bg"
+                    class="fixed inset-x-0 bottom-0 z-[9991] flex max-h-[82vh] w-full flex-col overflow-hidden rounded-t-2xl border-t border-white/10 bg-uf-bg"
                     @keydown.esc="close"
                 >
+                    <!-- Close -->
                     <button
                         type="button"
-                        class="icon-cancel absolute right-4 top-4 z-10 text-2xl text-white/70 transition-colors hover:text-uf-accent"
+                        class="absolute right-3.5 top-3.5 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/45 text-white/80 backdrop-blur-sm transition-colors hover:bg-black/65 hover:text-white"
                         :aria-label="closeLabel"
                         @click="close"
-                    ></button>
-
-                    <img
-                        v-if="hasMobileImage"
-                        :src="mobileImage"
-                        alt=""
-                        class="h-[30vh] w-full object-cover"
-                        loading="lazy"
-                        decoding="async"
                     >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
 
-                    <div class="flex flex-col gap-4 p-6">
-                        <p
-                            id="uf-eip-title-mobile"
-                            class="font-poppins text-xl font-extrabold uppercase tracking-[2px] text-uf-text"
+                    <div class="overflow-y-auto">
+                        <img
+                            v-if="hasMobileImage"
+                            :src="mobileImage"
+                            alt=""
+                            class="h-48 w-full object-cover grayscale-[15%]"
+                            loading="lazy"
+                            decoding="async"
                         >
-                            @{{ popupTitle }}
-                        </p>
 
-                        <p class="text-sm leading-relaxed text-uf-muted">
-                            @{{ popupDescription }}
-                        </p>
-
-                        <p class="text-base font-semibold text-uf-accent">
-                            @{{ offerText }}
-                        </p>
-
-                        <div class="flex items-center justify-between gap-3 rounded-lg border border-dashed border-uf-accent/40 bg-white/[0.03] px-5 py-4">
-                            <span class="font-poppins text-xl font-bold tracking-[3px] text-uf-text">@{{ couponCode }}</span>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-uf-accent" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <!-- Grabber (shown when there's no image to anchor the sheet) -->
+                        <div v-else class="flex justify-center pt-3">
+                            <span class="h-1 w-10 rounded-full bg-white/20"></span>
                         </div>
 
-                        <button
-                            type="button"
-                            class="primary-button w-full py-3.5"
-                            @click="claim"
-                        >
-                            @{{ ctaText }}
-                        </button>
+                        <div class="flex flex-col gap-3.5 px-6 pb-7 pt-6">
+                            <h2
+                                id="uf-eip-title-mobile"
+                                class="font-poppins text-[19px] font-bold uppercase leading-[1.1] tracking-[0.14em] text-uf-text"
+                                style="text-wrap: balance;"
+                            >
+                                @{{ popupTitle }}
+                            </h2>
 
-                        <button
-                            type="button"
-                            class="text-center text-sm text-uf-muted underline-offset-4 transition-colors hover:text-uf-accent hover:underline"
-                            @click="close"
-                        >
-                            @{{ continueText }}
-                        </button>
+                            <p class="text-[13px] leading-relaxed text-uf-muted">
+                                @{{ popupDescription }}
+                            </p>
+
+                            <p class="text-[15px] font-medium text-uf-text">
+                                @{{ offerText }}
+                            </p>
+
+                            <button
+                                type="button"
+                                class="group flex items-center justify-between gap-3 rounded-md border border-dashed border-white/25 bg-white/[0.02] px-4 py-3.5 text-left transition-colors hover:border-white/45"
+                                @click="claim"
+                            >
+                                <span class="font-poppins text-lg font-bold tracking-[0.28em] text-uf-text">@{{ couponCode }}</span>
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-white/45" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="mt-1 w-full rounded-md bg-white px-6 py-3.5 font-poppins text-[13px] font-semibold uppercase tracking-[0.16em] text-uf-bg transition hover:bg-white/90 active:scale-[0.99]"
+                                @click="claim"
+                            >
+                                @{{ ctaText }}
+                            </button>
+
+                            <button
+                                type="button"
+                                class="text-center text-[12px] tracking-wide text-white/45 underline-offset-4 transition-colors hover:text-white/80 hover:underline"
+                                @click="close"
+                            >
+                                @{{ continueText }}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </transition>
