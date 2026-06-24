@@ -1074,16 +1074,27 @@ body::after {
     .uf-prod-viewall-inline { display: inline-flex; }
 }
 
-/* Horizontal product strip — TWO rows, scrolls horizontally one column at a time.
-   grid-auto-flow:column fills row1+row2 of each column before moving to the next,
-   so cards stack in pairs. Card width is set via grid-auto-columns per breakpoint. */
+/* Each collection renders as TWO independent rows. Every row is its own
+   horizontal scroller with its own edge arrows, so the customer focuses on
+   one row at a time instead of both moving together. The wrapper is the
+   positioning context for the overlay arrows. */
+.uf-prod-rowwrap {
+    position: relative;
+}
+.uf-prod-rowwrap + .uf-prod-rowwrap {
+    margin-top: 22px;
+}
+@media (max-width: 524px) {
+    .uf-prod-rowwrap + .uf-prod-rowwrap { margin-top: 16px; }
+}
+
+/* Single-row horizontal product strip. Card width is set via grid-auto-columns
+   per breakpoint (same sizing as before — only the rows were split). */
 .uf-prod-strip {
     display: grid;
     grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
     grid-auto-columns: calc((100% - 20px) / 2);
     column-gap: 20px;
-    row-gap: 22px;
     align-items: start;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
@@ -1094,6 +1105,43 @@ body::after {
 }
 .uf-prod-strip::-webkit-scrollbar { display: none; }
 .uf-prod-strip > .uf-product-card { scroll-snap-align: start; }
+
+/* Per-row overlay arrows — vertically centred on each row's left/right edge.
+   Shown only when that row overflows (and hidden at the matching end). */
+.uf-prod-edge {
+    position: absolute;
+    /* Sit over the upper image area — clear of the hover drawer that rises
+       from the bottom of the card — and straddle the row edge so only the
+       inner half overlaps the card. */
+    top: 34%;
+    transform: translateY(-50%);
+    z-index: 5;
+    width: 44px;
+    height: 44px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 10, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 50%;
+    color: #ffffff;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+.uf-prod-edge span { font-size: 16px; line-height: 1; }
+.uf-prod-edge:hover {
+    background: var(--uf-accent);
+    border-color: var(--uf-accent);
+    color: #0a0a0a;
+    transform: translateY(-50%) scale(1.06);
+}
+.uf-prod-edge--prev { left: -22px; }
+.uf-prod-edge--next { right: -22px; }
+/* Arrows are a desktop affordance; touch devices swipe the row directly. */
+@media (min-width: 1024px) {
+    .uf-prod-edge { display: inline-flex; }
+}
 
 @media (min-width: 1024px) {
     .uf-prod-strip {
@@ -1108,7 +1156,7 @@ body::after {
     .uf-prod-strip {
         column-gap: 10px;
         row-gap: 16px;
-        grid-auto-columns: 47%;
+        grid-auto-columns: 65%;
     }
 }
 
@@ -2997,12 +3045,27 @@ body.mh-search-locked { overflow: hidden; }
 }
 
 @media (max-width: 767px) {
-    /* Rounded card + soft shadow per spec (16px radius) */
+    /* Equal-height cards: stretch every card in a row to the tallest one so the
+       CTAs always sit on the same baseline regardless of 1- vs 2-line titles
+       or the presence of the "As low as" label. */
+    .uf-prod-strip { align-items: stretch; }
+
+    /* Rounded card + soft shadow per spec. Flex column lets the content area
+       absorb the stretch and push the CTAs to the bottom edge. */
     .uf-product-card {
-        border-radius: 5px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+        display: flex;
+        flex-direction: column;
+        border-radius: 6px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
     }
-    .uf-card-content { padding: 8px; }
+    .uf-img-wrap { flex: 0 0 auto; }
+
+    .uf-card-content {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 12px 13px;
+    }
 
     /* Hide the desktop price row, the "+" button, the subtitle and the
        ratings badge on mobile */
@@ -3027,13 +3090,15 @@ body.mh-search-locked { overflow: hidden; }
         line-height: 1;
     }
 
-    /* Title — 12px, normal weight on mobile, two lines max */
+    /* Title — 12px, two lines max. Reserve a constant two-line height so the
+       price/CTA below start at the same point whether the title wraps or not. */
     .uf-card-name {
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 400;
         line-height: 1.35;
         color: var(--uf-text);
-        margin-bottom: 5px;
+        margin-bottom: 6px;
+        min-height: 2.7em; /* 2 lines × 1.35 line-height */
     }
 
     /* "As low as" label — 10px accent */
@@ -3052,17 +3117,18 @@ body.mh-search-locked { overflow: hidden; }
         display: flex;
         align-items: baseline;
         flex-wrap: wrap;
-        gap: 2px;
-        margin-bottom: 6px;
+        gap: 6px;
+        margin-bottom: 12px;
     }
 
-    /* Final / sale price — 14px, normal weight on mobile */
+    /* Final / sale price — 15px, semibold for emphasis on mobile */
     .uf-mob-final {
         font-family: 'Poppins', sans-serif;
-        font-size: 14px;
-        font-weight: 400;
+        font-size: 15px;
+        font-weight: 600;
         color: var(--uf-white);
         line-height: 1;
+        letter-spacing: .01em;
     }
 
     /* Original price — 11px strikethrough muted */
@@ -3076,42 +3142,58 @@ body.mh-search-locked { overflow: hidden; }
     }
 
     /* CTA buttons — stacked full-width (narrow mobile cards can't fit two
-       labelled buttons side-by-side without the text overflowing). */
-    .uf-mob-cta { flex-direction: column; gap: 6px; }
+       labelled buttons side-by-side without the text overflowing).
+       margin-top:auto pins them to the bottom of the stretched card so every
+       card's CTAs share one baseline. */
+    .uf-mob-cta {
+        flex-direction: column;
+        gap: 7px;
+        margin-top: auto;
+        padding-top: 4px;
+    }
     .uf-mob-atc,
     .uf-mob-buy {
         width: 100%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 3px;
+        gap: 5px;
         height: auto;
-        padding: 6px 8px;
+        padding: 9px 10px;
         border-radius: 4px;
         font-family: 'Poppins', sans-serif;
-        font-size: 9px;
+        font-size: 10px;
         font-weight: 600;
+        letter-spacing: .08em;
         text-transform: uppercase;
         white-space: nowrap;
         cursor: pointer;
-        transition: background .2s ease, color .2s ease, border-color .2s ease, transform .12s ease;
+        transition: background .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .12s ease;
     }
     .uf-mob-atc svg,
     .uf-mob-buy svg { width: 13px; height: 13px; flex-shrink: 0; }
 
     .uf-mob-atc {
         background: transparent;
-        border: 1px solid var(--uf-accent);
+        border: 1px solid rgba(199, 235, 49, 0.55);
         color: var(--uf-accent);
     }
-    .uf-mob-atc:active:not(:disabled) { transform: scale(.97); }
+    .uf-mob-atc:active:not(:disabled) {
+        border-color: var(--uf-accent);
+        background: rgba(199, 235, 49, 0.08);
+        transform: scale(.97);
+    }
 
     .uf-mob-buy {
         background: var(--uf-accent);
-        border: 1.5px solid var(--uf-accent);
+        border: 1px solid var(--uf-accent);
         color: #0a0a0a;
+        box-shadow: 0 6px 18px rgba(199, 235, 49, 0.22);
     }
-    .uf-mob-buy:active:not(:disabled) { transform: scale(.97); }
+    .uf-mob-buy:active:not(:disabled) {
+        background: var(--uf-accent-hover);
+        transform: scale(.97);
+    }
 
     .uf-mob-atc:disabled,
     .uf-mob-buy:disabled { opacity: .45; cursor: not-allowed; }
