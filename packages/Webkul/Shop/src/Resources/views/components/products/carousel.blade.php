@@ -25,7 +25,10 @@
                         class="uf-prod-viewall-inline"
                     >
                         @lang('shop::app.components.products.carousel.view-all')
-                        <span class="icon-arrow-right-stylish"></span>
+                        <svg class="uf-prod-viewall-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
                     </a>
                 </div>
 
@@ -43,7 +46,9 @@
                         aria-label="@lang('shop::components.carousel.previous')"
                         @click="swipe(idx, -1)"
                     >
-                        <span class="icon-arrow-left-stylish"></span>
+                        <svg class="uf-prod-edge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
                     </button>
 
                     <div :ref="'strip' + idx" class="uf-prod-strip">
@@ -57,7 +62,9 @@
                         aria-label="@lang('shop::components.carousel.next')"
                         @click="swipe(idx, 1)"
                     >
-                        <span class="icon-arrow-right-stylish"></span>
+                        <svg class="uf-prod-edge-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
                     </button>
                 </div>
 
