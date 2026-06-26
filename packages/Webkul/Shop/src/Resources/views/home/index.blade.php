@@ -175,6 +175,12 @@
         @endswitch
     @endforeach
 
+    <!-- Brand story / SEO feature accordion (left accordion · right image stage) -->
+    @include('shop::home.feature-accordion')
+
     <!-- Latest blog posts (server-rendered via Gabha\Blog HomeBlogComposer) -->
     @includeWhen(view()->exists('blog::shop.partials.home-grid'), 'blog::shop.partials.home-grid', ['blogs' => $latestBlogs ?? collect()])
+
+    <!-- Brand FAQ + FAQPage schema (last section before the footer) -->
+    @include('shop::home.faq')
 </x-shop::layouts>

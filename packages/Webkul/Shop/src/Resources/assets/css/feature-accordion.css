@@ -1,0 +1,65 @@
+/* ============================================================
+   Urbanflaky — Homepage "Brand Story" feature accordion.
+   STATIC styling lives in the Tailwind classes in
+   home/feature-accordion.blade.php. This file holds ONLY what
+   utilities can't express: the grid-rows accordion animation,
+   parent-state (.is-active) shifts, the image crossfade, and the
+   auto-advance progress keyframe. Edit copy/layout in the blade.
+   ============================================================ */
+
+.uf-fa { --uf-fa-duration: 7s; }       /* per-item auto-advance dwell */
+
+.uf-fa-title  { text-wrap: balance; }
+.uf-fa-intro,
+.uf-fa-body   { text-wrap: pretty; }
+
+/* Smooth auto-height panel (grid-rows technique — same as the FAQ page) */
+.uf-fa-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.uf-fa-panel > * { min-height: 0; overflow: hidden; }
+.uf-fa-item.is-active .uf-fa-panel { grid-template-rows: 1fr; }
+
+/* Active-item shifts — parent-class driven, not reachable by plain utilities */
+.uf-fa-item.is-active { border-color: rgba(199, 235, 49, 0.35); }
+.uf-fa-item.is-active .uf-fa-index,
+.uf-fa-item.is-active .uf-fa-chevron { color: #c7eb31; }
+.uf-fa-item.is-active .uf-fa-q,
+.uf-fa-toggle:hover .uf-fa-q { color: #f5f5f5; }
+.uf-fa-item.is-active .uf-fa-chevron { transform: rotate(180deg); }
+
+/* Image stage crossfade */
+.uf-fa-media {
+    opacity: 0;
+    transform: scale(1.04);
+    transition: opacity .6s cubic-bezier(0.22, 1, 0.36, 1),
+                transform .9s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+}
+.uf-fa-media.is-active { opacity: 1; transform: scale(1); pointer-events: auto; }
+
+/* Auto-advance progress bar (only the active item fills, then JS advances) */
+.uf-fa-bar { transform: scaleX(0); transform-origin: left center; }
+.uf-fa-item.is-active .uf-fa-bar {
+    animation: uf-fa-fill var(--uf-fa-duration) linear forwards;
+}
+.uf-fa:hover .uf-fa-bar,
+.uf-fa:focus-within .uf-fa-bar { animation-play-state: paused; }
+
+@keyframes uf-fa-fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+}
+
+/* Reduced motion: no auto-advance, instant swaps */
+@media (prefers-reduced-motion: reduce) {
+    .uf-fa-item.is-active .uf-fa-bar { animation: none; }
+    .uf-fa-bar { display: none; }
+    .uf-fa-panel,
+    .uf-fa-chevron,
+    .uf-fa-media { transition-duration: 0.01ms; }
+    .uf-fa-media,
+    .uf-fa-media.is-active { transform: none; }
+}

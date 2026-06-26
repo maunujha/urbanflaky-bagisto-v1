@@ -2290,13 +2290,21 @@ body.mh-search-locked { overflow: hidden; }
    ============================================================ */
 
 .uf-looks-section {
-    padding: 72px 0;
+    padding: 72px 12px;
+}
+@media (min-width: 768px) {
+    .uf-looks-section { padding: 72px 20px; }
+}
+@media (min-width: 1280px) {
+    .uf-looks-section { padding: 72px 56px; }
 }
 
+/* Match the product-carousel width model so the section aligns with the
+   rest of the homepage: 1360px max content, side gutters on the section. */
 .uf-looks-container {
-    max-width: 1340px;
+    max-width: 1360px;
     margin: 0 auto;
-    padding: 0 32px;
+    padding: 0;
 }
 
 /* ── Header — left aligned editorial intro + "view all" ── */
@@ -2586,8 +2594,7 @@ body.mh-search-locked { overflow: hidden; }
     .uf-looks-rest { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 639px) {
-    .uf-looks-container { padding: 0 16px; }
-    .uf-looks-section { padding: 48px 0; }
+    .uf-looks-section { padding: 48px 16px; }
     .uf-looks-head { flex-direction: column; }
     .uf-looks-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .uf-look-card--featured { grid-column: span 2; aspect-ratio: 4 / 5; }

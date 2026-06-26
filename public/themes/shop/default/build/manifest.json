@@ -15,12 +15,17 @@
     "name": "vue"
   },
   "src/Resources/assets/css/app.css": {
-    "file": "assets/app-Bb9u5_6p.css",
+    "file": "assets/app-i68lh2s1.css",
     "src": "src/Resources/assets/css/app.css",
     "isEntry": true
   },
+  "src/Resources/assets/css/feature-accordion.css": {
+    "file": "assets/feature-accordion-u-XuYdVJ.css",
+    "src": "src/Resources/assets/css/feature-accordion.css",
+    "isEntry": true
+  },
   "src/Resources/assets/css/urbanflaky.css": {
-    "file": "assets/urbanflaky-Cg0wrO4-.css",
+    "file": "assets/urbanflaky-Dg1WIZhs.css",
     "src": "src/Resources/assets/css/urbanflaky.css",
     "isEntry": true
   },
