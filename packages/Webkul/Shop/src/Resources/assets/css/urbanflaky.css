@@ -1074,91 +1074,31 @@ body::after {
     .uf-prod-viewall-inline { display: inline-flex; }
 }
 
-/* Each collection renders as TWO independent rows. Every row is its own
-   horizontal scroller with its own edge arrows, so the customer focuses on
-   one row at a time instead of both moving together. The wrapper is the
-   positioning context for the overlay arrows. */
-.uf-prod-rowwrap {
-    position: relative;
-}
-.uf-prod-rowwrap + .uf-prod-rowwrap {
-    margin-top: 22px;
-}
-@media (max-width: 524px) {
-    .uf-prod-rowwrap + .uf-prod-rowwrap { margin-top: 16px; }
-}
-
-/* Single-row horizontal product strip. Card width is set via grid-auto-columns
-   per breakpoint (same sizing as before — only the rows were split). */
-.uf-prod-strip {
+/* Collections render as a wrapping grid: up to 4 cards per row on desktop,
+   wrapping to the next row beyond 4. Fewer products simply fill one row
+   (e.g. 2 products → both on one row). Card width is fixed per breakpoint
+   so cards stay a consistent size regardless of how many there are. */
+.uf-prod-grid {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: calc((100% - 20px) / 2);
-    column-gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 10px;
+    row-gap: 16px;
     align-items: start;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-behavior: smooth;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
     padding: 4px 4px 8px;
 }
-.uf-prod-strip::-webkit-scrollbar { display: none; }
-.uf-prod-strip > .uf-product-card { scroll-snap-align: start; }
-
-/* Per-row overlay arrows — vertically centred on each row's left/right edge.
-   Shown only when that row overflows (and hidden at the matching end). */
-.uf-prod-edge {
-    position: absolute;
-    /* Sit over the upper image area — clear of the hover drawer that rises
-       from the bottom of the card — and straddle the row edge so only the
-       inner half overlaps the card. */
-    top: 34%;
-    transform: translateY(-50%);
-    z-index: 5;
-    width: 44px;
-    height: 44px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10, 10, 10, 0.72);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-radius: 50%;
-    color: #ffffff;
-    cursor: pointer;
-    backdrop-filter: blur(4px);
-    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
-}
-.uf-prod-edge span { font-size: 16px; line-height: 1; }
-.uf-prod-edge-arrow { width: 20px; height: 20px; display: block; }
 .uf-prod-viewall-arrow { width: 14px; height: 14px; display: inline-block; }
-.uf-prod-edge:hover {
-    background: var(--uf-accent);
-    border-color: var(--uf-accent);
-    color: #0a0a0a;
-    transform: translateY(-50%) scale(1.06);
-}
-.uf-prod-edge--prev { left: -22px; }
-.uf-prod-edge--next { right: -22px; }
-/* Arrows are a desktop affordance; touch devices swipe the row directly. */
-@media (min-width: 1024px) {
-    .uf-prod-edge { display: inline-flex; }
-}
 
-@media (min-width: 1024px) {
-    .uf-prod-strip {
-        column-gap: 24px;
-        grid-auto-columns: calc((100% - 72px) / 4);
+@media (min-width: 525px) and (max-width: 1023px) {
+    .uf-prod-grid {
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 20px;
     }
 }
-@media (min-width: 525px) and (max-width: 1023px) {
-    .uf-prod-strip { grid-auto-columns: calc((100% - 20px) / 2); }
-}
-@media (max-width: 524px) {
-    .uf-prod-strip {
-        column-gap: 10px;
-        row-gap: 16px;
-        grid-auto-columns: 65%;
+@media (min-width: 1024px) {
+    .uf-prod-grid {
+        grid-template-columns: repeat(4, 1fr);
+        column-gap: 24px;
+        row-gap: 28px;
     }
 }
 
@@ -3057,7 +2997,7 @@ body.mh-search-locked { overflow: hidden; }
     /* Equal-height cards: stretch every card in a row to the tallest one so the
        CTAs always sit on the same baseline regardless of 1- vs 2-line titles
        or the presence of the "As low as" label. */
-    .uf-prod-strip { align-items: stretch; }
+    .uf-prod-grid { align-items: stretch; }
 
     /* Rounded card + soft shadow per spec. Flex column lets the content area
        absorb the stretch and push the CTAs to the bottom edge. */

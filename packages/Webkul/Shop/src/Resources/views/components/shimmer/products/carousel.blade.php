@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <div class="uf-prod-strip">
+        <div class="uf-prod-grid">
             <x-shop::shimmer.products.cards.grid
                 class="!min-w-0"
                 :count="$count"
