@@ -315,7 +315,32 @@
                 {!! view_render_event('bagisto.shop.components.layouts.header.mobile.drawer.categories.after') !!}
             </x-slot>
 
-            <x-slot:footer>
+            <x-slot:footer class="!p-0">
+                {{-- Guest auth CTA — pinned to the bottom of the drawer (content slot is flex-1) --}}
+                @guest('customer')
+                    <div class="border-t border-white/10 bg-gradient-to-t from-black/50 to-transparent px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+                        <p class="mb-3 text-center font-poppins text-[11px] font-medium tracking-[0.3px] text-white/45">
+                            Sign in for faster checkout, order tracking &amp; member rewards.
+                        </p>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <a
+                                href="{{ route('shop.customer.session.create') }}"
+                                class="flex items-center justify-center rounded-[2px] border border-white/25 px-4 py-3.5 font-poppins text-[11px] font-semibold uppercase tracking-[2px] text-white transition-colors duration-200 hover:border-white hover:bg-white hover:text-uf-bg"
+                            >
+                                @lang('shop::app.components.layouts.header.mobile.sign-in')
+                            </a>
+
+                            <a
+                                href="{{ route('shop.customers.register.index') }}"
+                                class="flex items-center justify-center rounded-[2px] bg-uf-accent px-4 py-3.5 font-poppins text-[11px] font-semibold uppercase tracking-[2px] text-uf-bg transition-colors duration-200 hover:bg-uf-accent-hover"
+                            >
+                                @lang('shop::app.components.layouts.header.mobile.sign-up')
+                            </a>
+                        </div>
+                    </div>
+                @endguest
+
                 @if(core()->getCurrentChannel()->locales()->count() > 1 || core()->getCurrentChannel()->currencies()->count() > 1 )
                     <div class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0">
                         <x-shop::drawer position="bottom" width="100%">

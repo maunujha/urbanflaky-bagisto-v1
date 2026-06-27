@@ -42,6 +42,7 @@ export default defineConfig(({ mode }) => {
                 input: [
                     "src/Resources/assets/css/app.css",
                     "src/Resources/assets/css/urbanflaky.css",
+                    "src/Resources/assets/css/feature-accordion.css",
                     "src/Resources/assets/js/app.js",
                 ],
                 refresh: true,

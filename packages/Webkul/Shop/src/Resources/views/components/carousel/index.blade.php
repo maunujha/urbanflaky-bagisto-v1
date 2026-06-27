@@ -11,11 +11,7 @@
         type="text/x-template"
         id="v-carousel-template"
     >
-        <div
-            class="uf-hero"
-            @mouseenter="pauseAutoplay"
-            @mouseleave="resumeAutoplay"
-        >
+        <div class="uf-hero">
             <!-- Track -->
             <div class="uf-hero-track" ref="sliderContainer">
                 <div
@@ -166,6 +162,10 @@
                 },
 
                 handleDragStart(event) {
+                    // Pause autoplay immediately so a mid-drag tick can't reset
+                    // prevTranslate/currentIndex and swallow the swipe.
+                    clearInterval(this.autoPlayInterval);
+
                     this.startPos = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX;
                     this.isDragging = true;
                     this.animationID = requestAnimationFrame(this.animation);
@@ -185,14 +185,19 @@
 
                     const movedBy = this.currentTranslate - this.prevTranslate;
 
+                    // Trigger on ~15% of the slide width (min 40px) so a normal
+                    // mobile flick advances the slide on the first try.
+                    const slideWidth = this.slides[0]?.offsetWidth || window.innerWidth;
+                    const threshold  = Math.max(40, slideWidth * 0.15);
+
                     if (this.direction == 'ltr') {
-                        if (movedBy < -100 && this.currentIndex < this.slides.length - 1) this.currentIndex += 1;
-                        if (movedBy >  100 && this.currentIndex > 0)                       this.currentIndex -= 1;
+                        if (movedBy < -threshold && this.currentIndex < this.slides.length - 1) this.currentIndex += 1;
+                        if (movedBy >  threshold && this.currentIndex > 0)                       this.currentIndex -= 1;
                     } else {
-                        if (movedBy >  100 && this.currentIndex < this.slides.length - 1) {
+                        if (movedBy >  threshold && this.currentIndex < this.slides.length - 1) {
                             if (Math.abs(this.currentIndex) != this.slides.length - 1) this.currentIndex -= 1;
                         }
-                        if (movedBy < -100 && this.currentIndex < 0) this.currentIndex += 1;
+                        if (movedBy < -threshold && this.currentIndex < 0) this.currentIndex += 1;
                     }
 
                     this.setPositionByIndex();

@@ -29,6 +29,14 @@ npm-debug.log
 opencode.json
 package-lock.json
 /playwright-report
+/.playwright-mcp
+/.impeccable
+/atc-360.jpeg
+/pdp-detail.jpeg
+/pdp-detail-after.jpeg
+/pdp-footer.jpeg
+/pdp-mobile-full.jpeg
+/pdp-mobile-top.jpeg
 /public/css/*
 !/public/css/urbanflaky.css
 /public/js/*
