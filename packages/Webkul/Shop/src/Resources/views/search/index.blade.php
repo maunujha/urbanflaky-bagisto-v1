@@ -182,7 +182,8 @@
                                     <div class="mt-8 grid grid-cols-3 gap-8 max-1060:grid-cols-2 max-md:mt-5 max-md:justify-items-center max-md:gap-x-4 max-md:gap-y-5">
                                         <x-shop::products.card
                                             ::mode="'grid'"
-                                            v-for="product in products"
+                                            ::eager="index < 4"
+                                            v-for="(product, index) in products"
                                             :navigation-link="route('shop.search.index')"
                                         />
                                     </div>
