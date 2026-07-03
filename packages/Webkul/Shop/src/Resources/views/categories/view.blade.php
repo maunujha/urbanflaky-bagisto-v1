@@ -157,7 +157,8 @@
                                     <div class="grid grid-cols-3 gap-8 max-1060:grid-cols-2 max-md:justify-items-center max-md:gap-x-4">
                                         <x-shop::products.card
                                             ::mode="'grid'"
-                                            v-for="product in products"
+                                            ::eager="index < 4"
+                                            v-for="(product, index) in products"
                                         />
                                     </div>
                                 </template>

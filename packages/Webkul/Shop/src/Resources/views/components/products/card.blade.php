@@ -30,13 +30,15 @@
                     :aria-label="product.name"
                 >
                     <x-shop::media.images.lazy
-                        ::src="currentImage.medium_image_url"
+                        ::lazy="! eager"
+                        ::fetchpriority="eager ? 'high' : null"
+                        ::src="currentImage.large_image_url || currentImage.medium_image_url"
                         ::srcset="`
-                            ${currentImage.small_image_url} 150w,
-                            ${currentImage.medium_image_url} 300w,
+                            ${currentImage.medium_image_url} 350w,
+                            ${currentImage.large_image_url || currentImage.medium_image_url} 560w,
                         `"
-                        sizes="(max-width: 768px) 150px, (max-width: 1200px) 300px, 600px"
-                        ::fallback="currentImage.medium_image_fallback_url"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                        ::fallback="currentImage.large_image_fallback_url || currentImage.medium_image_fallback_url"
                         ::key="`${product.id}-${currentImage.medium_image_url}`"
                         ::index="product.id"
                         width="291"
@@ -649,7 +651,7 @@
         app.component('v-product-card', {
             template: '#v-product-card-template',
 
-            props: ['mode', 'product'],
+            props: ['mode', 'product', 'eager'],
 
             data() {
                 return {

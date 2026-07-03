@@ -92,7 +92,8 @@
                             <x-shop::products.card
                                 class="uf-related-grid-item"
                                 ::mode="'grid'"
-                                v-for="product in products"
+                                ::eager="index < 4"
+                                v-for="(product, index) in products"
                                 ::key="product.id"
                             />
                         </div>
