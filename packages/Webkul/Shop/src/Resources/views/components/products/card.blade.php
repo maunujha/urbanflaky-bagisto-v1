@@ -32,13 +32,14 @@
                     <x-shop::media.images.lazy
                         ::lazy="! eager"
                         ::fetchpriority="eager ? 'high' : null"
-                        ::src="currentImage.large_image_url || currentImage.medium_image_url"
+                        ::src="currentImage.medium_image_url"
                         ::srcset="`
-                            ${currentImage.medium_image_url} 350w,
+                            ${currentImage.small_image_url} 150w,
+                            ${currentImage.medium_image_url} 300w,
                             ${currentImage.large_image_url || currentImage.medium_image_url} 560w,
                         `"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        ::fallback="currentImage.large_image_fallback_url || currentImage.medium_image_fallback_url"
+                        sizes="(min-width: 1060px) 300px, 45vw"
+                        ::fallback="currentImage.medium_image_fallback_url"
                         ::key="`${product.id}-${currentImage.medium_image_url}`"
                         ::index="product.id"
                         width="291"
