@@ -497,6 +497,28 @@ body::after {
 .uf-badge-sale { background: var(--uf-accent); color: #0a0a0a; }
 .uf-badge-new  { background: rgba(255, 255, 255, 0.95); color: #0a0a0a; }
 
+/* Made-on-Demand badge: dark translucent glass, hairline border, sharp 2px corners
+   to match the .uf-badge family and the brand's bimodal radius scale. Positioned at
+   the bottom of the image via utilities at the call site. */
+.uf-badge-mod {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 9px;
+    border-radius: 2px;
+    background: rgba(10, 10, 10, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    backdrop-filter: blur(8px);
+}
+.uf-badge-mod svg { width: 11px; height: 11px; flex-shrink: 0; }
+
 /* Top-right icon stack (wishlist + quick-view) */
 .uf-card-icons {
     position: absolute;

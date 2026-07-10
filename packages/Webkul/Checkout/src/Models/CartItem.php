@@ -25,6 +25,17 @@ class CartItem extends Model implements CartItemContract
     ];
 
     /**
+     * The accessors to append to the model's array/JSON form. Exposes the product's
+     * "Made on Demand" fulfillment flag on every serialized cart item so the cart and
+     * checkout UIs can surface it without an extra lookup.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'is_made_on_demand',
+    ];
+
+    /**
      * Guarded attributes.
      */
     protected $guarded = [
@@ -62,6 +73,19 @@ class CartItem extends Model implements CartItemContract
     public function product(): HasOne
     {
         return $this->hasOne(ProductProxy::modelClass(), 'id', 'product_id');
+    }
+
+    /**
+     * Whether the cart line is a "Made on Demand" product. Resolves from the
+     * associated product and, for configurable variants, its parent product so
+     * the flag set on the parent still applies to the variant line.
+     */
+    public function getIsMadeOnDemandAttribute(): bool
+    {
+        return (bool) (
+            $this->product?->is_made_on_demand
+            || $this->product?->parent?->is_made_on_demand
+        );
     }
 
     /**

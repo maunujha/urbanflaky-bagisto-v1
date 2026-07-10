@@ -45,6 +45,7 @@ class ProductResource extends JsonResource
             'images' => product_image()->getGalleryImages($this),
             'is_new' => (bool) $this->new,
             'is_featured' => (bool) $this->featured,
+            'is_made_on_demand' => (bool) $this->is_made_on_demand,
             'on_sale' => (bool) $productTypeInstance->haveDiscount(),
             'is_saleable' => (bool) $productTypeInstance->isSaleable(),
             'is_wishlist' => (bool) auth()->guard()->user()?->wishlist_items

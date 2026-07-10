@@ -34,6 +34,7 @@ class Product extends Model implements ProductContract
         'attribute_family_id',
         'sku',
         'parent_id',
+        'is_made_on_demand',
     ];
 
     /**
@@ -41,6 +42,7 @@ class Product extends Model implements ProductContract
      */
     protected $casts = [
         'additional' => 'array',
+        'is_made_on_demand' => 'boolean',
     ];
 
     /**

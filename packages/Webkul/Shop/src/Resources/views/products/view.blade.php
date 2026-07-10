@@ -502,6 +502,19 @@
                                     {!! view_render_event('bagisto.shop.products.price.after', ['product' => $product]) !!}
                                 @endunless
 
+                                <!-- Made on Demand notice -->
+                                @if ($product->is_made_on_demand)
+                                    <div class="mt-4 rounded-xl border border-white/10 bg-white/[0.02] px-3.5 py-3 max-sm:mt-3">
+                                        <p class="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-white">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="flex-shrink-0 text-zinc-400"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                            @lang('shop::app.products.view.made-on-demand.title')
+                                        </p>
+                                        <p class="mt-1 text-xs leading-snug text-zinc-400">
+                                            @lang('shop::app.products.view.made-on-demand.body')
+                                        </p>
+                                    </div>
+                                @endif
+
                                 @php
                                     $isConfigurable = $product->type === 'configurable';
 

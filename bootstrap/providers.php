@@ -3,6 +3,7 @@
 use App\Providers\AppServiceProvider;
 use App\Providers\CookieConsentServiceProvider;
 use App\Providers\LookbookServiceProvider;
+use App\Providers\MadeOnDemandServiceProvider;
 use Gabha\Blog\Providers\BlogServiceProvider;
 use Gabha\Inventory\Providers\InventoryServiceProvider as GabhaInventoryServiceProvider;
 use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
@@ -55,6 +56,7 @@ return [
      * Custom application service providers.
      */
     LookbookServiceProvider::class,
+    MadeOnDemandServiceProvider::class,
     BlogServiceProvider::class,
     GabhaInventoryServiceProvider::class,
     RewardCoinsServiceProvider::class,

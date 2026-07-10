@@ -61,6 +61,12 @@
                     @lang('shop::app.components.products.card.new')
                 </p>
 
+                <!-- Made on Demand badge (bottom-right of image, clear of rating/swatches) -->
+                <span class="uf-badge-mod absolute bottom-3 z-[3] ltr:right-3 rtl:left-3" v-if="product.is_made_on_demand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    @lang('shop::app.components.products.card.made-on-demand')
+                </span>
+
                 <!-- Top-right: Wishlist + Quick View stacked -->
                 <div class="uf-card-icons">
 
@@ -535,6 +541,14 @@
                     >
                         @lang('shop::app.components.products.card.new')
                     </p>
+
+                    <span
+                        class="uf-badge-mod absolute bottom-5 z-[1] ltr:left-5 max-sm:ltr:left-2 rtl:right-5"
+                        v-if="product.is_made_on_demand"
+                    >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        @lang('shop::app.components.products.card.made-on-demand')
+                    </span>
 
                     <div class="opacity-0 transition-all duration-300 group-hover:bottom-0 group-hover:opacity-100 max-sm:opacity-100">
 

@@ -3,17 +3,18 @@
        so the Vue checkout can show the redemption UI and live discount. Mirrors
        CoinController / the coins-widget; renders nothing when off / guest. ── */
     $coinCustomer       = auth()->guard('customer')->user();
-    $coinsActive        = $coinCustomer && \Gabha\RewardCoins\Models\CoinSetting::isEnabled();
+    $coinsEnabled       = \Gabha\RewardCoins\Models\CoinSetting::isEnabled();
+    $coinsActive        = $coinCustomer && $coinsEnabled;   // redeem/balance UI is customer-account only
     $coinsBalance       = 0;
     $coinsRedeemable    = 0;
     $coinsApplied       = 0;
     $coinsPerCoin       = (float) config('reward_coins.rupee_per_coin', 1);
     $coinsDiscountValue = 0.0;
     $coinsToEarn        = 0;
+    $coinCart           = $coinsEnabled ? \Webkul\Checkout\Facades\Cart::getCart() : null;
 
     if ($coinsActive) {
         $coinRedemption = app(\Gabha\RewardCoins\Services\CoinRedemptionService::class);
-        $coinCart       = \Webkul\Checkout\Facades\Cart::getCart();
         $coinPreTotal   = (float) ($coinCart?->base_grand_total ?? 0);
         $coinsApplied   = (int) session(\Gabha\RewardCoins\Checkout\CoinDiscount::EFFECTIVE_KEY, 0);
 
@@ -26,37 +27,41 @@
         $coinsBalance       = app(\Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface::class)->getBalance((int) $coinCustomer->id);
         $coinsRedeemable    = $coinRedemption->getRedeemableCoins((int) $coinCustomer->id, $coinPreTotal);
         $coinsDiscountValue = $coinRedemption->getDiscountValue($coinsApplied);
+    }
 
-        /* Coins this order will earn — shown even when the customer has nothing to
-           redeem. Mirrors AwardCoinsOnOrder: earns off sub_total with the coin
-           portion backed out of the discount (so redeeming never lowers earning). */
-        if ($coinCart) {
-            $coinCategoryIds = [];
+    /* Coins this order will earn — computed for guests too so the checkout can nudge
+       them to sign in and collect. Mirrors AwardCoinsOnOrder: earns off sub_total with
+       the coin portion backed out of the discount (so redeeming never lowers earning).
+       customerId 0 for guests; the earning rules are not customer-specific. */
+    if ($coinsEnabled && $coinCart) {
+        $coinCategoryIds = [];
 
-            foreach ($coinCart->items as $coinItem) {
-                $coinProduct = $coinItem->product;
+        foreach ($coinCart->items as $coinItem) {
+            $coinProduct = $coinItem->product;
 
-                if (! $coinProduct) {
-                    continue;
-                }
-
-                foreach ($coinProduct->categories as $coinCategory) {
-                    $coinCategoryIds[] = (int) $coinCategory->id;
-                }
+            if (! $coinProduct) {
+                continue;
             }
 
-            $coinsToEarn = app(\Gabha\RewardCoins\Services\CoinEarningCalculator::class)->calculate(
-                new \Gabha\RewardCoins\DTOs\CoinEarningPayload(
-                    customerId: (int) $coinCustomer->id,
-                    subtotal: (float) $coinCart->base_sub_total,
-                    discountAmount: max(0.0, (float) $coinCart->base_discount_amount - $coinsDiscountValue),
-                    orderId: 0,
-                    categoryIds: array_values(array_unique($coinCategoryIds)),
-                    orderIncrementId: '',
-                )
-            );
+            foreach ($coinProduct->categories as $coinCategory) {
+                $coinCategoryIds[] = (int) $coinCategory->id;
+            }
         }
+
+        $coinsToEarn = app(\Gabha\RewardCoins\Services\CoinEarningCalculator::class)->calculate(
+            new \Gabha\RewardCoins\DTOs\CoinEarningPayload(
+                customerId: (int) ($coinCustomer->id ?? 0),
+                subtotal: (float) $coinCart->base_sub_total,
+                discountAmount: max(0.0, (float) $coinCart->base_discount_amount - $coinsDiscountValue),
+                orderId: 0,
+                categoryIds: array_values(array_unique($coinCategoryIds)),
+                orderIncrementId: '',
+            )
+        );
     }
+
+    // Guests see an "earn X coins — sign in" nudge since the redeem UI is account-only.
+    $coinsGuestTeaser = $coinsEnabled && ! $coinCustomer && $coinsToEarn > 0;
 @endphp
 
 @push('meta')
@@ -205,6 +210,15 @@
     .co-sum-row span:last-child { color:#f5f5f5; }
     .co-sum-total { display:flex; justify-content:space-between; font-size:16px; font-weight:700; color:#f5f5f5; margin-top:12px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); }
     .co-sum-secure { display:flex; align-items:center; gap:6px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,255,255,.08); font-size:11px; color:#71717a; }
+
+    /* ── Guest reward-coins nudge ── */
+    .co-coin-teaser { display:flex; gap:10px; align-items:flex-start; margin-top:14px; padding:12px 14px; border:1px solid rgba(199,235,49,.28); background:rgba(199,235,49,.07); border-radius:10px; text-decoration:none; transition:border-color .15s, background .15s; }
+    .co-coin-teaser:hover { border-color:rgba(199,235,49,.5); background:rgba(199,235,49,.1); }
+    .co-coin-teaser-badge { display:inline-flex; flex-shrink:0; width:22px; height:22px; border-radius:50%; background:#c7eb31; color:#0a0a0a; align-items:center; justify-content:center; font-size:12px; font-weight:700; margin-top:1px; }
+    .co-coin-teaser-body { min-width:0; }
+    .co-coin-teaser-title { display:block; font-size:12.5px; font-weight:700; color:#f5f5f5; line-height:1.4; }
+    .co-coin-teaser-sub { display:block; font-size:11.5px; color:#a1a1aa; margin-top:2px; line-height:1.5; }
+    .co-coin-teaser-cta { display:inline-flex; align-items:center; gap:4px; margin-top:7px; font-size:12px; font-weight:700; color:#c7eb31; }
 
     /* ── Success ── */
     .co-success { text-align:center; padding:36px 24px; }
@@ -792,6 +806,18 @@
                         <div class="co-totals-total"><span>Grand total</span><span>@{{ cart.formatted_grand_total }}</span></div>
                     </div>
 
+                    {{-- Single Made on Demand notice — shown once regardless of how many such items --}}
+                    <div v-if="hasMadeOnDemand"
+                        style="display:flex;gap:12px;padding:14px 16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);border-radius:12px;margin-bottom:14px;">
+                        <span style="flex-shrink:0;color:#a1a1aa;margin-top:1px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        </span>
+                        <div style="min-width:0;">
+                            <div style="font-size:13px;font-weight:700;color:#f5f5f5;">Your cart contains Made on Demand products.</div>
+                            <div style="margin-top:4px;font-size:12px;line-height:1.6;color:#a1a1aa;">These products are manufactured specifically after your order is placed. Returns or exchanges are not accepted unless an item arrives damaged, defective, or incorrect.</div>
+                        </div>
+                    </div>
+
                     <div class="co-btn-row">
                         <button class="co-btn-back" @click="step = 3">← Back</button>
                         <button class="co-btn-next" @click="placeOrder" :disabled="isPlacing">
@@ -846,6 +872,22 @@
                             </svg>
                         </span>
                     </button>
+
+                    {{-- Guest reward-coins nudge: the redeem UI is account-only, so invite
+                         sign-in and show what this order would earn. Sits outside co-sum-body
+                         so it stays visible on mobile (where the breakdown collapses). Hidden
+                         for logged-in customers — they get the full coins UI on the Payment step. --}}
+                    <a v-if="coins.guestTeaser" :href="coins.loginUrl" class="co-coin-teaser">
+                        <span class="co-coin-teaser-badge">★</span>
+                        <span class="co-coin-teaser-body">
+                            <span class="co-coin-teaser-title">Earn @{{ coins.toEarn }} reward coins on this order</span>
+                            <span class="co-coin-teaser-sub">Sign in to collect them — worth up to @{{ formatMoney(coins.toEarn * coins.perCoin) }} off future orders.</span>
+                            <span class="co-coin-teaser-cta">
+                                Sign in
+                                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                            </span>
+                        </span>
+                    </a>
 
                     <div class="co-sum-body">
 
@@ -979,18 +1021,20 @@
 
                 /* Reward coins redemption (server-resolved balance + cap) */
                 coins: {
-                    active:     {{ $coinsActive ? 'true' : 'false' }},
-                    balance:    {{ (int) $coinsBalance }},
-                    redeemable: {{ (int) $coinsRedeemable }},
-                    toEarn:     {{ (int) $coinsToEarn }},
-                    perCoin:    {{ $coinsPerCoin ?: 1 }},
-                    applied:    {{ (int) $coinsApplied }},
-                    toRedeem:   {{ (int) $coinsApplied }},
-                    discount:   '{{ $coinsApplied > 0 ? core()->formatBasePrice($coinsDiscountValue) : '' }}',
-                    applying:   false,
-                    error:      '',
-                    applyUrl:   '{{ route('shop.checkout.coins.apply') }}',
-                    removeUrl:  '{{ route('shop.checkout.coins.remove') }}',
+                    active:      {{ $coinsActive ? 'true' : 'false' }},
+                    guestTeaser: {{ $coinsGuestTeaser ? 'true' : 'false' }},
+                    balance:     {{ (int) $coinsBalance }},
+                    redeemable:  {{ (int) $coinsRedeemable }},
+                    toEarn:      {{ (int) $coinsToEarn }},
+                    perCoin:     {{ $coinsPerCoin ?: 1 }},
+                    applied:     {{ (int) $coinsApplied }},
+                    toRedeem:    {{ (int) $coinsApplied }},
+                    discount:    '{{ $coinsApplied > 0 ? core()->formatBasePrice($coinsDiscountValue) : '' }}',
+                    applying:    false,
+                    error:       '',
+                    applyUrl:    '{{ route('shop.checkout.coins.apply') }}',
+                    removeUrl:   '{{ route('shop.checkout.coins.remove') }}',
+                    loginUrl:    '{{ route('shop.customer.session.index') }}',
                 },
 
                 savingAddress: false,
@@ -1016,6 +1060,12 @@
 
             couponDiscountValue() {
                 return Math.max(0, Number(this.cart.discount_amount || 0) - this.coinDiscountValue);
+            },
+
+            /* True when at least one cart line is a Made on Demand product — drives the
+               single fulfillment notice shown above the Place Order button. */
+            hasMadeOnDemand() {
+                return (this.cartItems || []).some(item => item.is_made_on_demand);
             },
         },
 

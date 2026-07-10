@@ -37,6 +37,7 @@ class OrderItem extends Model implements OrderItemContract
      */
     protected $casts = [
         'additional' => 'array',
+        'is_made_on_demand' => 'boolean',
     ];
 
     /**

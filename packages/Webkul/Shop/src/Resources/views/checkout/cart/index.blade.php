@@ -355,6 +355,24 @@
                                         {!! view_render_event('bagisto.shop.checkout.cart.remove_button.after') !!}
                                     </div>
                                 </div>
+
+                                <!-- Made on Demand notice -->
+                                <div
+                                    class="flex gap-2.5 rounded-xl border border-white/10 bg-white/[0.02] px-4 py-3 max-sm:px-3.5 max-sm:py-2.5"
+                                    v-if="item.is_made_on_demand"
+                                >
+                                    <span class="mt-0.5 flex-shrink-0 text-zinc-400">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                                    </span>
+                                    <div class="min-w-0">
+                                        <p class="text-xs font-semibold uppercase tracking-wide text-white">
+                                            @lang('shop::app.checkout.cart.index.made-on-demand.title')
+                                        </p>
+                                        <p class="mt-1 text-xs leading-relaxed text-zinc-400">
+                                            @lang('shop::app.checkout.cart.index.made-on-demand.info')
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
                             {!! view_render_event('bagisto.shop.checkout.cart.item.listing.after') !!}

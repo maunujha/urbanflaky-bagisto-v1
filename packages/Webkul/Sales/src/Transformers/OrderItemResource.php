@@ -28,6 +28,7 @@ class OrderItemResource extends JsonResource
             'product_type' => get_class($this->product),
             'sku' => $this->sku,
             'type' => $this->type,
+            'is_made_on_demand' => (bool) $this->is_made_on_demand,
             'name' => $this->name,
             'weight' => $this->weight,
             'total_weight' => $this->total_weight,
