@@ -62,10 +62,15 @@
                                 v-if="media.large_image_fallback_url"
                             >
 
+                            {{-- Explicit width/height give the image intrinsic dimensions so it can
+                                 never collapse to zero (the desktop <img> has these and never broke);
+                                 `w-full aspect-square` still drives the responsive rendered size. --}}
                             <img
                                 class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                                 :src="media.large_image_fallback_url || media.large_image_url"
                                 :alt="media.large_image_url"
+                                width="600"
+                                height="600"
                             />
                         </picture>
                     </template>
