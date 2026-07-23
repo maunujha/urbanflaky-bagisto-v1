@@ -62,14 +62,10 @@
                                 v-if="media.large_image_fallback_url"
                             >
 
-                            {{-- iOS Safari collapses an <img> sized only by CSS aspect-ratio
-                                 (aspect-square) to zero height when the image loads from cache on
-                                 reload — blank on the page but fine in the zoom overlay. Use a
-                                 CONCRETE height (100vw = full-width square on mobile) that no engine
-                                 can collapse, plus intrinsic width/height attrs. --}}
+                            {{-- width/height attrs give the image intrinsic dimensions (desktop
+                                 gallery does the same); w-full aspect-square drives rendered size. --}}
                             <img
-                                class="w-full max-w-full select-none transition-transform duration-300 ease-in-out"
-                                style="height: 100vw; max-height: 100vh; object-fit: cover;"
+                                class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                                 :src="media.large_image_fallback_url || media.large_image_url"
                                 :alt="media.large_image_url"
                                 width="600"
@@ -136,18 +132,28 @@
 
             watch: {
                 options: function() {
-                    this.slider = this.$refs.sliderContainer;
+                    /**
+                     * Wait for the DOM to re-render the new slides before measuring.
+                     * Without $nextTick, $refs.slide still reflects the OLD options
+                     * (often empty on configurable PDPs whose variant images replace
+                     * the gallery right after mount), which fed resetIndex a zero
+                     * slide count and drove currentIndex to -1 — translating the
+                     * whole slider one viewport off-screen (blank gallery on reload).
+                     */
+                    this.$nextTick(() => {
+                        this.slider = this.$refs.sliderContainer;
 
-                    if (
-                        this.$refs.slide
-                        && typeof this.$refs.slide[Symbol.iterator] === 'function'
-                    ) {
-                        this.slides = Array.from(this.$refs.slide);
-                    }
+                        if (
+                            this.$refs.slide
+                            && typeof this.$refs.slide[Symbol.iterator] === 'function'
+                        ) {
+                            this.slides = Array.from(this.$refs.slide);
+                        }
 
-                    this.resetIndex();
+                        this.resetIndex();
 
-                    this.init();
+                        this.init();
+                    });
                 }
             },
 
@@ -174,8 +180,10 @@
 
                 resetIndex() {
                     if (this.currentIndex >= this.slides.length) {
-
-                        this.currentIndex = this.slides.length - 1;
+                        // Clamp at 0: with an empty slide list this used to yield -1,
+                        // which setPositionByIndex turned into a POSITIVE translateX
+                        // (index * -width), shoving the slider off-screen.
+                        this.currentIndex = Math.max(0, this.slides.length - 1);
                     }
 
                     this.setPositionByIndex();
