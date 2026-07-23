@@ -62,11 +62,14 @@
                                 v-if="media.large_image_fallback_url"
                             >
 
-                            {{-- Explicit width/height give the image intrinsic dimensions so it can
-                                 never collapse to zero (the desktop <img> has these and never broke);
-                                 `w-full aspect-square` still drives the responsive rendered size. --}}
+                            {{-- iOS Safari collapses an <img> sized only by CSS aspect-ratio
+                                 (aspect-square) to zero height when the image loads from cache on
+                                 reload — blank on the page but fine in the zoom overlay. Use a
+                                 CONCRETE height (100vw = full-width square on mobile) that no engine
+                                 can collapse, plus intrinsic width/height attrs. --}}
                             <img
-                                class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
+                                class="w-full max-w-full select-none transition-transform duration-300 ease-in-out"
+                                style="height: 100vw; max-height: 100vh; object-fit: cover;"
                                 :src="media.large_image_fallback_url || media.large_image_url"
                                 :alt="media.large_image_url"
                                 width="600"
