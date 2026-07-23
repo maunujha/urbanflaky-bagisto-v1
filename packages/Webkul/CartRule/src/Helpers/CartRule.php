@@ -220,6 +220,17 @@ class CartRule
 
                     $baseDiscountAmount = ($quantity * $item->base_price - $item->base_discount_amount) * ($rulePercent / 100);
 
+                    /**
+                     * Urbanflaky: prices are GST-inclusive whole rupees, so a % discount
+                     * must also resolve to whole rupees (10% off ₹697 = ₹70, never ₹69.70)
+                     * to keep the grand total clean. Rounded UP per item — always in the
+                     * customer's favour — and because item discounts sum to the cart
+                     * discount, the total stays a whole rupee too. Fixed-amount rules are
+                     * left untouched (admin already enters clean values).
+                     */
+                    $discountAmount = ceil($discountAmount);
+                    $baseDiscountAmount = ceil($baseDiscountAmount);
+
                     if (
                         ! $rule->discount_quantity
                         || $rule->discount_quantity > $quantity
@@ -346,6 +357,10 @@ class CartRule
                     $discountAmount = ($selectedShipping->price - $selectedShipping->discount_amount) * $rulePercent / 100;
 
                     $baseDiscountAmount = ($selectedShipping->base_price - $selectedShipping->base_discount_amount) * $rulePercent / 100;
+
+                    // Whole-rupee shipping discount too (see item by_percent above), rounded up.
+                    $discountAmount = ceil($discountAmount);
+                    $baseDiscountAmount = ceil($baseDiscountAmount);
 
                     break;
 

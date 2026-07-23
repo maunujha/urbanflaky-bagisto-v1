@@ -55,13 +55,18 @@ as an addition on top of the subtotal.
   rupee** (`CatalogRuleProductPrice::calculate`), so 50 % off ₹399 sells at
   ₹199, never ₹199.50. Floor = always in the customer's favour.
 - **Percentage coupons / cart rules** — discount is computed on the inclusive
-  subtotal; the discount line itself may contain paise (10 % off ₹1,197 =
-  ₹119.70). Charged always equals displayed. Prefer round-friendly promos if
-  the paise bothers you.
+  subtotal and **rounded up to the whole rupee** per item
+  (`CartRule::process` / `processShippingDiscount`), so 10 % off ₹697 shows
+  ₹70 off, not ₹69.70, and the grand total stays clean. Ceiling = customer's
+  favour. Item discounts still sum to the cart discount, so invoices/refunds
+  stay consistent. Fixed-amount rules (`by_fixed` / `cart_fixed`) are left
+  exact — admin already enters whole values, and `cart_fixed` is already whole
+  at the cart level.
 
 ## Files touched (beyond the migration)
 
-- `packages/Webkul/CatalogRule/src/Helpers/CatalogRuleProductPrice.php` — whole-rupee floor.
+- `packages/Webkul/CatalogRule/src/Helpers/CatalogRuleProductPrice.php` — whole-rupee floor on catalog-rule prices.
+- `packages/Webkul/CartRule/src/Helpers/CartRule.php` — whole-rupee round-up on percentage cart-rule / coupon discounts.
 - `packages/Webkul/Shop/src/Http/Resources/CartResource.php` — "Includes …" GST labels.
 - `packages/Webkul/Shop/src/Resources/views/checkout/onepage/index.blade.php` — custom checkout SPA now renders `*_incl_tax` fields.
 - `packages/Webkul/Shop/src/Resources/views/customers/account/orders/gst-breakup.blade.php` — "Includes …" prefix.
