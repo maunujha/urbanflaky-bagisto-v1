@@ -41,11 +41,16 @@ return new class extends Migration
          * Catalog-rule prices are floored to whole rupees now (see
          * CatalogRuleProductPrice::calculate) — rebuild the indexed rule
          * prices so ₹199.50-style computed prices become ₹199 immediately.
-         * Best-effort: the daily schedule / next product save also rebuilds.
+         *
+         * `--mode=full` is REQUIRED: the default 'selective' mode only reindexes
+         * products flagged as changed, so it rebuilds nothing here and leaves the
+         * displayed price (product_price_indices, read by both PDP and cart) stale
+         * at its pre-floor value. A full reindex recomputes every product from the
+         * now-floored rule prices. Best-effort: the daily schedule also rebuilds.
          */
         try {
             Artisan::call('product:price-rule:index');
-            Artisan::call('indexer:index', ['--type' => ['price']]);
+            Artisan::call('indexer:index', ['--type' => ['price'], '--mode' => ['full']]);
         } catch (\Throwable $e) {
             report($e);
         }

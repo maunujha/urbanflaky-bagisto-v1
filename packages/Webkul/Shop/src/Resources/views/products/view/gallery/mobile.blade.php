@@ -51,7 +51,11 @@
                     </template>
 
                     <template v-else>
-                        <picture>
+                        {{-- `block w-full`: a default display:inline <picture> collapses a
+                             percentage-width <img> to zero on mobile browsers, so the image
+                             renders blank on the page (but fine in the zoom overlay). Making
+                             the picture a full-width block gives `w-full` a real box to size against. --}}
+                        <picture class="block w-full">
                             <source
                                 type="image/webp"
                                 :srcset="media.large_image_url"
