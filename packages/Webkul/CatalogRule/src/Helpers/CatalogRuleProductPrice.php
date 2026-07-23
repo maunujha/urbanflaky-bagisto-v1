@@ -136,7 +136,14 @@ class CatalogRuleProductPrice
                 break;
         }
 
-        return $price;
+        /**
+         * Urbanflaky: selling prices are GST-inclusive and must always be clean
+         * whole-rupee amounts (₹199, never ₹199.50). Percentage rules on odd base
+         * prices produce paise values, so the computed price is floored to the
+         * rupee — always in the customer's favour, and consistent on every page
+         * because this indexed price is the single source PDP, cart and orders read.
+         */
+        return floor($price);
     }
 
     /**

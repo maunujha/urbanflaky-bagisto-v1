@@ -102,6 +102,15 @@ trait PDFHandler
      */
     private function adjustArabicAndPersianContent(string $html): string
     {
+        /**
+         * The ar-php package is not installed (the store runs the `en` locale
+         * only). Without this guard every invoice PDF render fatals — which,
+         * on a sync queue, rolls back invoice creation itself.
+         */
+        if (! class_exists(Arabic::class)) {
+            return $html;
+        }
+
         $arabic = new Arabic;
 
         $positions = $arabic->arIdentify($html);

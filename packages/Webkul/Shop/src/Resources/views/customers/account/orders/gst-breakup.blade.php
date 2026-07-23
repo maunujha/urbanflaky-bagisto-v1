@@ -20,12 +20,19 @@
     );
 
     $gstCurrency = $currency ?? core()->getCurrentCurrencyCode();
+
+    /**
+     * With GST-inclusive pricing the subtotal shown above these lines already
+     * contains the tax, so prefix each line ("Includes CGST …") to make clear
+     * it is a breakup of the price, not an amount added on top.
+     */
+    $gstIncluded = \Webkul\Tax\Facades\Tax::isInclusiveTaxProductPrices();
 @endphp
 
 @if (\App\Support\Gst::showBreakup() && count($gstLines))
     @foreach ($gstLines as $line)
         <div class="flex w-full justify-between gap-x-5">
-            <p class="{{ $labelClass ?? '' }}">{{ \App\Support\Gst::label($line) }}</p>
+            <p class="{{ $labelClass ?? '' }}">{{ $gstIncluded ? 'Includes ' : '' }}{{ \App\Support\Gst::label($line) }}</p>
 
             <p>
                 {{ core()->formatPrice($line['amount'], $gstCurrency) }}

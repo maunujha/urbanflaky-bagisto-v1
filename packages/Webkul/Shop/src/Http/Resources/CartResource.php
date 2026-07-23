@@ -25,7 +25,13 @@ class CartResource extends JsonResource
          * GST breakup (CGST + SGST for intra-state, IGST for inter-state) derived
          * from the cart tax total and the shipping place of supply. Updates
          * automatically whenever the shipping address changes during checkout.
+         *
+         * With GST-inclusive pricing the subtotal already contains the tax, so
+         * each label is prefixed ("Includes CGST …") to make clear the lines are
+         * a breakup of the price, never an amount added on top.
          */
+        $gstIncluded = Tax::isInclusiveTaxProductPrices();
+
         $gstBreakup = collect(Gst::breakup(
             (float) $this->tax_total,
             (float) $this->sub_total,
@@ -33,7 +39,7 @@ class CartResource extends JsonResource
             $this->shipping_address?->country,
         ))->map(fn ($line) => [
             'code'      => $line['code'],
-            'label'     => Gst::label($line),
+            'label'     => ($gstIncluded ? 'Includes ' : '').Gst::label($line),
             'amount'    => $line['amount'],
             'formatted' => core()->formatPrice($line['amount']),
         ])->values();

@@ -465,6 +465,17 @@
                 @endif
 
                 @if (\App\Support\Gst::showBreakup() && count($gstLines))
+                    {{-- Prices are GST-inclusive: the Subtotal above already contains tax, so a GST
+                         tax invoice must additionally state the taxable value (subtotal minus GST)
+                         the CGST/SGST/IGST lines were computed from. Skipped under exclusive display,
+                         where the Subtotal row itself is the taxable value. --}}
+                    @if (core()->getConfigData('sales.taxes.sales.display_subtotal') == 'including_tax')
+                        <tr>
+                            <td class="tl">Taxable Value</td>
+                            <td class="tv">{!! core()->formatPrice($invoice->sub_total, $orderCurrencyCode) !!}</td>
+                        </tr>
+                    @endif
+
                     @foreach ($gstLines as $gstLine)
                         <tr>
                             <td class="tl">{{ \App\Support\Gst::label($gstLine) }}</td>

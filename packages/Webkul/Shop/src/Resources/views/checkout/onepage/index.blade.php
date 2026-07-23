@@ -789,10 +789,11 @@
                                 <div class="co-review-item-name">@{{ item.name }}</div>
                                 <div class="co-review-item-meta">Qty: @{{ item.quantity }}</div>
                             </div>
-                            <div class="co-review-item-price">@{{ item.formatted_total || item.formatted_price }}</div>
+                            {{-- Prices are GST-inclusive: show *_incl_tax so the line matches what the customer pays --}}
+                            <div class="co-review-item-price">@{{ item.formatted_total_incl_tax || item.formatted_total || item.formatted_price }}</div>
                         </div>
 
-                        <div class="co-totals-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
+                        <div class="co-totals-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total_incl_tax || cart.formatted_sub_total }}</span></div>
                         <div class="co-totals-row" v-if="couponDiscountValue > 0" style="color:#c7eb31">
                             <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
                             <span>− @{{ formatMoney(couponDiscountValue) }}</span>
@@ -801,8 +802,9 @@
                             <span>Coins (@{{ coins.applied }})</span>
                             <span>− @{{ formatMoney(coinDiscountValue) }}</span>
                         </div>
-                        <div class="co-totals-row"><span>Shipping</span><span>@{{ cart.formatted_shipping_amount || 'Calculated' }}</span></div>
-                        <div class="co-totals-row"><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
+                        <div class="co-totals-row"><span>Shipping</span><span>@{{ cart.formatted_shipping_amount_incl_tax || cart.formatted_shipping_amount || 'Calculated' }}</span></div>
+                        {{-- GST is already inside the subtotal — informational line, not an addition --}}
+                        <div class="co-totals-row"><span>Includes GST</span><span>@{{ cart.formatted_tax_total }}</span></div>
                         <div class="co-totals-total"><span>Grand total</span><span>@{{ cart.formatted_grand_total }}</span></div>
                     </div>
 
@@ -866,7 +868,7 @@
                     <button type="button" class="co-sum-head" :aria-expanded="summaryOpen ? 'true' : 'false'" @click="summaryOpen = !summaryOpen">
                         <span>Order summary</span>
                         <span class="co-sum-head-meta">
-                            <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
+                            <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : (cart.formatted_sub_total_incl_tax || cart.formatted_sub_total) }}</span>
                             <svg class="co-sum-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
                                 <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
@@ -903,13 +905,14 @@
                         <div>
                             <div class="co-sum-item-name">@{{ item.name }}</div>
                             <div class="co-sum-item-meta">Qty: @{{ item.quantity }}</div>
-                            <div class="co-sum-item-price">@{{ item.formatted_total || item.formatted_price }}</div>
+                            {{-- Prices are GST-inclusive: show *_incl_tax so the line matches what the customer pays --}}
+                            <div class="co-sum-item-price">@{{ item.formatted_total_incl_tax || item.formatted_total || item.formatted_price }}</div>
                         </div>
                     </div>
 
                     <hr class="co-sum-divider">
 
-                    <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total }}</span></div>
+                    <div class="co-sum-row"><span>Subtotal</span><span>@{{ cart.formatted_sub_total_incl_tax || cart.formatted_sub_total }}</span></div>
                     <div class="co-sum-row" v-if="couponDiscountValue > 0" style="color:#c7eb31">
                         <span>Discount<template v-if="cart.coupon_code"> (@{{ cart.coupon_code }})</template></span>
                         <span>− @{{ formatMoney(couponDiscountValue) }}</span>
@@ -918,18 +921,19 @@
                         <span>Coins (@{{ coins.applied }})</span>
                         <span>− @{{ formatMoney(coinDiscountValue) }}</span>
                     </div>
-                    <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount || '—') : '—' }}</span></div>
+                    <div class="co-sum-row"><span>Shipping</span><span>@{{ selectedShipping ? (cart.formatted_shipping_amount_incl_tax || cart.formatted_shipping_amount || '—') : '—' }}</span></div>
 
-                    {{-- GST breakup: CGST + SGST intra-state (Rajasthan), IGST inter-state --}}
+                    {{-- GST breakup: CGST + SGST intra-state (Rajasthan), IGST inter-state.
+                         Prices are GST-inclusive — CartResource labels the lines "Includes …", never added on top --}}
                     <template v-if="cart.gst_breakup && cart.gst_breakup.length">
                         <div class="co-sum-row" v-for="line in cart.gst_breakup" :key="line.code">
                             <span>@{{ line.label }}</span><span>@{{ line.formatted }}</span>
                         </div>
                     </template>
-                    <div class="co-sum-row" v-else><span>Tax (GST)</span><span>@{{ cart.formatted_tax_total }}</span></div>
+                    <div class="co-sum-row" v-else><span>Includes GST</span><span>@{{ cart.formatted_tax_total }}</span></div>
                     <div class="co-sum-total">
                         <span>Grand total</span>
-                        <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : cart.formatted_sub_total }}</span>
+                        <span>@{{ (selectedShipping || Number(cart.discount_amount) > 0) ? cart.formatted_grand_total : (cart.formatted_sub_total_incl_tax || cart.formatted_sub_total) }}</span>
                     </div>
 
                     <div class="co-sum-secure">
