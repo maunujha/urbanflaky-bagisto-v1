@@ -29,12 +29,12 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 |---|-----|------|-------|--------|
 | 1 | 🔴 CRITICAL | Enable gzip/brotli for CSS/JS/JSON/SVG/fonts (text assets served uncompressed) | P1 | ✅ gzip live 2026-08-27 |
 | 2 | 🟠 HIGH | Compress/resize oversized theme & category tile images (+ responsive `srcset`) | P2 | ✅ live 2026-08-27 (all HP images) |
-| 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P3 | ⬜ |
+| 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P3 | ⏭️ deferred (gzip covered bulk) |
 | 4 | 🟠 HIGH | Vue whole-page app mounts on `window.load` → mount earlier (INP/TBT) | P4 | ⬜ |
 | 5 | 🟡 MED | OPcache production tuning (validate_timestamps / max files / memory / JIT) | P1 | ✅ live 2026-08-27 |
 | 6 | 🟡 MED | Trim heavy HTML (67 scripts, 52 inline SVGs → sprite; trim inline JSON) | P4 | ⬜ |
-| 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | 🟡 fixed local, pending deploy |
-| 8 | 🟡 MED | Self-host Google Fonts (Poppins + DM Serif) as woff2 | P3 | ⬜ |
+| 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | ✅ live 2026-08-27 |
+| 8 | 🟡 MED | Self-host Google Fonts (Poppins + DM Serif) as woff2 | P3 | ✅ live 2026-08-27 |
 | 9 | ⚪ LOW | Verify spatie responsecache actually serves guests | P5 | ⬜ |
 | 10 | ⚪ LOW | Static-asset TTL 30d→1y immutable (`/build/`); `logo.png`→webp/svg; fix relative img `src` | P2 | 🟡 cache-TTL ✅; logo/img-src pending |
 
@@ -63,6 +63,14 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 > - **Lookbook** grid served the original **JPG** (311 KB) even though a webp sibling existed (104 KB). Fixed in code: `App\Models\LookbookItem::getImageUrlAttribute()` now prefers the same-basename `.webp` sibling. Deployed; verified live all 5 looks now load as webp.
 >
 > **E2E verification (Playwright, live, mobile 390×844):** #7 → only the hero carousel is preloaded/high-priority (video-poster preload gone); every below-fold section carries `loading=lazy`; render-on-scroll proven (looks-grid images `loaded:false`→`true` after scrolling); full scrolled-page image weight ≈ 2.2 MB (within target). Reusable server optimizer scripts: `scratchpad/uf-optimize*.php` (not committed — operate on live media).
+
+## Phase 3 — fonts + CSS delivery (2026-08-27)
+
+**#8 Self-hosted fonts ✅ live.** Dropped Google Fonts entirely (2 third-party origins + a render-blocking CSS round-trip gone). 10 woff2 in `public/fonts/` (Poppins 400/500/600/800 + DM Serif 400, latin + latin-ext), `@font-face` in `urbanflaky.css` with `unicode-range` + `font-display:swap`; layout preloads Poppins 400/600 (the above-fold weights). `public/fonts/.gitignore` whitelists `*.woff2` (dir also holds mPDF TTFs). Shop theme rebuilt + committed (`uf-deploy` root build doesn't rebuild the theme, so its `public/themes/shop/.../build` assets are version-controlled). **E2E verified:** 0 requests to googleapis/gstatic; Poppins loads from `/fonts/` (5–8 KB each) + renders; DM Serif force-load ok (200, on-demand). Commit `2bc4711`.
+
+**Brotli — not done (infeasible here).** Stock Ubuntu nginx 1.24 has no brotli module and `libnginx-mod-http-brotli` isn't in the server's apt repos. Adding it means switching to a PPA nginx build or compiling `ngx_brotli` from source — both risky on a live box for ~15% over the gzip already active. Left off by decision.
+
+**#3 Render-blocking CSS — ⏭️ deferred (recommendation).** After P1 gzip the 4 `<head>` stylesheets total ≈ 37 KB gzipped (`app` 20 + `urbanflaky` 13.6 + `app` chunk 2.9 + `feature-accordion` 0.5), fetched in parallel over HTTP/2. The remaining levers — critical-CSS inlining or aggressive Tailwind purge of Bagisto's `app.css` — are high FOUC/regression risk for a premium UI and low reward now that transfer is small. Recommend measuring with PSI/CrUX first and only doing surgical CSS work if it's a proven bottleneck.
 
 ---
 
