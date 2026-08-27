@@ -30,7 +30,9 @@ class LookbookItem extends Model
     ];
 
     /**
-     * Full public URL to the stored thumbnail/campaign image.
+     * Full public URL to the stored thumbnail/campaign image. Prefers the
+     * generated WebP sibling (uploads keep both) so the storefront serves the
+     * ~3x smaller file instead of the original JPG/PNG.
      */
     public function getImageUrlAttribute(): ?string
     {
@@ -38,7 +40,22 @@ class LookbookItem extends Model
             return null;
         }
 
-        return Storage::url($this->image);
+        return Storage::url($this->preferWebp($this->image));
+    }
+
+    /**
+     * Return the same-basename .webp sibling when it exists on disk, otherwise
+     * the stored path unchanged.
+     */
+    protected function preferWebp(string $path): string
+    {
+        if (preg_match('/\.webp$/i', $path)) {
+            return $path;
+        }
+
+        $webp = preg_replace('/\.[^.\/]+$/', '.webp', $path);
+
+        return Storage::exists($webp) ? $webp : $path;
     }
 
     /**
