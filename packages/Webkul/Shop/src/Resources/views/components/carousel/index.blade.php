@@ -1,8 +1,36 @@
 @props(['options'])
 
-<v-carousel :images="{{ json_encode($options['images'] ?? []) }}">
+@php
+    $slides = $options['images'] ?? [];
+    $first  = $slides[0] ?? null;
+@endphp
+
+<v-carousel :images="{{ json_encode($slides) }}">
     <div class="uf-hero">
-        <div class="uf-hero-shimmer shimmer"></div>
+        @if ($first)
+            {{-- Server-render the first slide so the LCP hero paints immediately.
+                 Without this the hero <img> only exists after app.mount() runs on
+                 window.load, so the <head> preload is wasted and LCP is pinned to
+                 the load event. The Vue carousel replaces this on mount (same image
+                 URL → already cached, no re-download or reflow). --}}
+            <div class="uf-hero-track">
+                <div class="uf-hero-slide">
+                    <picture>
+                        @if (! empty($first['mobile_image']))
+                            <source media="(max-width: 767px)" srcset="{{ $first['mobile_image'] }}" />
+                        @endif
+                        <img
+                            src="{{ $first['image'] }}"
+                            alt="{{ $first['title'] ?? 'Carousel Image 1' }}"
+                            fetchpriority="high"
+                            decoding="sync"
+                        />
+                    </picture>
+                </div>
+            </div>
+        @else
+            <div class="uf-hero-shimmer shimmer"></div>
+        @endif
     </div>
 </v-carousel>
 

@@ -84,7 +84,29 @@
             href="{{ core()->getCurrentChannel()->favicon_url ?? bagisto_asset('images/favicon.ico') }}"
         />
 
-        @bagistoVite(['src/Resources/assets/css/app.css', 'src/Resources/assets/css/urbanflaky.css', 'src/Resources/assets/js/app.js'])
+        {{-- Vite assets. The stylesheet <link>s are rewritten to load non-render-
+             blocking (media="print" → flipped to "all" on load): the browser paints
+             the inline-styled full-screen preloader immediately instead of blocking
+             on ~207 KB of CSS, so FCP is no longer CSS-gated. The preloader masks the
+             brief unstyled window and only exits on window.load (after the CSS has
+             applied), so there is no FOUC. If the markup ever changes and the regex
+             stops matching, the links fall back to render-blocking — safe, no break. --}}
+        @php
+            $ufVite = themes()->setBagistoVite([
+                'src/Resources/assets/css/app.css',
+                'src/Resources/assets/css/urbanflaky.css',
+                'src/Resources/assets/js/app.js',
+            ])->toHtml();
+
+            $ufVite = preg_replace(
+                '#<link rel="stylesheet" href="([^"]+)"\s*/?>#i',
+                '<link rel="stylesheet" href="$1" media="print" onload="this.media=\'all\';this.onload=null"><noscript><link rel="stylesheet" href="$1"></noscript>',
+                $ufVite
+            );
+        @endphp
+        {!! $ufVite !!}
+        {{-- Safety net: guarantee any leftover print-media sheet applies by load. --}}
+        <script>addEventListener('load',function(){document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach(function(l){l.media='all';});});</script>
 
         {{-- Self-hosted fonts (Poppins + DM Serif Display). @font-face lives in
              urbanflaky.css; files in public/fonts/. Preload the two most-used
