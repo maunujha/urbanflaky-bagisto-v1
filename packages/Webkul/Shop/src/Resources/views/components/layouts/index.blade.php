@@ -86,33 +86,12 @@
 
         @bagistoVite(['src/Resources/assets/css/app.css', 'src/Resources/assets/css/urbanflaky.css', 'src/Resources/assets/js/app.js'])
 
-        <link
-            rel="preconnect"
-            href="https://fonts.googleapis.com"
-            crossorigin
-        />
-
-        <link
-            rel="preconnect"
-            href="https://fonts.gstatic.com"
-            crossorigin
-        />
-
-        {{-- Load fonts without blocking render: fetch as a preload, then flip
-             to a stylesheet on load. Browsers without JS still get them via the
-             <noscript> fallback. --}}
-        <link
-            rel="preload" as="style"
-            href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
-            onload="this.onload=null;this.rel='stylesheet'"
-        />
-
-        <noscript>
-            <link
-                rel="stylesheet"
-                href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;800&family=DM+Serif+Display&display=swap"
-            />
-        </noscript>
+        {{-- Self-hosted fonts (Poppins + DM Serif Display). @font-face lives in
+             urbanflaky.css; files in public/fonts/. Preload the two most-used
+             above-the-fold latin weights so text paints without a round-trip to a
+             third-party origin. crossorigin is required even for same-origin fonts. --}}
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/poppins-400.woff2') }}" crossorigin>
+        <link rel="preload" as="font" type="font/woff2" href="{{ asset('fonts/poppins-600.woff2') }}" crossorigin>
 
         @stack('styles')
 
