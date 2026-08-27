@@ -29,8 +29,8 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 |---|-----|------|-------|--------|
 | 1 | 🔴 CRITICAL | Enable gzip/brotli for CSS/JS/JSON/SVG/fonts (text assets served uncompressed) | P1 | ✅ gzip live 2026-08-27 |
 | 2 | 🟠 HIGH | Compress/resize oversized theme & category tile images (+ responsive `srcset`) | P2 | ✅ live 2026-08-27 (all HP images) |
-| 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P3 | ⏭️ deferred (gzip covered bulk) |
-| 4 | 🟠 HIGH | Vue whole-page app mounts on `window.load` → mount earlier (INP/TBT) | P4 | ⬜ |
+| 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P4 | ✅ async CSS live 2026-08-27 |
+| 4 | 🟠 HIGH | Vue mount-on-`window.load` (real issue: hero was Vue-only → late LCP) | P4 | ✅ solved via SSR hero (no mount change) |
 | 5 | 🟡 MED | OPcache production tuning (validate_timestamps / max files / memory / JIT) | P1 | ✅ live 2026-08-27 |
 | 6 | 🟡 MED | Trim heavy HTML (67 scripts, 52 inline SVGs → sprite; trim inline JSON) | P4 | ⬜ |
 | 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | ✅ live 2026-08-27 |
@@ -70,7 +70,22 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 
 **Brotli — not done (infeasible here).** Stock Ubuntu nginx 1.24 has no brotli module and `libnginx-mod-http-brotli` isn't in the server's apt repos. Adding it means switching to a PPA nginx build or compiling `ngx_brotli` from source — both risky on a live box for ~15% over the gzip already active. Left off by decision.
 
-**#3 Render-blocking CSS — ⏭️ deferred (recommendation).** After P1 gzip the 4 `<head>` stylesheets total ≈ 37 KB gzipped (`app` 20 + `urbanflaky` 13.6 + `app` chunk 2.9 + `feature-accordion` 0.5), fetched in parallel over HTTP/2. The remaining levers — critical-CSS inlining or aggressive Tailwind purge of Bagisto's `app.css` — are high FOUC/regression risk for a premium UI and low reward now that transfer is small. Recommend measuring with PSI/CrUX first and only doing surgical CSS work if it's a proven bottleneck.
+**#3 Render-blocking CSS — initially deferred, then FIXED in P4** (see below — a real PSI on mobile proved it was the FCP bottleneck after all).
+
+## Phase 4 — the real mobile-LCP fix (2026-08-27)
+
+**Trigger:** a real **PageSpeed Insights mobile** run (Moto G, throttled) scored **57**: **FCP 4.0s 🔴, LCP 7.7s 🔴, Speed Index 8.9s 🔴** (TBT 170ms ✅, CLS 0.066 ✅). This contradicted an earlier *unthrottled* Playwright run (LCP 1.16s) — **lesson: never judge CWV on an unthrottled lab run; throttled/field only.** Because TBT/CLS were green, the problem was purely *time-to-paint*, not main-thread — so the originally-feared #4 "mount earlier for INP" was a red herring.
+
+**Root cause (three compounding render-path blockers):**
+1. **4 render-blocking stylesheets** blanked the screen until downloaded on slow 4G → FCP 4.0s.
+2. **Hero was Vue-only.** `carousel/index.blade.php` server-rendered only a shimmer; the real hero `<img>` lived in the Vue `<script type=text/x-template>`, absent from the DOM until `app.mount()` on `window.load` — so LCP was pinned to the load event and the `<head>` hero preload was wasted → LCP 7.7s.
+3. Full-screen preloader also exits on `window.load`, compounding.
+
+**Fix (contained, no checkout/mount-timing surgery) — commit `d460ce7`:**
+- **SSR the first hero slide** (`carousel/index.blade.php`): the LCP `<img>` (with `fetchpriority=high`) is now in the initial HTML; Vue replaces it on mount (same URL → cached, no reflow). #4 solved *without* touching the global Vue mount (avoids the checkout/variant risk entirely).
+- **Non-render-blocking CSS** (`layouts/index.blade.php`): capture `@bagistoVite(...)->toHtml()` and rewrite the stylesheet `<link>`s to `media="print" onload="this.media='all'"` + `<noscript>` fallback + a load-time safety flip. **The inline-styled full-screen preloader masks the brief unstyled window → zero FOUC.** Regex no-match falls back to render-blocking (safe).
+
+**Verified on live (Playwright):** SSR hero present in raw HTML; 3 stylesheets async then flip to `media=all` (CSS fully applied, hero has its CSS height → no FOUC); unthrottled FCP 560→**352ms**, LCP 1160→**352ms**; screenshot renders correctly (dark theme, hero, fonts). **Awaiting a fresh PSI mobile run for the throttled score.** If Speed Index still lags, next lever is the **preloader exit timing** (reveal when CSS+hero ready instead of full `window.load`) — deferred until measured. Minor: `feature-accordion.css` (1.3 KB, below-fold) left render-blocking.
 
 ---
 
