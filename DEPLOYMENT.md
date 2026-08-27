@@ -97,6 +97,35 @@ server {                                      # force HTTPS
 }
 ```
 
+## 3b. Performance config (P1 — gzip / OPcache / cache-TTL)
+
+Two drop-in files + one vhost tweak. All live-only (nginx/php sit outside git; `uf-deploy`'s
+`git reset --hard` never touches them), so **re-apply on a fresh-server rebuild.** Applied to
+prod 2026-08-27. See `docs/PERFORMANCE-AUDIT.md` for measurements.
+
+```bash
+# (#1) Text-asset compression — stock nginx only gzipped text/html; CSS/JS/JSON/SVG went raw.
+sudo cp deploy/nginx/gzip.conf /etc/nginx/conf.d/gzip.conf
+
+# (#10) 1y immutable cache for content-hashed /build/ assets — already baked into
+#        deploy/nginx/urbanflaky.conf (the /build/ location precedes the general static regex).
+#        If the live vhost predates it, add that location block by hand (see the committed file).
+
+sudo nginx -t && sudo systemctl reload nginx
+
+# (#5) OPcache tuning — box was on 128 MB / 10000 files; Bagisto has ~13.7k PHP files.
+sudo cp deploy/php/99-urbanflaky-opcache.ini /etc/php/8.3/fpm/conf.d/99-urbanflaky-opcache.ini
+sudo systemctl restart php8.3-fpm            # restart, not reload — clears + rebuilds opcache
+
+# Verify
+curl -sI --compressed https://urbanflaky.in/themes/shop/default/build/assets/app-*.js \
+  | grep -iE 'content-encoding|cache-control'          # -> gzip ; max-age=31536000, immutable
+sudo /usr/sbin/php-fpm8.3 -i | grep -E 'opcache.(memory_consumption|max_accelerated_files)'
+```
+
+Result: app.js 152→46 KB, app.css 117→20 KB, urbanflaky.css 70→13 KB (~277 KB/less per fresh
+load); OPcache no longer evicts (32531-file cap > 13.7k). Backups: `urbanflaky.conf.bak.*`.
+
 ## 4. Workers and scheduler (REQUIRED — checkout depends on them)
 
 All SMS, Shiprocket order creation and reward-coin listeners are queued.

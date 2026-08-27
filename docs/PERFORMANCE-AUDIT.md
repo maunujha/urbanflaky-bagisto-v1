@@ -1,0 +1,167 @@
+# Urbanflaky.in — Performance Optimization Audit & Tracker
+
+> **Living document.** Phase 0 = baseline audit (read-only, no code changed). Later phases implement fixes one at a time. Update the **Status** column as each item is completed and verified, so at the end we can confirm every fix is done.
+>
+> - **Branch:** `perf/optimization` (from `dev`)
+> - **Audited:** 2026-08-27 (mobile UA, live `https://urbanflaky.in`)
+> - **Stack:** Bagisto 2.4 · Laravel 12 · PHP 8.3 · Vue 3 · Tailwind 3 · Vite 5 · nginx 1.24 + PHP-FPM · Redis · Meilisearch (one VPS)
+
+## Targets
+
+| Metric | Goal | Baseline (measured) |
+|---|---|---|
+| LCP | ≤ 2.5 s | not measurable locally (see gap below) |
+| INP | ≤ 200 ms | not measurable locally |
+| CLS | ≤ 0.10 | not measurable locally |
+| **TTFB** | < 800 ms | **~200 ms home / ~180 ms catalog ✅ already met** |
+| Page weight | ~< 2–3 MB | ~1.3–2.2 MB first load (assets uncompressed) |
+| Requests | reduce w/o losing function | homepage: 4 CSS + 2 JS + fonts + GTM/Clarity + images |
+
+**Measurement gap:** Playwright/Lighthouse are disabled in this project, so LCP/INP/CLS can't be measured locally. Validate field metrics **after each deploy** via PageSpeed Insights / CrUX / Search Console Core Web Vitals. Locally, verify via `curl -w` (TTFB, size, `content-encoding`) + HTTP-200 smoke + visual confirmation.
+
+---
+
+## Status tracker
+
+Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ skipped/won't do
+
+| # | Sev | Item | Phase | Status |
+|---|-----|------|-------|--------|
+| 1 | 🔴 CRITICAL | Enable gzip/brotli for CSS/JS/JSON/SVG/fonts (text assets served uncompressed) | P1 | ✅ gzip live 2026-08-27 |
+| 2 | 🟠 HIGH | Compress/resize oversized theme & category tile images (+ responsive `srcset`) | P2 | ⬜ |
+| 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P3 | ⬜ |
+| 4 | 🟠 HIGH | Vue whole-page app mounts on `window.load` → mount earlier (INP/TBT) | P4 | ⬜ |
+| 5 | 🟡 MED | OPcache production tuning (validate_timestamps / max files / memory / JIT) | P1 | ✅ live 2026-08-27 |
+| 6 | 🟡 MED | Trim heavy HTML (67 scripts, 52 inline SVGs → sprite; trim inline JSON) | P4 | ⬜ |
+| 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | ⬜ |
+| 8 | 🟡 MED | Self-host Google Fonts (Poppins + DM Serif) as woff2 | P3 | ⬜ |
+| 9 | ⚪ LOW | Verify spatie responsecache actually serves guests | P5 | ⬜ |
+| 10 | ⚪ LOW | Static-asset TTL 30d→1y immutable (`/build/`); `logo.png`→webp/svg; fix relative img `src` | P2 | 🟡 cache-TTL ✅; logo/img-src pending |
+
+> **Phase 1 applied 2026-08-27** (server config, live). Files version-controlled: `deploy/nginx/gzip.conf`, `deploy/php/99-urbanflaky-opcache.ini`, `deploy/nginx/urbanflaky.conf` (build block); install steps in `DEPLOYMENT.md §3b`. Measured savings below.
+>
+> | Asset | Before | After (gzip) |
+> |---|---|---|
+> | app.js | 152 KB | **46 KB** |
+> | app.css | 117 KB | **20 KB** |
+> | urbanflaky.css | 70 KB | **13 KB** |
+> | Homepage HTML | 84 KB | **67 KB** |
+>
+> ~277 KB less per fresh load. Build assets now `max-age=1y, immutable`; non-hashed statics stay 30d; images correctly not gzipped. OPcache: 256 MB / 32531 files / interned 16 / revalidate_freq 60 (was 128 MB / 10000 / default) — no more eviction on 13.7k files. All smoke routes 200 (`/`, `/mens-tshirts`, `/blog`, `/track-order`, `/faqs`).
+>
+> **Remaining in #10 (moved to P2):** `logo.png` 28 KB PNG → webp/svg; some `<img src="storage/…">` missing leading slash.
+> **Not done (needs a package install, your call):** brotli (`libnginx-mod-http-brotli`) — gzip already captures the bulk. **Optional further step:** OPcache `validate_timestamps=0` (see `deploy/php/99-urbanflaky-opcache.ini` note).
+
+---
+
+## Baseline: what's already good (do NOT touch)
+
+- **Backend is fast.** Live `.env`: Redis for `CACHE_STORE` + `SESSION_DRIVER` + `QUEUE_CONNECTION` (phpredis); `RESPONSE_CACHE_ENABLED=true` (spatie, redis); config/routes/events cached; OPcache on. TTFB ~200 ms — **do not "optimize" TTFB.**
+- Homepage HTML render is query-light (theme customizations + category tree); product/category carousels load via AJAX to `shop.api.*`.
+- WebP pipeline working (48 webp vs 5 jpg / 6 png references on homepage).
+- Hero LCP image preloaded correctly (`<link rel=preload as=image fetchpriority=high>`, mobile + desktop split) — 71 KB, good.
+- GTM + Clarity load async and are consent-gateable; fonts are non-blocking (preload + onload swap, `display=swap`).
+- TensorFlow/jsdelivr is **on-demand** (visual image-search only, not homepage). Instagram/Facebook on homepage are schema `sameAs` + footer `href` links — **no embed scripts**. Looks grid uses an internal API.
+- Theme images cached `30d, public, immutable`.
+
+## Measured payload (live, mobile UA)
+
+| Asset | Served size | Compressed on live? |
+|---|---|---|
+| Homepage HTML | 398 KB raw → **84 KB gz** | ✅ (text/html only) |
+| `app.js` | **152 KB** | ❌ none |
+| `app.css` | **117 KB** | ❌ none |
+| `urbanflaky.css` | **70 KB** | ❌ none |
+| `app-*.css` chunk + `feature-accordion.css` | ~18 KB | ❌ none |
+| Hero webp (LCP) | 71 KB | n/a |
+| `mens-cate-01.webp` (category tile) | **545 KB** | n/a — too big |
+| `logo.png` | 28 KB | n/a |
+
+Homepage also: **67 `<script>` tags** (mostly inline Vue templates), 52 inline SVGs, ~1,680 DOM tags, entire page is one Vue app mounted on `window.load`.
+
+---
+
+## Findings (detail)
+
+### 🔴 #1 — Text assets served uncompressed  · Phase 1  · Status: ✅ done (gzip, 2026-08-27)
+nginx has `gzip on` but `gzip_types` / `gzip_comp_level` / `gzip_vary` are **commented out** in `/etc/nginx/nginx.conf` → default gzip compresses only `text/html`. Measured: `app.js` 152 KB, `app.css` 117 KB, `urbanflaky.css` 70 KB all returned `content-encoding: NONE`. ~357 KB of CSS+JS shipped raw; gzip/brotli → ~80 KB (**~280 KB saved**). Biggest single win, zero functional risk.
+- **Fix:** enable `gzip_types` (css, js, json, svg, xml, fonts), `gzip_comp_level 5–6`, `gzip_vary on`; add brotli if the module is available.
+- **Files:** `/etc/nginx/nginx.conf` (or `urbanflaky.conf`) — **server-side, outside git**. Document in `DEPLOYMENT.md`; re-apply on rebuild.
+- **Verify:** `curl -sI --compressed <asset>` shows `content-encoding: gzip|br`.
+
+### 🟠 #2 — Oversized theme/category tile images  · Phase 2  · Status: ⬜
+`mens-cate-01.webp` = **545 KB** (webp but served full-resolution, bypasses the resizer); several such tiles ≈ 1.5–2 MB across the category row. Hurts page weight + mobile LCP.
+- **Fix:** re-export/compress tiles to rendered dimensions; serve responsive `srcset`/`<picture>`; keep width/height to avoid CLS.
+- **Files:** theme image assets + category-carousel component + `home/index.blade.php`.
+
+### 🟠 #3 — Render-blocking `<head>` CSS (4 stylesheets)  · Phase 3  · Status: ⬜
+`app-*.css` ×2 + `urbanflaky.css` + `feature-accordion.css` all render-blocking (~205 KB raw). Even after gzip, still 4 blocking requests + parse.
+- **Fix:** tighten Tailwind purge; split critical vs below-fold (e.g. defer feature-accordion); consider inlining critical CSS.
+- **Files:** `components/layouts/index.blade.php` (`@bagistoVite`), `Shop/vite.config.js`, `Shop/tailwind.config.js`, `assets/css/urbanflaky.css`.
+
+### 🟠 #4 — Whole-page Vue app mounts on `window.load`  · Phase 4  · Status: ⬜
+`app.mount('#app')` fires on `window.load`, which waits for **all** images before the page is interactive → delayed INP/TBT. `#app` wraps header + main + footer.
+- **Fix:** mount on `DOMContentLoaded`/idle instead of `load`; consider trimming globally-registered components.
+- **Files:** `components/layouts/index.blade.php` (mount script), `assets/js/app.js`.
+- **⚠ Highest regression risk** — affects checkout, PDP variants, carousels, search, add-to-cart. Do last, test thoroughly.
+
+### 🟡 #5 — OPcache production tuning  · Phase 1  · Status: ✅ done (2026-08-27)
+Live: `opcache.validate_timestamps=On` (stat every file per request), `max_accelerated_files=10000` (Bagisto exceeds 10k PHP files → churn), JIT off, memory 128 MB.
+- **Fix:** `max_accelerated_files≈20000`, `memory_consumption=256`, `validate_timestamps=0` (deploy MUST opcache-reset / fpm-reload — verify `uf-deploy` does this).
+- **Files:** `/etc/php/8.3/fpm/php.ini` — server-side, outside git. Document in `DEPLOYMENT.md`.
+
+### 🟡 #6 — Heavy HTML document  · Phase 4  · Status: ⬜
+398 KB raw / 84 KB gz, 67 `<script>` tags (inline Vue templates), 52 inline SVGs, inline `localStorage` categories dump.
+- **Fix:** SVG sprite for repeated icons; trim inline JSON/localStorage payloads.
+- **Files:** header/footer SVGs, `home/index.blade.php`, various component blades.
+
+### 🟡 #7 — Too many high-priority images  · Phase 2  · Status: ⬜
+5 `fetchpriority="high"` images on the homepage; should be ~1 (the LCP hero). Extra hints starve the real LCP image on mobile.
+- **Files:** carousel + category-tile components emitting `fetchpriority`.
+
+### 🟡 #8 — Google Fonts external  · Phase 3  · Status: ⬜
+Poppins (4 weights) + DM Serif via preload+swap from `fonts.googleapis.com` / `fonts.gstatic.com`.
+- **Fix:** self-host woff2 (subset, `font-display:swap`, `size-adjust`/fallback metrics) → removes 2 third-party origins + cuts font-swap CLS.
+- **Files:** layout head, `@font-face` in `urbanflaky.css`, self-hosted font files.
+
+### ⚪ #9 — responsecache effectiveness unverified  · Phase 5  · Status: ⬜
+Homepage sends a fresh session cookie + `cache-control: no-cache, private`, no cache-hit header — confirm guests are actually served from spatie responsecache (TTFB is fine regardless).
+- **Files:** responsecache config/middleware, session-cookie-on-GET behavior.
+
+### ⚪ #10 — Misc small wins  · Phase 2  · Status: 🟡 cache-TTL ✅ (2026-08-27); logo/img-src pending
+Static assets `expires 30d` (hashed build files could be 1y `immutable`); `logo.png` 28 KB PNG → webp/svg; some `<img src="storage/…">` lack a leading slash (fragile on non-root paths).
+- **Files:** nginx `expires` rule; logo asset; category-carousel blade.
+
+---
+
+## Phase plan
+
+| Phase | Scope | Risk |
+|---|---|---|
+| **P1** | Server config: #1 gzip/brotli, #5 OPcache, #10 cache-TTL | Low (no code, reversible) |
+| **P2** | Images: #2 resize/srcset, #7 fetchpriority, logo | Low–Med |
+| **P3** | CSS & fonts: #3 render-blocking CSS, #8 self-host fonts | Med (FOUC risk) |
+| **P4** | JS/hydration: #4 mount timing, #6 HTML/DOM trim | **High** (checkout/variants) |
+| **P5** | Verify: #9 responsecache | Low |
+
+> ~60–70% of achievable improvement is **P1 alone** (compression + OPcache) — pure server config.
+
+## Global risks & rules
+- **Do-not-break:** SEO/JSON-LD (StructuredData single source), custom checkout (OTP + reCAPTCHA), configurable variants, Meilisearch + NL search, GTM/GA4/Clarity/Meta + cookie consent, premium monochrome design.
+- **Server changes are live-only** (nginx/php.ini outside git) — persist in `DEPLOYMENT.md`, re-apply on any rebuild.
+- `validate_timestamps=0` requires opcache-reset on deploy or code changes won't take effect.
+
+## Verification checklist (run after each phase)
+- [ ] `php artisan optimize:clear`; `view:clear` after blade edits (never `view:cache`)
+- [ ] Rebuild theme: `cd packages/Webkul/Shop && npm run build`
+- [ ] HTTP-200 smoke (curl): `/`, `/mens-tshirts`, a PDP, `/blog`, cart, checkout, search
+- [ ] Re-measure `curl -w`: TTFB, size, `content-encoding` on CSS/JS (should be gzip/br), image sizes
+- [ ] Functional: search NL feedback key present, add-to-cart datalayer events fire, checkout OTP/reCAPTCHA intact
+- [ ] Pest filters for any touched class with tests
+- [ ] Field CWV after deploy: PageSpeed Insights / CrUX / Search Console — user confirms visually
+
+## Final sign-off (fill at the end)
+- [ ] All CRITICAL/HIGH items ✅
+- [ ] LCP ≤ 2.5 s (field) · INP ≤ 200 ms · CLS ≤ 0.10 confirmed on PSI/CrUX
+- [ ] No regression in checkout, variants, search, analytics, SEO, design
+- [ ] `DEPLOYMENT.md` updated with all server-side changes
