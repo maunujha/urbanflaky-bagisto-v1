@@ -28,12 +28,12 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 | # | Sev | Item | Phase | Status |
 |---|-----|------|-------|--------|
 | 1 | 🔴 CRITICAL | Enable gzip/brotli for CSS/JS/JSON/SVG/fonts (text assets served uncompressed) | P1 | ✅ gzip live 2026-08-27 |
-| 2 | 🟠 HIGH | Compress/resize oversized theme & category tile images (+ responsive `srcset`) | P2 | ⬜ |
+| 2 | 🟠 HIGH | Compress/resize oversized theme & category tile images (+ responsive `srcset`) | P2 | ✅ live 2026-08-27 (all HP images) |
 | 3 | 🟠 HIGH | Reduce/split/defer render-blocking `<head>` CSS (4 stylesheets) | P3 | ⬜ |
 | 4 | 🟠 HIGH | Vue whole-page app mounts on `window.load` → mount earlier (INP/TBT) | P4 | ⬜ |
 | 5 | 🟡 MED | OPcache production tuning (validate_timestamps / max files / memory / JIT) | P1 | ✅ live 2026-08-27 |
 | 6 | 🟡 MED | Trim heavy HTML (67 scripts, 52 inline SVGs → sprite; trim inline JSON) | P4 | ⬜ |
-| 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | ⬜ |
+| 7 | 🟡 MED | Reduce `fetchpriority="high"` images from 5 → ~1 (LCP hero only) | P2 | 🟡 fixed local, pending deploy |
 | 8 | 🟡 MED | Self-host Google Fonts (Poppins + DM Serif) as woff2 | P3 | ⬜ |
 | 9 | ⚪ LOW | Verify spatie responsecache actually serves guests | P5 | ⬜ |
 | 10 | ⚪ LOW | Static-asset TTL 30d→1y immutable (`/build/`); `logo.png`→webp/svg; fix relative img `src` | P2 | 🟡 cache-TTL ✅; logo/img-src pending |
@@ -51,6 +51,12 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 >
 > **Remaining in #10 (moved to P2):** `logo.png` 28 KB PNG → webp/svg; some `<img src="storage/…">` missing leading slash.
 > **Not done (needs a package install, your call):** brotli (`libnginx-mod-http-brotli`) — gzip already captures the bulk. **Optional further step:** OPcache `validate_timestamps=0` (see `deploy/php/99-urbanflaky-opcache.ini` note).
+
+> **Phase 2 (images) — media resized on live 2026-08-27.** Theme/blog media lives outside git (`storage/app/public`), so it was optimized in place on the server with GD (no cwebp/ImageMagick on the box), backed up to `storage/app/theme-perf-backup-*`. Every homepage image now downscaled to a sane cap (heroes ≤1920, tiles ≤1200, blog ≤1600) at webp/jpg q82. Worst offenders: blog/8 1970→249 KB, blog/10 1083→84 KB, mens-cate 4024×5030/533→58 KB, mens-cate.jpg 1110→90 KB. ~4.9 MB of webp trimmed across the page (much of it lazy/carousel). Cache caveat: filenames unchanged, so returning visitors keep the old large version until the 30-day cache expires; new visitors get the small ones immediately.
+>
+> **Lazy-load audit (render-on-scroll):** every below-fold section already defers — carousel non-first slides (`loading=lazy`+`fetchpriority=low`), New Arrivals tiles (lazysizes `data-src`), product/category cards (`v-shimmer-image` IntersectionObserver, 200px rootMargin), feature-accordion (`loading=lazy`), looks grid + blog grid (`loading=lazy`). Only gap was the **video-banner poster** (was eager + `fetchpriority=high` + a `<head>` preload while below the fold) → fixed in `components/video-banner/index.blade.php` (poster `loading=lazy`+`decoding=async`, preload removed; `.uf-vbanner` reserves 78vh so no CLS). **This is the one Phase-2 code change — pending deploy.**
+>
+> **Not a bug (investigated):** product tiles showing a `<picture>` with a webp `<source>` + jpg `<img>` is the intended progressive-enhancement fallback — modern browsers fetch only the webp; the jpg never downloads. **Deferred to later:** `logo.png`→webp/svg (28 KB, minor); category-tile relative `<img src="storage/…">`/`href` (admin static content in DB, works on `/`).
 
 ---
 

@@ -39,19 +39,16 @@
     ];
 @endphp
 
-{{-- Preload poster so it paints instantly and reserves space (no layout shift). --}}
-@if (! empty($vbConfig['poster']))
-    @push('meta')
-        <link rel="preload" as="image" href="{{ $vbConfig['poster'] }}" fetchpriority="high">
-    @endpush
-@endif
-
-{{-- Fallback reserves the banner height (and paints the poster) before Vue
-     mounts on window.load, so there is no layout shift. --}}
+{{-- This banner sits BELOW the fold (under the hero carousel), and .uf-vbanner
+     reserves its own height in CSS (78vh, poster absolutely positioned), so there
+     is no layout shift when the poster loads. The poster is therefore lazy-loaded
+     at normal priority — it must NOT compete with the LCP hero carousel for
+     bandwidth/priority (perf P2 #7). If this banner is ever moved above the fold,
+     switch the poster back to eager + fetchpriority="high" and re-add a preload. --}}
 <v-video-banner :config="{{ json_encode($vbConfig) }}">
     <section class="uf-vbanner">
         @if (! empty($vbConfig['poster']))
-            <img class="uf-vbanner-poster" src="{{ $vbConfig['poster'] }}" alt="" aria-hidden="true" fetchpriority="high" />
+            <img class="uf-vbanner-poster" src="{{ $vbConfig['poster'] }}" alt="" aria-hidden="true" loading="lazy" decoding="async" />
         @endif
     </section>
 </v-video-banner>
@@ -75,7 +72,8 @@
                 :src="config.poster"
                 alt=""
                 aria-hidden="true"
-                fetchpriority="high"
+                loading="lazy"
+                decoding="async"
             />
 
             <!-- Video (source injected only once the banner scrolls into view) -->
