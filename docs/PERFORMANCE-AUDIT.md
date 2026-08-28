@@ -500,6 +500,76 @@ storefront uses it now, but it stays available and unsurprising.
 Blog cards and the article hero render identically to before. The maths says
 they must (same aspect, same CSS crop), but it has not been looked at.
 
+
+## Phase 10 — deployed to production (2026-08-28)
+
+`fa300cb` is live. `uf-deploy` ran clean (nothing to migrate, caches rebuilt,
+worker + FPM restarted, smoke test 200), then `php artisan blog:warm-images`
+wrote **20 derivatives, 9.3 MB of sources → 968.4 KB**.
+
+### Measured on production
+
+| | before | after |
+|---|---|---|
+| `/blog` images | **7,980.7 KB** | **167.6 KB** (−97.9%) |
+| homepage images | 1,335 KB | 981 KB |
+| heaviest image anywhere | 3,796.9 KB | 142.8 KB |
+
+The pre-deploy run confirmed the Phase 8 prediction exactly: the four images
+Phase 2 had optimised were 21–249 KB, and the four it never touched were still
+**3.8 MB and 3.2 MB** on the live site.
+
+**Derivatives are served statically.** They return nginx's `etag` +
+`last-modified` and no `cache-control: no-cache, private`, so the
+`location ^~ /cache/ { try_files $uri ... }` block serves them from disk and they
+never reach PHP. Latency matches genuinely static files (369 ms vs 324 ms for a
+`/storage/` original — both dominated by network distance).
+
+### Acceptance checklist — 57 pass, 1 fail, 5 info, run before AND after
+
+Identical totals both sides, and **zero status changes** between them. Every
+difference was either the intended improvement or network noise:
+
+- canonicals unchanged on all three page types
+- `robots.txt` md5 **unchanged**: `7a3fdcf9081e3429eead445b45dc5096`
+- `sitemap.xml` md5 **unchanged**: `b53e4ed73181466a6af543662528487c`, 42 locs
+- structured data valid on every page
+- variant guard still rejects a bare configurable add (400, "Options are missing")
+- search, all four filter modes, blog pagination, login/OTP/OAuth, guest-blocked
+  from account — all unchanged
+- GTM `GTM-TK3MV6Q3`, dataLayer, Clarity, Consent Mode v2, `ufTrack` all present
+- no error leakage; unknown slugs and unknown asset paths both 404
+- TTFB 406–477 ms, well inside the 800 ms target
+- **no Laravel or nginx errors** in the logs after deploy
+
+**The single FAIL is pre-existing and unrelated**: three homepage images use
+`src="storage/theme/…"` without a leading slash. Present identically before and
+after. Audit item #10.
+
+### Not closed by this run
+
+- **LCP / INP / CLS.** The PageSpeed API returned HTTP 429 — the anonymous daily
+  quota is exhausted. Needs a run from a browser at
+  `pagespeed.web.dev/analysis?url=https://urbanflaky.in` or an API key. The
+  checklist's alternative is satisfied — the dominant bottleneck was identified
+  and removed — but the numbers themselves remain unmeasured.
+- **Layout regressions, mobile and desktop.** Nothing here can confirm the
+  product-card breakpoint gating renders correctly; it needs eyes on a real
+  browser at ≥1180px, 768–1179px and ≤767px, including a resize across each
+  boundary.
+- **Whether GTM/Meta tags actually fire.** Presence and configuration are
+  verified; firing is not.
+
+### Follow-ups worth doing
+
+1. The `/cache/` location sets no `expires`, so derivatives get no explicit cache
+   lifetime and browsers fall back to heuristic caching. Adding
+   `expires 30d; add_header Cache-Control "public";` to that block is a one-line
+   win. Live-only nginx change.
+2. Extend `blog:warm-images` to product images. Same ImageCache behaviour, far
+   more traffic — every product image is still re-encoded per cold request.
+3. Fix the three relative `storage/theme/…` srcs.
+
 ---
 
 ## Baseline: what's already good (do NOT touch)
