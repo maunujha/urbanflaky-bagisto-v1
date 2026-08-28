@@ -56,3 +56,7 @@ yarn-error.log
 # Redis snapshot and root-level debug screenshots (never commit)
 /dump.rdb
 /*.png
+
+# Pre-generated ImageCache derivatives (see: php artisan blog:warm-images).
+# Rebuildable output, never source — nginx serves these directly when present.
+/public/cache/

@@ -39,6 +39,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /* Blog imagery is editorial: the core small/medium/large templates all
+           cover-crop to a square, so blog views use these scale-only templates
+           instead. Registered at runtime so the package config stays untouched
+           and a cached config still picks them up. */
+        config([
+            'imagecache.templates.blog_card' => \App\Support\ImageTemplates\BlogCard::class,
+            'imagecache.templates.blog_wide' => \App\Support\ImageTemplates\BlogWide::class,
+        ]);
+
         ParallelTesting::setUpTestDatabase(function (string $database, int $token) {
             Artisan::call('db:seed');
         });

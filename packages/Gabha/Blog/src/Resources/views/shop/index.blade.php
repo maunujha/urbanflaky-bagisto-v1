@@ -109,19 +109,26 @@
         @else
             <div class="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($blogs as $blog)
+                    @php
+                        /* Above-the-fold row: eager so the LCP image is not deferred.
+                           Card 1 is the LCP candidate and is the only high-priority one. */
+                        $isFirstRow = $loop->index < 3;
+                    @endphp
                     <article class="group flex flex-col overflow-hidden rounded-2xl border border-uf-border bg-uf-surface transition-colors hover:border-uf-accent/50">
                         <a
                             href="{{ route('shop.blog.show', $blog->slug) }}"
                             class="block aspect-[16/10] overflow-hidden bg-uf-surface2"
                             aria-label="{{ $blog->title }}"
                         >
-                            @if ($blog->image_url)
+                            @if ($blog->card_image_url)
                                 <img
-                                    src="{{ $blog->image_url }}"
+                                    src="{{ $blog->card_image_url }}"
                                     alt="{{ $blog->title }}"
                                     width="600"
                                     height="375"
-                                    loading="lazy"
+                                    decoding="async"
+                                    @if (! $isFirstRow) loading="lazy" @endif
+                                    @if ($loop->first) fetchpriority="high" @endif
                                     class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                                 >
                             @else

@@ -33,9 +33,9 @@
                         class="block aspect-[16/10] overflow-hidden bg-uf-surface2"
                         aria-label="{{ $blog->title }}"
                     >
-                        @if ($blog->image_url)
+                        @if ($blog->card_image_url)
                             <img
-                                src="{{ $blog->image_url }}"
+                                src="{{ $blog->card_image_url }}"
                                 alt="{{ $blog->title }}"
                                 width="600"
                                 height="375"

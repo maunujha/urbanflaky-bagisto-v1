@@ -78,6 +78,43 @@ class Blog extends Model
     }
 
     /**
+     * Card-sized image (800px wide, aspect preserved) for the listing, the home
+     * grid and the recent-posts rail.
+     *
+     * Uploads are stored at full resolution — several megabytes in places — and
+     * were previously served raw into a 600x375 card. These go through the
+     * imagecache route instead, which resizes on first request and caches the
+     * result. The original stays on disk untouched.
+     */
+    public function getCardImageUrlAttribute(): ?string
+    {
+        return $this->resizedImageUrl('blog_card');
+    }
+
+    /**
+     * Hero-sized image (1600px wide, aspect preserved) for the article's
+     * featured image and its og:image.
+     */
+    public function getHeroImageUrlAttribute(): ?string
+    {
+        return $this->resizedImageUrl('blog_wide');
+    }
+
+    /**
+     * Build an imagecache URL for one of the blog templates. The stored path is
+     * already relative to storage/app/public, which is a configured imagecache
+     * search path, so it can be appended directly.
+     */
+    protected function resizedImageUrl(string $template): ?string
+    {
+        if (! $this->image) {
+            return null;
+        }
+
+        return url('cache/'.$template.'/'.ltrim($this->image, '/'));
+    }
+
+    /**
      * Effective SEO title — falls back to the post title.
      */
     public function getSeoTitleAttribute(): string

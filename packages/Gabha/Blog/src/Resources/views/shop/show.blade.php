@@ -2,7 +2,7 @@
     $metaTitle       = $blog->seo_title;
     $metaDescription = $blog->seo_description;
     $canonical       = $blog->url;
-    $ogImage         = $blog->image_url ? url($blog->image_url) : asset('images/og-image.jpg');
+    $ogImage         = $blog->hero_image_url ?: asset('images/og-image.jpg');
     $authorName      = $blog->author ?: 'Urbanflaky';
 
     /* Article structured data (PHP-built to avoid @@context escaping in Blade). */
@@ -136,13 +136,15 @@
             </header>
 
             {{-- Featured image --}}
-            @if ($blog->image_url)
+            @if ($blog->hero_image_url)
                 <figure class="mb-8 overflow-hidden rounded-2xl border border-uf-border bg-uf-surface2">
                     <img
-                        src="{{ $blog->image_url }}"
+                        src="{{ $blog->hero_image_url }}"
                         alt="{{ $blog->title }}"
                         width="1200"
                         height="630"
+                        fetchpriority="high"
+                        decoding="async"
                         class="h-auto w-full object-cover"
                     >
                 </figure>
@@ -180,9 +182,9 @@
                                 class="block aspect-[16/10] overflow-hidden bg-uf-surface2"
                                 aria-label="{{ $recent->title }}"
                             >
-                                @if ($recent->image_url)
+                                @if ($recent->card_image_url)
                                     <img
-                                        src="{{ $recent->image_url }}"
+                                        src="{{ $recent->card_image_url }}"
                                         alt="{{ $recent->title }}"
                                         width="400"
                                         height="250"

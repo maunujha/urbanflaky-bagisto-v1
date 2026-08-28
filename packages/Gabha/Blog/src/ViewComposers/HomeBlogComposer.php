@@ -42,7 +42,15 @@ class HomeBlogComposer
                 ->orderByDesc('published_at')
                 ->orderByDesc('id')
                 ->limit(self::LIMIT)
-                ->get();
+                ->get([
+                    /* Card columns only — the grid never renders the article body. */
+                    'id',
+                    'title',
+                    'slug',
+                    'short_description',
+                    'image',
+                    'published_at',
+                ]);
         });
 
         $view->with('latestBlogs', $blogs);
