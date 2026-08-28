@@ -91,7 +91,10 @@
                     <!-- Product Listing Container -->
                     <div class="flex-1">
                         <!-- Desktop Product Listing Toolbar -->
-                        <div class="max-md:hidden">
+                        {{-- v-if (not just the CSS hide) so phones do not build a
+                             second toolbar instance behind the filter drawer copy;
+                             mirrors how shop::categories.filters gates itself. --}}
+                        <div class="max-md:hidden" v-if="! isMobile">
                             @include('shop::categories.toolbar')
                         </div>
 

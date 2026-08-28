@@ -50,7 +50,7 @@
 
         <!-- Initial shimmer -->
         <template v-if="isLoading">
-            <x-shop::shimmer.products.carousel />
+            <x-shop::shimmer.products.carousel ref="shimmer" />
         </template>
     </script>
 
@@ -70,6 +70,7 @@
                     products: [],
                     currentPage: 0,
                     lastPage: 1,
+                    observer: null,
                 };
             },
 
@@ -80,12 +81,48 @@
             },
 
             mounted() {
-                this.fetchPage().finally(() => {
-                    this.isLoading = false;
-                });
+                this.observeAndFetch();
+            },
+
+            beforeUnmount() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                }
             },
 
             methods: {
+                /* Related products sit far below the fold — load them when the
+                   placeholder approaches the viewport rather than on mount.
+                   Browsers without IntersectionObserver fetch immediately. */
+                observeAndFetch() {
+                    const target = this.$refs.shimmer;
+
+                    if (! target || typeof IntersectionObserver === 'undefined') {
+                        this.loadFirstPage();
+
+                        return;
+                    }
+
+                    this.observer = new IntersectionObserver((entries) => {
+                        if (! entries.some(entry => entry.isIntersecting)) {
+                            return;
+                        }
+
+                        this.observer.disconnect();
+                        this.observer = null;
+
+                        this.loadFirstPage();
+                    }, { rootMargin: '600px 0px' });
+
+                    this.observer.observe(target);
+                },
+
+                loadFirstPage() {
+                    this.fetchPage().finally(() => {
+                        this.isLoading = false;
+                    });
+                },
+
                 fetchPage() {
                     const nextPage = this.currentPage + 1;
 

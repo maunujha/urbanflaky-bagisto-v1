@@ -64,12 +64,19 @@
 
                             {{-- width/height attrs give the image intrinsic dimensions (desktop
                                  gallery does the same); w-full aspect-square drives rendered size. --}}
+                            {{-- Only the first slide is in the viewport; the rest are
+                                 translated off-screen, so they are deferred and
+                                 de-prioritised. The fixed aspect-square box means a
+                                 late-arriving slide cannot shift layout. --}}
                             <img
                                 class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
                                 :src="media.large_image_fallback_url || media.large_image_url"
                                 :alt="media.large_image_url"
                                 width="600"
                                 height="600"
+                                :loading="index === 0 ? null : 'lazy'"
+                                :fetchpriority="index === 0 ? null : 'low'"
+                                decoding="async"
                             />
                         </picture>
                     </template>

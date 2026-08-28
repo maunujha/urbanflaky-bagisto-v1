@@ -6,6 +6,9 @@
 
     $avgRatings = $reviewHelper->getAverageRating($product);
 
+    /* Consumed by shop::products.view.reviews through the inherited include scope
+       (the rating-distribution bars) — not unused, do not inline it there: the
+       partial is included twice per page. */
     $percentageRatings = $reviewHelper->getPercentageRating($product);
 
     $customAttributeValues = $productViewHelper->getAdditionalData($product);
@@ -13,8 +16,6 @@
     $attributeData = collect($customAttributeValues)->filter(fn ($item) => ! empty($item['value']));
 
     $productBaseImage = product_image()->getProductBaseImage($product);
-
-    $reviewCount = $reviewHelper->getTotalFeedback($product);
 
     /* Index-aware sellable price. Configurable parents carry no own price, so fall back to the
        minimal variant price (same logic as the Product schema), then to $product->price. This is
@@ -367,6 +368,10 @@
                 id="sticky-atc-thumb"
                 src="{{ $productBaseImage['medium_image_url'] }}"
                 alt="{{ $product->name }}"
+                width="56"
+                height="56"
+                fetchpriority="low"
+                decoding="async"
                 class="h-14 w-14 flex-shrink-0 rounded-lg object-cover max-sm:h-10 max-sm:w-10"
             >
 

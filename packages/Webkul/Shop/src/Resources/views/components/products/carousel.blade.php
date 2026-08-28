@@ -50,7 +50,10 @@
 
         <!-- Product Card Listing -->
         <template v-if="isLoading">
-            <x-shop::shimmer.products.carousel :navigation-link="$navigationLink ?? false" />
+            <x-shop::shimmer.products.carousel
+                ref="shimmer"
+                :navigation-link="$navigationLink ?? false"
+            />
         </template>
     </script>
 
@@ -68,14 +71,50 @@
                 return {
                     isLoading: true,
                     products: [],
+                    observer: null,
                 };
             },
 
             mounted() {
-                this.getProducts();
+                this.observeAndFetch();
+            },
+
+            beforeUnmount() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                }
             },
 
             methods: {
+                /* This section is below the fold on every page that uses it, but
+                   it used to fire its XHR the moment the app mounted, competing
+                   with the hero image for bandwidth and main thread. The request
+                   now starts when the placeholder comes within 600px of the
+                   viewport, so normal scrolling still lands on a filled section.
+                   Browsers without IntersectionObserver fetch immediately. */
+                observeAndFetch() {
+                    const target = this.$refs.shimmer;
+
+                    if (! target || typeof IntersectionObserver === 'undefined') {
+                        this.getProducts();
+
+                        return;
+                    }
+
+                    this.observer = new IntersectionObserver((entries) => {
+                        if (! entries.some(entry => entry.isIntersecting)) {
+                            return;
+                        }
+
+                        this.observer.disconnect();
+                        this.observer = null;
+
+                        this.getProducts();
+                    }, { rootMargin: '600px 0px' });
+
+                    this.observer.observe(target);
+                },
+
                 getProducts() {
                     this.$axios.get(this.src)
                         .then(response => {

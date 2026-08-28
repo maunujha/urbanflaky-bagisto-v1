@@ -1,6 +1,6 @@
-@props(['count' => 3])
+@props(['count' => 3, 'navigationLink' => false])
 
-<section class="uf-cat-section">
+<section class="uf-cat-section" {{ $attributes }}>
     <div class="uf-cat-container">
         <div class="uf-cat-grid">
             @for ($i = 0; $i < $count; $i++)

@@ -111,7 +111,7 @@
                         ::average="product.ratings.average"
                         ::total="product.ratings.total"
                         ::rating="false"
-                        v-if="product.ratings.total"
+                        v-if="product.ratings.total && ! isMobileViewport"
                     />
                 @else
                     <x-shop::products.ratings
@@ -119,7 +119,7 @@
                         ::average="product.ratings.average"
                         ::total="product.reviews.total"
                         ::rating="false"
-                        v-if="product.reviews.total"
+                        v-if="product.reviews.total && ! isMobileViewport"
                     />
                 @endif
 
@@ -128,7 +128,7 @@
                 <!-- Mobile color swatches (bottom-left of image) -->
                 <div
                     class="uf-mob-swatches"
-                    v-if="colorAttribute && colorAttribute.options && colorAttribute.options.length"
+                    v-if="isMobileViewport && colorAttribute && colorAttribute.options && colorAttribute.options.length"
                 >
                     <span
                         v-for="opt in colorAttribute.options.slice(0, 3)"
@@ -156,15 +156,13 @@
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.before') !!}
 
-                <p class="uf-card-brand">Urbanflaky</p>
-
                 <p class="uf-card-name">@{{ product.name }}</p>
 
-                <p class="uf-card-subtitle" v-if="product.short_description">@{{ product.short_description }}</p>
+                <p class="uf-card-subtitle" v-if="product.short_description && ! isMobileViewport">@{{ product.short_description }}</p>
 
                 {!! view_render_event('bagisto.shop.components.products.card.name.after') !!}
 
-                <div class="uf-card-price-row">
+                <div class="uf-card-price-row" v-if="! isMobileViewport">
 
                     {!! view_render_event('bagisto.shop.components.products.card.price.before') !!}
 
@@ -184,7 +182,7 @@
                 </div>
 
                 <!-- ── Mobile-only price block ── -->
-                <div class="uf-mob-price">
+                <div class="uf-mob-price" v-if="isMobileViewport">
                     <p class="uf-mob-aslow" v-if="isConfigurable">@lang('shop::app.products.prices.configurable.as-low-as')</p>
 
                     <div class="uf-mob-price-row">
@@ -195,7 +193,7 @@
 
                 <!-- ── Mobile-only CTA buttons ── -->
                 @if (core()->getConfigData('sales.checkout.shopping_cart.cart_page'))
-                    <div class="uf-mob-cta">
+                    <div class="uf-mob-cta" v-if="isMobileViewport">
                         <button
                             type="button"
                             class="uf-mob-atc"
@@ -226,7 +224,7 @@
                 @endif
 
                 <!-- Subtle trust strip (single line, minimal) -->
-                <div class="uf-delivery-strip">
+                <div class="uf-delivery-strip" v-if="! isMobileViewport">
                     <span class="uf-ds-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                             <rect x="1" y="6" width="13" height="11" rx="1"/>
@@ -249,7 +247,7 @@
             <!-- /uf-card-content -->
 
             <!-- Desktop Hover Drawer (variants + CTAs) — sits over the card on hover -->
-            <div class="uf-hover-panel">
+            <div class="uf-hover-panel" v-if="isWideViewport">
                 <div class="uf-drawer-body">
                     <template v-if="isConfigurable && product.super_attributes && product.super_attributes.length">
                         <template v-for="attribute in product.super_attributes" :key="attribute.id">
@@ -663,6 +661,34 @@
     </script>
 
     <script type="module">
+        /* The card markup carries both a desktop half (hover drawer, price row,
+           trust strip, rating badge) and a mobile half (price block, CTA row,
+           swatch overlay). urbanflaky.css shows exactly one half per breakpoint
+           and display:none-s the other, so every card used to ship both. These
+           two queries mirror those breakpoints 1:1 and let each card mount only
+           the half that is actually painted.
+
+           One listener per query updates every live card, so resizing across a
+           breakpoint behaves the same as the pure-CSS version did. */
+        const ufCardWideQuery   = window.matchMedia('(min-width: 1180px)');
+        const ufCardMobileQuery = window.matchMedia('(max-width: 767px)');
+        const ufCardInstances   = new Set();
+
+        function ufSyncCardViewport() {
+            ufCardInstances.forEach((vm) => {
+                vm.isWideViewport   = ufCardWideQuery.matches;
+                vm.isMobileViewport = ufCardMobileQuery.matches;
+            });
+        }
+
+        [ufCardWideQuery, ufCardMobileQuery].forEach((query) => {
+            if (query.addEventListener) {
+                query.addEventListener('change', ufSyncCardViewport);
+            } else if (query.addListener) {
+                query.addListener(ufSyncCardViewport);
+            }
+        });
+
         app.component('v-product-card', {
             template: '#v-product-card-template',
 
@@ -677,6 +703,8 @@
                     currentImage: this.product.base_image,
                     quickViewOpen: false,
                     variantSheetOpen: false,
+                    isWideViewport: ufCardWideQuery.matches,
+                    isMobileViewport: ufCardMobileQuery.matches,
                 }
             },
 
@@ -701,6 +729,8 @@
             },
 
             mounted() {
+                ufCardInstances.add(this);
+
                 this._escHandler = (e) => {
                     if (e.key !== 'Escape') return;
                     if (this.quickViewOpen)    this.closeQuickView();
@@ -710,6 +740,8 @@
             },
 
             beforeUnmount() {
+                ufCardInstances.delete(this);
+
                 document.removeEventListener('keydown', this._escHandler);
                 if (this.quickViewOpen || this.variantSheetOpen) document.body.style.overflow = '';
             },

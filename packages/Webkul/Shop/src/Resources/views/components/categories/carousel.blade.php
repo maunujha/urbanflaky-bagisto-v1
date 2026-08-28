@@ -83,6 +83,7 @@
         <!-- Category Carousel Shimmer -->
         <template v-if="isLoading">
             <x-shop::shimmer.categories.carousel
+                ref="shimmer"
                 :count="8"
                 :navigation-link="$navigationLink ?? false"
             />
@@ -106,22 +107,53 @@
                     hasOverflow: false,
                     atStart: true,
                     atEnd: false,
-                    fallback: "{{ bagisto_asset('images/small-product-placeholder.webp') }}"
+                    fallback: "{{ bagisto_asset('images/small-product-placeholder.webp') }}",
+                    observer: null,
                 };
             },
 
             mounted() {
-                this.getCategories();
+                this.observeAndFetch();
                 window.addEventListener('resize', this.updateScrollState);
             },
 
             beforeUnmount() {
+                if (this.observer) {
+                    this.observer.disconnect();
+                }
+
                 window.removeEventListener('resize', this.updateScrollState);
                 const container = this.$refs.swiperContainer;
                 if (container) container.removeEventListener('scroll', this.updateScrollState);
             },
 
             methods: {
+                /* Deferred until the placeholder approaches the viewport so the
+                   category tiles do not compete with the hero on first paint.
+                   Browsers without IntersectionObserver fetch immediately. */
+                observeAndFetch() {
+                    const target = this.$refs.shimmer;
+
+                    if (! target || typeof IntersectionObserver === 'undefined') {
+                        this.getCategories();
+
+                        return;
+                    }
+
+                    this.observer = new IntersectionObserver((entries) => {
+                        if (! entries.some(entry => entry.isIntersecting)) {
+                            return;
+                        }
+
+                        this.observer.disconnect();
+                        this.observer = null;
+
+                        this.getCategories();
+                    }, { rootMargin: '600px 0px' });
+
+                    this.observer.observe(target);
+                },
+
                 getCategories() {
                     this.$axios.get(this.src)
                         .then(response => {

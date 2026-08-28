@@ -1,6 +1,6 @@
 @props(['count' => 4, 'navigationLink' => false])
 
-<section class="uf-prod-section" aria-hidden="true">
+<section class="uf-prod-section" aria-hidden="true" {{ $attributes }}>
     <div class="uf-prod-container">
         <div class="uf-prod-head">
             <span class="shimmer h-8 w-[220px] rounded max-sm:h-6 max-sm:w-[160px]"></span>
