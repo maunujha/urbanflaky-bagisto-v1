@@ -323,6 +323,22 @@ Negligible. The API layer is not a bottleneck.
 - **Meta Pixel**: no direct `fbq(` — **by design**, it fires through the GTM
   container. Presence cannot be confirmed without publishing/inspecting GTM.
 
+### CORRECTION (2026-08-28, from the pre-deploy production run)
+
+**The soft-404 finding below is a LOCAL-ONLY artifact — it does not reproduce on
+production.** Live, `/images/<missing>.png` correctly returns **404**. Laragon has
+no static-asset regex so everything falls through to `index.php`, whereas the
+production vhost has `location ~* \.(css|js|jpg|webp|...)$ { try_files $uri =404; }`
+which 404s properly. `deploy/nginx/urbanflaky.conf` even documents this difference.
+The "return 404 for unknown asset paths" recommendation is therefore **withdrawn** —
+there is nothing to fix.
+
+**The relative-`src` finding IS real and confirmed live:** the homepage serves
+`src="storage/theme/1/..."` and two more without a leading slash. They resolve at
+`/` and are the single FAIL in the pre-deploy acceptance run. Still worth fixing as
+fragility, but with production 404ing correctly they degrade to a broken image
+rather than a 421 KB HTML download.
+
 ### Verification — issues found (none caused by P7)
 
 - **Soft-404s.** Unknown paths that look like files return **HTTP 200 with a
