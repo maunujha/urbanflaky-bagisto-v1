@@ -87,6 +87,403 @@ Legend: ⬜ not started · 🟡 in progress · ✅ done & verified · ⏭️ ski
 
 **Verified on live (Playwright):** SSR hero present in raw HTML; 3 stylesheets async then flip to `media=all` (CSS fully applied, hero has its CSS height → no FOUC); unthrottled FCP 560→**352ms**, LCP 1160→**352ms**; screenshot renders correctly (dark theme, hero, fonts). **Awaiting a fresh PSI mobile run for the throttled score.** If Speed Index still lags, next lever is the **preloader exit timing** (reveal when CSS+hero ready instead of full `window.load`) — deferred until measured. Minor: `feature-accordion.css` (1.3 KB, below-fold) left render-blocking.
 
+
+## Phase 7 — storefront templates (2026-08-28)
+
+Scope limited by request to changes that **cannot move the current layout**. The
+PDP tabs/accordion duplication (the single biggest template win) is deliberately
+left for a later phase — see "Deferred" below.
+
+**Measured baseline (local, `curl`, before/after each page):**
+
+| Page | raw | gzip | tags | inline x-templates | module JS |
+|---|---|---|---|---|---|
+| blog listing | 240.6 KB | 44.5 KB | 837 | 71.6 KB | 33.2 KB |
+| blog article | 228.8 KB | 45.2 KB | 1073 | 71.6 KB | 33.2 KB |
+| category | 354.4 KB | 60.1 KB | 1679 | 165.9 KB | 59.4 KB |
+| homepage | 408.4 KB | 70.6 KB | 1730 | 132.0 KB | 66.2 KB |
+| PDP | 481.0 KB | 80.5 KB | 2461 | 236.7 KB | 95.7 KB |
+
+Inline Vue templates + module JS are **44–69% of every document**. That is the
+structural headline for any future phase.
+
+### What changed
+
+**Product card** (`components/products/card.blade.php`) — used by homepage
+carousels, the category grid and PDP related products. The card shipped a
+desktop half *and* a mobile half on every breakpoint, with CSS hiding one:
+
+- `.uf-hover-panel` (22 static elements + a `v-for` over every super-attribute
+  option, rendered twice inside it) is `display:none` below 1180px.
+- `.uf-mob-price` / `.uf-mob-cta` / `.uf-mob-swatches` (19 elements) are
+  `display:none` above 767px.
+- `.uf-delivery-strip`, `.uf-card-price-row`, `.uf-card-subtitle` and the
+  `.uf-card-rating-badge` are `display:none` below 768px.
+- `.uf-card-brand` ("Urbanflaky" eyebrow) is `display:none` at **every**
+  breakpoint — the mobile media query restyles it but never reveals it.
+
+Each half is now mounted only for the breakpoint that paints it, driven by two
+shared `matchMedia` queries that mirror the CSS breakpoints 1:1 and stay
+reactive on resize (one listener pair for the whole page, not one per card).
+The permanently-hidden brand node was deleted. **~44 fewer elements per card on
+mobile, ~19 on desktop**, before counting the per-option swatch nodes.
+
+**Below-fold section fetches** (`components/products/carousel`,
+`components/products/grid`, `components/categories/carousel`) fired their XHR on
+`mounted()`. They now start when the shimmer placeholder comes within 600px of
+the viewport, matching the pattern `v-product-associations` and the reviews
+component already use. The homepage has **5 product carousels + 1 category
+carousel** — six requests moved off the critical path. Falls back to an
+immediate fetch when `IntersectionObserver` is unavailable. The two shimmer
+roots gained `{{ $attributes }}` so they can carry the `ref`.
+
+**Category listing** (`categories/view.blade.php`) — the desktop toolbar was
+only CSS-hidden on mobile, so phones built a **second `v-toolbar` instance**
+behind the one in the filter drawer. Now gated with `v-if="! isMobile"`, the
+same way `shop::categories.filters` already gates itself.
+
+**PDP** (`products/view.blade.php`, `products/view/gallery/mobile.blade.php`):
+
+- Removed `$reviewCount = $reviewHelper->getTotalFeedback($product)` — assigned
+  and never read (the rating block recomputes it into `$totalRatings`). One
+  fewer query per product view. *`$percentageRatings` looks equally unused but
+  is NOT — `shop::products.view.reviews` reads it through the inherited include
+  scope. It stays, with a comment saying so.*
+- Mobile gallery slides 2..n are `loading="lazy"` + `fetchpriority="low"`; only
+  slide 1 is in the viewport, the rest are translated off-screen. The fixed
+  `aspect-square` box means a late slide cannot shift layout.
+- The sticky add-to-cart thumbnail got `width`/`height` + `fetchpriority="low"`
+  + `decoding="async"`. It must stay eager (a lazy image inside a transformed
+  `fixed` bar may never trigger) but it should not compete with the gallery LCP.
+
+**Blog** (`Shop/BlogController`, `HomeBlogComposer`, both shop views):
+
+- The listing, the home "From the Journal" grid and the article's recent-posts
+  rail all hydrated the full `content` column (the entire article HTML) for
+  rows that only render a card. All three now select card columns only —
+  `image` stays selected because the appended `image_url` accessor reads it.
+  Measured on the 9-row listing: **104,421 → 3,912 bytes hydrated (96% less)**.
+- The listing's first card image was `loading="lazy"` — it is the LCP candidate.
+  Row 1 (3 cards desktop / 1 mobile) is now eager, card 1 carries
+  `fetchpriority="high"`, the rest stay lazy.
+- The article's featured image (always the LCP) gained `fetchpriority="high"`.
+
+### Cost, stated honestly
+
+Served HTML grew **+0.1 to +1.1 KB gzipped per page** — the observer methods and
+the `v-if` attributes live inside the inline x-templates. The wins are in
+runtime DOM, deferred requests and DB hydration, not in document bytes.
+
+### Verification
+
+- All five routes 200; `/blog?page=2` and `/mens-tshirts?sort=price-asc&limit=24` 200.
+- **Every JSON-LD block byte-identical** before/after on all five pages.
+- SEO-visible surface diffed before/after: links, images, headings and visible
+  text **all identical** (0 lost) on all five pages.
+- `HomePageTest` + `StructuredDataTest`: 26 passed, 2 failed — the 2 failures
+  (newsletter `shop.subscription.store` redirect) reproduce identically on a
+  stashed clean tree, so they pre-date this phase.
+- `API/CategoryProductTest`: 5 passed, 2 failed — also identical on the clean tree.
+- No CSS/JS source touched and no new Tailwind class introduced, so no theme
+  rebuild is required.
+
+### Still to verify in a browser (cannot be checked locally)
+
+1. Product cards at ≥1180px, 768–1179px and ≤767px look identical to before,
+   and **resizing across 767px / 1180px** swaps the halves correctly.
+2. Swiping the mobile PDP gallery — slide 2 should paint within the 700ms
+   transition; if a blank frame is visible on slow connections, warm the
+   next slide on `handleDragEnd` instead of relying on `loading="lazy"`.
+3. Category page on a phone: filter drawer, sort drawer, load-more all intact.
+4. Homepage: scroll from top — every carousel fills before it reaches the
+   viewport (600px rootMargin).
+
+### Deferred (needs layout work — not in this pass)
+
+- **PDP renders its long-form content twice.** `products/view.blade.php` emits
+  the description, the attribute table, `<v-product-reviews>` and the
+  shipping-returns CMS HTML once for the ≥1180px tab strip and again for the
+  `1180:hidden` accordion. `v-tabs-template` alone is 20.5 KB. Deduping means
+  making one DOM serve both presentations — a real change to the tabs/accordion
+  UX, so it was left out.
+- **Lookbook grid** still fetches on mount: its template renders nothing while
+  loading, so there is no element to observe. Needs a placeholder first.
+- **Inline x-template weight** (the 44–69% figure above) — blog pages ship
+  105 KB of Vue templates (mini-cart 15.6 KB, exit-intent 11 KB, headers,
+  category tree) they never use. Gating those per route is the largest
+  remaining template-level win.
+
+
+## Phase 8 — final validation (2026-08-28)
+
+**Two facts frame everything below.**
+
+1. **Phase 7 is not deployed.** It is uncommitted in the working tree. Production
+   (`urbanflaky.in`) currently runs **P1–P4**. Any PSI run today validates P1–P4,
+   not the template work.
+2. **LCP / INP / CLS were not measured, and are not estimated here.** They need a
+   real throttled browser or field data. Phase 4 already recorded why a local lab
+   number is worse than none: an unthrottled Playwright run reported LCP 1.16s on
+   the same page a throttled PSI mobile run scored **LCP 7.7s**. The authority
+   stays PSI / CrUX / Search Console on production.
+
+**Local TTFB is not the site's TTFB.** Measured 0.85–1.9s here (Laragon/Windows,
+FPC off, predis, untuned OPcache). Production is documented at ~200ms home /
+~180ms catalog — already inside target. Do not read the local column as a
+regression.
+
+### Resource graph — local, transfer bytes on the wire (gzip applied)
+
+| page | device | doc | css | js | font | img eager | img lazy | critical path | total | reqs |
+|---|---|---|---|---|---|---|---|---|---|---|
+| homepage | mobile | 71.5 KB | 36.1 | 45.6 | 15.6 | 258.0 | 4,175.7 | **426.7 KB** | 4.6 MB | 25 |
+| homepage | desktop | 71.5 KB | 36.1 | 45.6 | 15.6 | 258.0 | 4,175.7 | **426.7 KB** | 4.6 MB | 26 |
+| category | mobile | 60.6 KB | 35.6 | 45.6 | 15.6 | 0 | 0 | **157.4 KB** | 157.4 KB | 8 |
+| category | desktop | 60.6 KB | 35.6 | 45.6 | 15.6 | 0 | 0 | **157.4 KB** | 157.4 KB | 8 |
+| product | mobile | 81.5 KB | 35.6 | 45.6 | 15.6 | 3.3 | 0 | **181.6 KB** | 181.6 KB | 9 |
+| product | desktop | 81.5 KB | 35.6 | 45.6 | 15.6 | 3.3 | 0 | **181.6 KB** | 181.6 KB | 9 |
+| blog | mobile | 44.5 KB | 35.6 | 45.6 | 15.6 | 1,937.5 | 9,515.0 | **2,078.8 KB** | **11.6 MB** | 16 |
+| blog | desktop | 44.5 KB | 35.6 | 45.6 | 15.6 | 1,937.5 | 9,515.0 | **2,078.8 KB** | **11.6 MB** | 16 |
+
+Mobile and desktop are identical because the server renders one HTML for both;
+the split happens client-side. Category and product show ~0 server-rendered
+images because their grids/galleries are Vue-rendered — their images arrive
+after the API call and are measured separately (below).
+
+### The headline finding: blog images
+
+`/blog` is **11.6 MB**, ~70× the category page. Eight images, **1,432 KB average**:
+
+| file | size |
+|---|---|
+| blog/xNLa9EBz… | **3,796.9 KB** |
+| blog/q2HOIYsS… | **3,201.1 KB** |
+| blog/ayp0PN53… | 1,969.5 KB |
+| blog/ljqL18uX… | 1,082.9 KB |
+| blog/uMSU1NaP… | 644.6 KB |
+| blog/dQ9xmVsJ… | 317.3 KB |
+| blog/5dXEQmVW… | 230.2 KB |
+| blog/EaK8kCAG… | 210.0 KB |
+
+Root cause: `Blog::getImageUrlAttribute()` returns `Storage::url($this->image)` —
+the raw upload. No resizer, no `<picture>`, no WebP-sibling preference (the fix
+`LookbookItem` got in P2b). A 3.8 MB file is painted into a 600×375 card.
+
+For contrast, **product** card images go through the Bagisto resizer
+(`/cache/medium/…`) and measure **5 KB each** (13 unique = 63 KB total). The
+pipeline works; blog simply bypasses it.
+
+P2 resized blog/8 (1970→249 KB) and blog/10 (1083→84 KB) **on the live server**
+because they appear on the homepage. Local still holds the originals, and the
+listing shows 8 images — so **the multi-MB files on `/blog` were probably never
+touched on production either.** Verify there before anything else.
+
+### Runtime API payloads (gzipped)
+
+| endpoint | size |
+|---|---|
+| category products (12/page) | 2.8 KB |
+| related products (PDP) | 1.3 KB |
+| header category tree | 0.5 KB |
+| filter attributes / max price | 0.1 KB each |
+
+Negligible. The API layer is not a bottleneck.
+
+### Verification — what passed
+
+- **SEO** across homepage / category / product / blog / article: exactly one
+  `<title>`, one canonical (absolute, self-referencing), meta description,
+  `robots: index, follow`, og:title + og:image — all five pages.
+- **robots.txt**: disallows `/admin /checkout /cart /customer /api /search
+  /compare`, points at the production sitemap.
+- **sitemap.xml**: 200, valid `urlset`, 46 `<loc>` entries.
+- **noindex** correctly set on cart, login and register.
+- **Structured data**: every JSON-LD block parses. homepage `WebSite`,
+  `Organization`, `FAQPage` · category `CollectionPage`, `BreadcrumbList` ·
+  product `Product`, `BreadcrumbList` · blog `Blog`, `BreadcrumbList` · article
+  `BlogPosting`, `BreadcrumbList`.
+- **Add to cart** (simple): 200, cart populated, **Rs 249.00 = Rs 237.14 +
+  Rs 11.86 tax** — GST-inclusive pricing back-computing correctly.
+- **Variants**: configurable + valid `super_attribute` → 200, item in cart.
+  Configurable **without** options → 400 "Options are missing for this product."
+  An invalid colour/size combination is also correctly rejected.
+- **Checkout**: `/checkout/onepage` 200 with a populated cart, no redirect;
+  `v-checkout-new` SPA, OTP gate, reCAPTCHA and address selection all present.
+- **Login**: OTP architecture intact (send / verify / resend forms), Google OAuth
+  entry present, CSRF wired, guests 302 away from `/customer/account/profile`.
+  *The OTP send endpoint was deliberately not fired — it dispatches a real SMS.*
+- **Search**: `/search` 200 for plain and natural-language queries; API returns
+  12 results.
+- **Filters / sorting / pagination**: `sort`, `limit`, `mode`, price range and
+  `/blog?page=2` all 200; products API honours sort+limit; 3 filterable
+  attributes returned.
+- **Analytics**: GTM `GTM-TK3MV6Q3` async, dataLayer initialised, Clarity present,
+  Consent Mode v2 default + cookie layer, PDP `view_item` push with ecommerce
+  payload, `ufTrack` helper present.
+- **Meta Pixel**: no direct `fbq(` — **by design**, it fires through the GTM
+  container. Presence cannot be confirmed without publishing/inspecting GTM.
+
+### Verification — issues found (none caused by P7)
+
+- **Soft-404s.** Unknown paths that look like files return **HTTP 200 with a
+  421 KB HTML page** instead of 404: `/images/nope.png`,
+  `/mens-tshirts/storage/…`, `/blog/storage/…`. Single-segment unknown slugs
+  correctly 404. Wastes crawl budget and serves duplicate content on garbage URLs.
+- **4 relative image `src`** remain on the homepage
+  (`src="storage/theme/5/mens-cate-01.webp"`, no leading slash — audit item #10).
+  Harmless at `/`, but on any nested path they now resolve to a **421 KB HTML
+  soft-404** instead of an image. The two bugs compound.
+- **Missing assets under `/storage/` return 403**, not 404.
+
+### Regressions
+
+**None found.** JSON-LD is byte-identical pre/post-P7 on all five pages; links,
+images, headings and visible text all identical. The two `HomePageTest` and two
+`API/CategoryProductTest` failures reproduce on a stashed clean tree and pre-date
+this work.
+
+One honest cost and one caveat:
+
+- P7 added **+0.1 to +1.1 KB gzipped per page** (observer methods and `v-if`
+  attributes live inside the inline x-templates).
+- P7 made the blog listing's first row eager so the LCP image is not lazy. That
+  is correct in principle, but with 1.4 MB images it now gives a multi-MB file
+  high priority. **Ship the blog-image fix with it, or before it.**
+
+### Recommended next steps, in order
+
+1. **Fix blog images.** Resize + WebP on upload, serve through the resizer or a
+   `<picture>`, backfill existing posts. ~11 MB → well under 1 MB on `/blog`.
+   Every other item on this list is a rounding error next to it.
+2. **Deploy P7 and run PSI mobile** on all four page types — those are the real
+   "after" CWV numbers, and the only ones worth recording.
+3. **Return 404 for unknown asset paths** in nginx (`try_files $uri =404` for
+   file-extension locations) and fix the 4 relative `storage/` srcs.
+4. **Verify FPC actually serves guests** (audit item #9, still open).
+5. Only then the template-level work: per-route gating of inline Vue templates
+   (blog pages ship 105 KB they never use) and the PDP tabs/accordion dedup.
+
+### Not verifiable without a browser
+
+LCP · INP · CLS · product-card rendering at each breakpoint and across resize ·
+mobile PDP gallery swipe · GTM/Meta tags actually firing · cookie-consent gating
+behaviour · checkout end-to-end through OTP.
+
+
+## Phase 9 — blog images (2026-08-28)
+
+Phase 8's #1 recommendation, implemented. **`/blog` went from 11.6 MB to 310 KB.**
+
+### The problem
+
+`Blog::getImageUrlAttribute()` returned `Storage::url($this->image)` — the raw
+upload — into a 600×375 card. Eight images averaging 1,432 KB, worst 3.8 MB.
+The Bagisto resizer was right there (product cards come out at 5 KB); blog just
+never used it.
+
+The obvious fix — point at the existing `small`/`medium`/`large` templates —
+doesn't work: **all three `cover()` to a square**, which would re-crop editorial
+photography. Same trap the category carousel hit in P2b.
+
+### The fix
+
+Two scale-only templates, registered from the app so the Webkul package config
+stays untouched and a cached config still picks them up:
+
+| template | width | used by |
+|---|---|---|
+| `blog_card` | 800px | listing, home grid, recent-posts rail |
+| `blog_wide` | 1600px | article featured image + og:image |
+
+Both use `scaleDown()`, which preserves aspect ratio **and never enlarges** — a
+small upload passes through untouched instead of being upscaled into a bigger
+file. Verified on the worst offender:
+
+| | dimensions | size |
+|---|---|---|
+| original | 5184×3456 | 1,969.5 KB |
+| `blog_card` | 800×533 | 46.5 KB |
+| `blog_wide` | 1600×1067 | 136.1 KB |
+
+3:2 in, 3:2 out. The cards already crop in CSS via `object-cover`, so the
+rendered result is unchanged.
+
+### Results
+
+| page | before | after | change |
+|---|---|---|---|
+| `/blog` total | 11,593.8 KB | **309.9 KB** | −97.3% |
+| `/blog` critical path | 2,078.8 KB | **176.6 KB** | −91.5% |
+| `/blog` card images | 11,452.5 KB | **168.6 KB** | −98.5% |
+| homepage total | 4,602.4 KB | **777.2 KB** | −83.1% |
+| homepage lazy images | 4,175.7 KB | **350.5 KB** | −91.6% |
+
+The homepage improved because the "From the Journal" grid uses the same cards.
+
+This also retires the Phase 7 watch item: the listing's first row is eager with
+`fetchpriority="high"`, which was a liability at 1.4 MB and is now correct at
+~40 KB.
+
+### A real finding underneath: ImageCache caches nothing
+
+Despite the name, `Webkul\ImageCache` has **no server-side cache**. The
+controller reads the source, applies the filter and re-encodes on *every*
+request; the `lifetime` config only feeds HTTP cache headers. `public/cache/`
+did not exist on disk at all.
+
+Measured locally (every `/cache/` hit boots Laravel):
+
+| | median TTFB |
+|---|---|
+| static file via nginx | **15 ms** |
+| `/cache/medium/product/…` (existing) | 592 ms |
+| `/cache/blog_card/…` (18 MP source) | 1,955 ms |
+
+So the byte win came with a CPU cost on cold requests. The production nginx
+block is already `location ^~ /cache/ { try_files $uri /index.php...; }` — the
+`try_files $uri` half means **a file that exists on disk is served statically
+and never reaches PHP.**
+
+`php artisan blog:warm-images` writes exactly those files
+(`public/cache/<template>/<path>`), turning a ~0.5 s PHP render into a ~15 ms
+static hit. It is purely an optimisation — delete `public/cache/` and the
+resizer still answers. Run it after a deploy, or after publishing a post with a
+new image. Local run: **20 derivatives, 12.7 MB of sources → 882.7 KB.**
+
+`/public/cache/` is gitignored — rebuildable output, never source.
+
+> **Worth noting for later:** this applies to *product* images too. Every
+> product image on the site is re-encoded per cold request today. Extending the
+> warm-up to products is likely a meaningful CPU saving on the VPS, but it was
+> left out of this phase as out of scope.
+
+### Verification
+
+- All five routes 200. Link, heading and visible-text counts identical to the
+  pre-Phase-7 baseline; image *counts* unchanged (only the URLs changed).
+- JSON-LD identical on four of five pages. The single diff is intentional and an
+  improvement: `BlogPosting.image` now points at the 1600px derivative instead
+  of the 5184px original.
+- `HomePageTest` + `StructuredDataTest`: 26 passed, same 2 pre-existing failures
+  that reproduce on a clean tree.
+- Aspect ratios verified numerically (above) rather than by eye.
+
+### Files
+
+`app/Support/ImageTemplates/BlogCard.php`, `BlogWide.php` (new) ·
+`app/Console/Commands/WarmBlogImages.php` (new) ·
+`app/Providers/AppServiceProvider.php` (template registration) ·
+`packages/Gabha/Blog/src/Models/Blog.php` (`card_image_url`, `hero_image_url`) ·
+blog `index`, `show`, `partials/home-grid` views · `.gitignore`.
+
+`image_url` is deliberately left returning the original — nothing on the
+storefront uses it now, but it stays available and unsurprising.
+
+### Still to confirm in a browser
+
+Blog cards and the article hero render identically to before. The maths says
+they must (same aspect, same CSS crop), but it has not been looked at.
+
 ---
 
 ## Baseline: what's already good (do NOT touch)
