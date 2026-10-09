@@ -6,12 +6,12 @@
 --}}
 <x-shop::layouts :has-custom-seo="true">
     <x-slot:title>
-        Urbanflaky Sale | Dark Streetwear, Oversized T-Shirts & Monochrome Fashion Deals
+        Sale: Oversized T-Shirts & Dark Streetwear | Urbanflaky
     </x-slot>
 
     {{-- Page-specific SEO (layout suppresses its defaults via :has-custom-seo) --}}
     @push('meta')
-        <meta name="description" content="Shop the Urbanflaky Sale Collection featuring premium oversized t-shirts, dark streetwear, monochrome essentials, and minimalist fashion at discounted prices. Discover exclusive deals on black oversized tees and urban aesthetic apparel.">
+        <meta name="description" content="Premium oversized t-shirts, dark streetwear and monochrome essentials at reduced prices. Shop the Urbanflaky sale on heavyweight cotton tees.">
         <meta name="keywords" content="urbanflaky sale, dark streetwear sale, oversized t shirt sale, black oversized t shirts, monochrome fashion sale, dark aesthetic clothing, streetwear deals india, urban fashion sale, minimalist streetwear, premium oversized tees, men oversized t shirt sale, women oversized t shirt sale, black streetwear india, dark fashion brand, urbanflaky discounts">
         <meta name="robots" content="index, follow">
 

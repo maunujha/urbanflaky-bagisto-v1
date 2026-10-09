@@ -1,3 +1,5 @@
+@props(['name' => null])
+
 <div class="container px-[60px] max-1180:px-0">
     <div class="mt-12 flex gap-10 max-1180:flex-wrap max-lg:mt-0 max-sm:gap-y-6">
 
@@ -5,7 +7,12 @@
 
         <div class="relative max-w-[590px] max-1180:w-full max-1180:max-w-full max-1180:px-5">
             <div class="flex justify-between gap-4">
-                <h1 class="shimmer h-[46px] w-2/4"></h1>
+                {{-- Server-rendered product name so the raw HTML has a real H1 before Vue mounts. --}}
+                @if ($name)
+                    <h1 class="break-words text-3xl font-medium max-sm:text-xl">{{ $name }}</h1>
+                @else
+                    <div class="shimmer h-[46px] w-2/4"></div>
+                @endif
 
                 <div class="shimmer h-[46px] w-[46px] rounded-full"></div>
             </div>

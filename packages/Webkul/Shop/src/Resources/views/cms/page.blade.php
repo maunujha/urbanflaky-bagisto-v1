@@ -32,6 +32,6 @@
 
     <!-- Page Content -->
     <div class="uf-rte container mt-8 mb-16 px-[60px] text-zinc-300 max-lg:px-8">
-        {!! webp_picture_html($page->html_content) !!}
+        {!! webp_picture_html(\App\Support\RichText::singleH1($page->html_content)) !!}
     </div>
 </x-shop::layouts>

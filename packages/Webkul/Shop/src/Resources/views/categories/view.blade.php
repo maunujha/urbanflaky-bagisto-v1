@@ -40,6 +40,13 @@
         </div>
     @endif
 
+    <!-- Page heading — the single H1 (rich-text descriptions have their H1s demoted) -->
+    <div class="container mt-8 px-[60px] max-lg:px-8 max-md:mt-5 max-md:px-4">
+        <h1 class="font-poppins text-3xl font-semibold uppercase tracking-[2px] text-white max-md:text-xl">
+            {{ $category->name }}
+        </h1>
+    </div>
+
     {!! view_render_event('bagisto.shop.categories.view.banner_path.before') !!}
 
     <!-- Hero Image -->
@@ -62,7 +69,7 @@
     @if (in_array($category->display_mode, [null, 'description_only', 'products_and_description']))
         @if ($category->description)
             <div class="container mt-[34px] px-[60px] max-lg:px-8 max-md:mt-4 max-md:px-4 max-md:text-sm max-sm:text-xs">
-                {!! $category->description !!}
+                {!! \App\Support\RichText::demoteH1($category->description) !!}
             </div>
         @endif
     @endif
@@ -72,8 +79,8 @@
     @if (in_array($category->display_mode, [null, 'products_only', 'products_and_description']))
         <!-- Category Vue Component -->
         <v-category>
-            <!-- Category Shimmer Effect -->
-            <x-shop::shimmer.categories.view />
+            <!-- Category Shimmer Effect — carries server-rendered product links for non-JS crawlers -->
+            <x-shop::shimmer.categories.view :products="\App\Support\CrawlableLinks::categoryProducts($category)" />
         </v-category>
     @endif
 

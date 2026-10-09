@@ -27,26 +27,48 @@
                     >
                     </span>
 
-                    <!-- Categories Shimmer -->
-                    <div class="flex items-center gap-5">
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
+                    <!-- Categories: server-rendered so non-JS crawlers can follow the menu.
+                         Replaced by v-desktop-category once Vue mounts. -->
+                    @php
+                        /* Mirror v-desktop-category: the sidebar layout shows only the first 4
+                           top-level items in the bar (the rest live in its drawer), so match that
+                           to avoid a width change on mount. Overflow links stay crawlable, hidden. */
+                        $navTree    = \App\Support\CrawlableLinks::categoryTree();
+                        $navVisible = core()->getConfigData('general.design.categories.category_view') === 'sidebar' ? 4 : count($navTree);
+                    @endphp
 
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
+                    <nav aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.categories')">
+                        <ul class="flex items-center">
+                            @foreach ($navTree as $navIndex => $navCategory)
+                                <li class="group relative {{ $navIndex >= $navVisible ? 'hidden' : '' }}">
+                                    <a
+                                        href="{{ $navCategory['url'] }}"
+                                        class="inline-block px-4 font-poppins text-[13px] font-semibold uppercase tracking-[2px] text-white transition-colors hover:text-uf-accent xl:px-5 xl:text-sm xl:tracking-[2.5px]"
+                                    >
+                                        {{ $navCategory['name'] }}
+                                    </a>
 
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
-                    </div>
+                                    @if ($navCategory['children'])
+                                        <ul class="hidden">
+                                            @foreach ($navCategory['children'] as $navChild)
+                                                <li>
+                                                    <a href="{{ $navChild['url'] }}">{{ $navChild['name'] }}</a>
+
+                                                    @if ($navChild['children'])
+                                                        <ul>
+                                                            @foreach ($navChild['children'] as $navLeaf)
+                                                                <li><a href="{{ $navLeaf['url'] }}">{{ $navLeaf['name'] }}</a></li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </nav>
                 </div>
 
                 <!-- Right Navigation Section -->

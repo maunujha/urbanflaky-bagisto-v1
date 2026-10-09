@@ -101,6 +101,11 @@ return [
         'project_id' => env('CLARITY_PROJECT_ID', 'x80ym5sh5u'),
     ],
 
+    'ahrefs' => [
+        // Ahrefs Web Analytics — cookieless traffic stats, so it is not consent-gated.
+        'analytics_key' => env('AHREFS_ANALYTICS_KEY', 'cWk+6sqR3wdBFL1i/FiZIw'),
+    ],
+
     'smsalert' => [
         'username'    => env('SMSALERT_USERNAME'),
         'apikey'      => env('SMSALERT_APIKEY'),
