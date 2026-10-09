@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\CrawlableLinks;
 use App\Support\DataLayer;
 use Barryvdh\Debugbar\Facades\Debugbar;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -55,6 +56,26 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->registerAnalyticsEvents();
+
+        $this->registerCrawlableLinkInvalidation();
+    }
+
+    /**
+     * Keep the server-rendered menu / category product links (CrawlableLinks)
+     * fresh. Webkul's FPC listeners only forget the edited entity's own URL,
+     * which no longer covers pages that embed those links.
+     */
+    protected function registerCrawlableLinkInvalidation(): void
+    {
+        Event::listen([
+            'catalog.category.create.after',
+            'catalog.category.update.after',
+            'catalog.category.delete.after',
+        ], fn () => CrawlableLinks::invalidateCategories());
+
+        Event::listen('catalog.product.update.after', fn ($product) => CrawlableLinks::invalidateProductCategories($product->id));
+
+        Event::listen('catalog.product.delete.before', fn ($productId) => CrawlableLinks::invalidateProductCategories((int) $productId));
     }
 
     /**

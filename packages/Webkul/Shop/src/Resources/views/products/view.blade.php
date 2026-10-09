@@ -29,15 +29,19 @@
     /* Price token is appended only when a positive price resolves — never advertise "Rs 0". */
     $priceLabel = $minimalPrice > 0 ? ' at Rs ' . number_format($minimalPrice, 0) : '';
 
-    /* Admin meta_description is used verbatim. Without one, build a ~160-char
-       snippet (search engines truncate beyond that): description excerpt + price. */
-    $productDescText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($product->description ?? ''), ENT_QUOTES)));
+    /* Plain-text description. Tags are spaced out before stripping so adjacent
+       blocks (</p><ul><li>…) don't run their words together. */
+    $productDescText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags(str_replace('<', ' <', $product->description ?? '')), ENT_QUOTES)));
 
+    /* Admin meta_description is used verbatim. Without one, build a unique
+       ~160-char snippet (search engines truncate beyond that): name, price, excerpt. */
     $metaDesc = trim($product->meta_description) != ''
         ? trim($product->meta_description)
         : \Illuminate\Support\Str::limit(
-            trim(\Illuminate\Support\Str::limit($productDescText, 110, '') . ' Shop' . $priceLabel . ' on Urbanflaky.'),
-            160
+            trim($product->name . $priceLabel . ' on Urbanflaky. ' . $productDescText),
+            157,
+            '...',
+            true
         );
 
     /* Single source of truth for the page title — reused by <title>, og:title and twitter:title
@@ -50,7 +54,7 @@
        Blade's {{ }} escape exactly once. Previously an explicit htmlspecialchars() here plus
        Blade's own auto-escape double-encoded ampersands (& → &amp;amp;), so share previews
        showed a literal "&amp;". */
-    $shareDesc = \Illuminate\Support\Str::limit($productDescText, 200);
+    $shareDesc = \Illuminate\Support\Str::limit($productDescText, 197, '...', true);
 
     $productCanonical = route('shop.product_or_category.index', $product->url_key);
 

@@ -1,7 +1,7 @@
 <?php
 
 use App\Support\ResponseCacheHasher;
-use Spatie\ResponseCache\CacheProfiles\CacheAllSuccessfulGetRequests;
+use App\Support\ResponseCacheProfile;
 use Spatie\ResponseCache\Replacers\CsrfTokenReplacer;
 use Spatie\ResponseCache\Serializers\DefaultSerializer;
 use Webkul\FPC\Replacers\FlashMessagesReplacer;
@@ -19,7 +19,7 @@ return [
      *  You can provide your own class given that it implements the
      *  CacheProfile interface.
      */
-    'cache_profile' => CacheAllSuccessfulGetRequests::class,
+    'cache_profile' => ResponseCacheProfile::class, // skips ?page=2+ (see class)
 
     /*
      *  Optionally, you can specify a header that will force a cache bypass.
