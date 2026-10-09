@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\RedirectLegacyUrls;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Cookie\Middleware\EncryptCookies as BaseEncryptCookies;
 use Illuminate\Foundation\Application;
@@ -32,6 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
          * then remove this line.
          */
         $middleware->remove(ConvertEmptyStringsToNull::class);
+
+        /* Old Shopify URLs → current pages (301), before routing can 404 them. */
+        $middleware->prepend(RedirectLegacyUrls::class);
 
         $middleware->append(SecureHeaders::class);
         $middleware->append(CanInstall::class);
