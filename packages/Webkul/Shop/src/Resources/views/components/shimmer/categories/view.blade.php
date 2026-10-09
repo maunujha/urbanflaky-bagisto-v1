@@ -1,3 +1,5 @@
+@props(['products' => []])
+
 <div class="container px-[60px] max-lg:px-8 max-sm:px-4">
     <div class="flex items-start gap-10 max-lg:gap-5 md:mt-10">
         <!-- Desktop Filter Shimmer Effect -->
@@ -19,7 +21,7 @@
             @else
                 <div class="mt-8 grid grid-cols-3 gap-8 max-1060:grid-cols-2 max-md:mt-5 max-md:justify-items-center max-md:gap-x-4 max-md:gap-y-5">
                     <!-- Product Card Shimmer Effect -->
-                    <x-shop::shimmer.products.cards.grid count="12" />
+                    <x-shop::shimmer.products.cards.grid count="12" :products="$products" />
                 </div> 
             @endif
 

@@ -27,26 +27,40 @@
                     >
                     </span>
 
-                    <!-- Categories Shimmer -->
-                    <div class="flex items-center gap-5">
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
+                    <!-- Categories: server-rendered so non-JS crawlers can follow the menu.
+                         Replaced by v-desktop-category once Vue mounts. -->
+                    <nav aria-label="@lang('shop::app.components.layouts.header.desktop.bottom.categories')">
+                        <ul class="flex items-center">
+                            @foreach (\App\Support\CrawlableLinks::categoryTree() as $navCategory)
+                                <li class="group relative">
+                                    <a
+                                        href="{{ $navCategory->url }}"
+                                        class="inline-block px-4 font-poppins text-[13px] font-semibold uppercase tracking-[2px] text-white transition-colors hover:text-uf-accent xl:px-5 xl:text-sm xl:tracking-[2.5px]"
+                                    >
+                                        {{ $navCategory->name }}
+                                    </a>
 
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
+                                    @if ($navCategory->children->isNotEmpty())
+                                        <ul class="hidden">
+                                            @foreach ($navCategory->children as $navChild)
+                                                <li>
+                                                    <a href="{{ $navChild->url }}">{{ $navChild->name }}</a>
 
-                        <span
-                            class="shimmer h-6 w-20 rounded"
-                            role="presentation"
-                        >
-                        </span>
-                    </div>
+                                                    @if ($navChild->children->isNotEmpty())
+                                                        <ul>
+                                                            @foreach ($navChild->children as $navLeaf)
+                                                                <li><a href="{{ $navLeaf->url }}">{{ $navLeaf->name }}</a></li>
+                                                            @endforeach
+                                                        </ul>
+                                                    @endif
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </nav>
                 </div>
 
                 <!-- Right Navigation Section -->

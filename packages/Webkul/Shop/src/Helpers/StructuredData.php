@@ -209,13 +209,11 @@ class StructuredData
                     'addressCountry' => 'IN',
                 ],
             ],
-            /* Link-based return policy — the published policy fixes no day window, so a
-               merchantReturnDays value would be fabricated. */
-            'hasMerchantReturnPolicy' => [
-                '@type'              => 'MerchantReturnPolicy',
-                'applicableCountry'  => 'IN',
-                'merchantReturnLink' => url('return-policy'),
-            ],
+            /* hasMerchantReturnPolicy is deliberately omitted. Google requires
+               returnPolicyCategory (finite window + merchantReturnDays, unlimited, or
+               not permitted), and the published policy fixes no day window — a
+               link-only node failed rich-results validation on every single-Offer
+               product. Re-add once /return-policy states a window. */
         ];
 
         /* Price varies across variants → AggregateOffer. */

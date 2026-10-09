@@ -29,25 +29,28 @@
     /* Price token is appended only when a positive price resolves — never advertise "Rs 0". */
     $priceLabel = $minimalPrice > 0 ? ' at Rs ' . number_format($minimalPrice, 0) : '';
 
-    $productBaseDesc = trim($product->meta_description) != ''
-        ? $product->meta_description
-        : \Illuminate\Support\Str::limit(strip_tags($product->description ?? ''), 80, '');
+    /* Admin meta_description is used verbatim. Without one, build a ~160-char
+       snippet (search engines truncate beyond that): description excerpt + price. */
+    $productDescText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($product->description ?? ''), ENT_QUOTES)));
 
-    $metaDesc = ($productBaseDesc ? $productBaseDesc . ' ' : '')
-        . 'Shop ' . $product->name . $priceLabel
-        . ' on Urbanflaky. Fast delivery pan India. – Gabha Enterprise';
+    $metaDesc = trim($product->meta_description) != ''
+        ? trim($product->meta_description)
+        : \Illuminate\Support\Str::limit(
+            trim(\Illuminate\Support\Str::limit($productDescText, 110, '') . ' Shop' . $priceLabel . ' on Urbanflaky.'),
+            160
+        );
 
     /* Single source of truth for the page title — reused by <title>, og:title and twitter:title
        so Facebook, Twitter/X and LinkedIn share previews all render the same heading. */
     $metaTitle = trim($product->meta_title) != ''
         ? $product->meta_title
-        : $product->name . ($priceLabel !== '' ? ' — Buy Online' . $priceLabel : '') . ' | Urbanflaky';
+        : $product->name . ' | Urbanflaky';
 
     /* Shared og:/twitter: description. Decode any HTML entities to raw text FIRST, then let
        Blade's {{ }} escape exactly once. Previously an explicit htmlspecialchars() here plus
        Blade's own auto-escape double-encoded ampersands (& → &amp;amp;), so share previews
        showed a literal "&amp;". */
-    $shareDesc = trim(html_entity_decode(strip_tags($product->description ?? ''), ENT_QUOTES));
+    $shareDesc = \Illuminate\Support\Str::limit($productDescText, 200);
 
     $productCanonical = route('shop.product_or_category.index', $product->url_key);
 
@@ -124,7 +127,7 @@
 
     <!-- Product Information Vue Component -->
     <v-product>
-        <x-shop::shimmer.products.view />
+        <x-shop::shimmer.products.view :name="$product->name" />
     </v-product>
 
     <!-- Information Section -->
@@ -145,7 +148,7 @@
                 >
                     <div class="container mt-[60px] max-1180:px-5">
                         <div class="uf-rte text-md text-zinc-300 max-1180:text-sm">
-                            {!! $product->description !!}
+                            {!! \App\Support\RichText::demoteH1($product->description) !!}
                         </div>
                     </div>
                 </x-shop::tabs.item>
@@ -247,7 +250,7 @@
 
             <x-slot:content class="max-sm:px-0">
                 <div class="uf-rte mb-5 text-md text-zinc-300 max-1180:text-sm max-md:mb-1 max-md:px-4">
-                    {!! $product->description !!}
+                    {!! \App\Support\RichText::demoteH1($product->description) !!}
                 </div>
             </x-slot>
         </x-shop::accordion>
@@ -544,7 +547,7 @@
                                 {!! view_render_event('bagisto.shop.products.short_description.before', ['product' => $product]) !!}
 
                                 <div class="uf-rte mt-6 text-md text-zinc-300 max-sm:mt-4 max-sm:text-sm">
-                                    {!! $product->short_description !!}
+                                    {!! \App\Support\RichText::demoteH1($product->short_description) !!}
                                 </div>
 
                                 {!! view_render_event('bagisto.shop.products.short_description.after', ['product' => $product]) !!}

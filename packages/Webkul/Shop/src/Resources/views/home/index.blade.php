@@ -21,14 +21,14 @@
         <link rel="preload" as="image" href="{{ $heroSlide['image'] }}" media="(min-width: 768px)" fetchpriority="high">
     @endif
 
-    <meta name="description" content="{{ $channel->home_seo['meta_description'] ?? "Shop men's polo t-shirts, slim fit tshirts and casual wear for men & women at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan, Jaipur and all metros. – Gabha Enterprise" }}">
+    <meta name="description" content="{{ $channel->home_seo['meta_description'] ?? "Premium oversized and heavyweight cotton t-shirts in monochrome. Dark-aesthetic streetwear for men and women, Rs 299-799, shipped across India." }}">
     <meta name="keywords" content="{{ $channel->home_seo['meta_keywords'] ?? 'urbanflaky, polo tshirt online india, slim fit tshirt men, casual wear men women, buy tshirt under 500, mens fashion online, womens casual wear india, fashion jaipur rajasthan, gabha enterprise, tshirt delivery india' }}">
     <meta name="robots" content="index, follow">
     <link rel="canonical" href="{{ route('shop.home.index') }}">
 
     {{-- Open Graph --}}
-    <meta property="og:title" content="{{ $channel->home_seo['meta_title'] ?? "Urbanflaky — Men's Polo T-Shirts & Slim Fit Casuals Online" }}">
-    <meta property="og:description" content="{{ $channel->home_seo['meta_description'] ?? "Shop polo t-shirts, slim fit casuals for men & women at Urbanflaky. Rs 299–799. Pan India delivery. – Gabha Enterprise" }}">
+    <meta property="og:title" content="{{ $channel->home_seo['meta_title'] ?? "Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear" }}">
+    <meta property="og:description" content="{{ $channel->home_seo['meta_description'] ?? "Premium oversized and heavyweight cotton t-shirts in monochrome. Dark-aesthetic streetwear for men and women, Rs 299-799, shipped across India." }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ route('shop.home.index') }}">
     {{-- og:site_name / og:locale are emitted unconditionally by the layout — not repeated here --}}
@@ -36,8 +36,8 @@
 
     {{-- Twitter / X --}}
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $channel->home_seo['meta_title'] ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
-    <meta name="twitter:description" content="Shop polo t-shirts & slim fit casuals. Rs 299–799. Pan India delivery.">
+    <meta name="twitter:title" content="{{ $channel->home_seo['meta_title'] ?? "Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear" }}">
+    <meta name="twitter:description" content="{{ $channel->home_seo['meta_description'] ?? "Premium oversized and heavyweight cotton t-shirts in monochrome. Dark-aesthetic streetwear for men and women, Rs 299-799, shipped across India." }}">
     <meta name="twitter:image" content="{{ asset('images/og-image.jpg') }}">
     <meta name="twitter:site" content="@urbanflaky">
 @endpush
@@ -105,8 +105,11 @@
 <x-shop::layouts :has-custom-seo="true">
     <!-- Page Title -->
     <x-slot:title>
-        {{ $channel->home_seo['meta_title'] ?? "Urbanflaky — Men's Polo T-Shirts & Slim Fit Casuals Online | Gabha Enterprise" }}
+        {{ $channel->home_seo['meta_title'] ?? "Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear" }}
     </x-slot>
+
+    {{-- The page's single H1. The hero is an image carousel, so the heading is visually hidden. --}}
+    <h1 class="sr-only">Urbanflaky — Premium Oversized T-Shirts &amp; Dark Streetwear</h1>
 
     <!-- Loop over the theme customization -->
     @foreach ($customizations as $customization)

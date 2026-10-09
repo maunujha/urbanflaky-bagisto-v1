@@ -2,9 +2,12 @@
     <link rel="stylesheet" href="{{ asset('css/contact-us.css') }}">
 @endpush
 
-<x-shop::layouts :has-feature="false">
+<x-shop::layouts
+    :has-feature="false"
+    meta-description="Questions about an order, sizing, a return or wholesale? Contact the Urbanflaky support team by email or the contact form. We reply within 24 hours."
+>
     <x-slot:title>
-        @lang('shop::app.home.contact.title')
+        Contact Urbanflaky | Orders, Returns &amp; Support
     </x-slot>
 
     <div class="cu-wrap">
@@ -181,7 +184,7 @@
                     {{-- Submit --}}
                     <div class="cu-submit-row">
                         <div class="cu-submit-note">
-                            By submitting you agree to our <a href="{{ url('page/privacy-policy') }}">Privacy Policy</a>. We never share your data with third parties.
+                            By submitting you agree to our <a href="{{ url('privacy-policy') }}">Privacy Policy</a>. We never share your data with third parties.
                         </div>
                         <button type="submit" id="cu-submit" class="cu-submit-btn" {{ session('contact_phone_verified') ? '' : 'disabled' }}>
                             Send It
