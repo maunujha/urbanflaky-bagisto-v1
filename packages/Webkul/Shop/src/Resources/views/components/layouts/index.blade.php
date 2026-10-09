@@ -3,8 +3,8 @@
     'hasFeature'      => true,
     'hasFooter'       => true,
     'hasCustomSeo'    => false,
-    'metaDescription' => "Shop men's polo t-shirts, slim fit tshirts and casual wear at Urbanflaky. Mid-range fashion Rs 299–799. Fast delivery pan India including Rajasthan. – Gabha Enterprise",
-    'metaKeywords'    => 'polo tshirt online india, slim fit tshirt men, casual wear men women, buy tshirt under 500, urbanflaky, gabha enterprise, mens fashion jaipur, tshirt rajasthan',
+    'metaDescription' => 'Premium oversized and heavyweight cotton t-shirts in monochrome. Dark-aesthetic streetwear for men and women, Rs 299-799, shipped across India.',
+    'metaKeywords'    => 'urbanflaky, oversized t-shirts, dark streetwear, monochrome fashion, heavyweight cotton t-shirts, minimal streetwear india',
     'robots'          => 'index, follow',
     'ogImage'         => null,
     'ogType'          => 'website',
@@ -24,7 +24,7 @@
 
         {!! view_render_event('bagisto.shop.layout.head.before') !!}
 
-        <title>{{ $title ?? "Urbanflaky — Men's Polo T-Shirts, Slim Fit & Casual Wear Online | Gabha Enterprise" }}</title>
+        <title>{{ $title ?? 'Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear' }}</title>
 
         {{-- Page-specific meta pushed by individual views (product, category, etc.) --}}
         {{-- Must come BEFORE layout defaults so page-specific values take precedence --}}
@@ -36,14 +36,14 @@
             <meta name="keywords" content="{{ $metaKeywords }}">
             <meta name="robots" content="{{ $robots }}">
 
-            <meta property="og:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
+            <meta property="og:title" content="{{ $title ?? 'Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear' }}">
             <meta property="og:description" content="{{ $metaDescription }}">
             <meta property="og:image" content="{{ $ogImage ?? asset('images/og-image.jpg') }}">
             <meta property="og:url" content="{{ $canonical ?? url()->current() }}">
             <meta property="og:type" content="{{ $ogType }}">
 
             <meta name="twitter:card" content="summary_large_image">
-            <meta name="twitter:title" content="{{ $title ?? "Urbanflaky — Men's Fashion Online | Gabha Enterprise" }}">
+            <meta name="twitter:title" content="{{ $title ?? 'Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear' }}">
             <meta name="twitter:description" content="{{ $metaDescription }}">
             <meta name="twitter:image" content="{{ $ogImage ?? asset('images/og-image.jpg') }}">
 

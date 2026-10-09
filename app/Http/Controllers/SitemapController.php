@@ -33,7 +33,7 @@ class SitemapController extends Controller
         $urls = [];
 
         /* Static, always-indexable pages. */
-        foreach (['', 'contact-us', 'blog', 'faqs'] as $path) {
+        foreach (['', 'sale', 'contact-us', 'blog', 'faqs'] as $path) {
             $urls[] = ['loc' => url($path), 'priority' => $path === '' ? '1.0' : '0.6'];
         }
 

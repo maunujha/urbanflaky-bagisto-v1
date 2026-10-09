@@ -1,5 +1,5 @@
 {{--
-    Head tracking — Google Tag Manager + Microsoft Clarity + ecommerce data layer.
+    Head tracking — Google Tag Manager + Microsoft Clarity + Ahrefs Web Analytics + ecommerce data layer.
 
     Placed as high in <head> as possible. The data layer is initialised FIRST so
     page-level ecommerce pushes (rendered into @stack('datalayer') by individual
@@ -11,6 +11,7 @@
 @php
     $gtmId     = config('services.gtm.container_id');
     $clarityId = config('services.clarity.project_id');
+    $ahrefsKey = config('services.ahrefs.analytics_key');
 
     /* Cookie consent layer. When OFF the tags load exactly as before; when ON
        they are deferred and gated by the visitor's category choices. */
@@ -137,6 +138,11 @@
 {{-- Page-specific ecommerce events (view_item, view_item_list, …) render here,
      before the container, so GTM picks them up on its initial replay. --}}
 @stack('datalayer')
+
+@if ($ahrefsKey)
+    {{-- Ahrefs Web Analytics — cookieless, so it loads regardless of the consent layer. --}}
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="{{ $ahrefsKey }}" async></script>
+@endif
 
 @unless ($ccEnabled)
     {{-- Consent layer OFF → original unconditional loading (unchanged behavior). --}}

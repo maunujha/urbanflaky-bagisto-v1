@@ -152,7 +152,7 @@
 
             {{-- Content (RTE wrapper restores typography on the dark theme) --}}
             <div class="uf-rte text-uf-muted">
-                {!! webp_picture_html($blog->content) !!}
+                {!! webp_picture_html(\App\Support\RichText::demoteH1($blog->content)) !!}
             </div>
 
             {{-- Back to blog --}}

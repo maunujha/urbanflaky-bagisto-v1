@@ -1,9 +1,9 @@
 <?php
 
-use Spatie\ResponseCache\CacheProfiles\CacheAllSuccessfulGetRequests;
+use App\Support\ResponseCacheHasher;
+use App\Support\ResponseCacheProfile;
 use Spatie\ResponseCache\Replacers\CsrfTokenReplacer;
 use Spatie\ResponseCache\Serializers\DefaultSerializer;
-use Webkul\FPC\Hasher\DefaultHasher;
 use Webkul\FPC\Replacers\FlashMessagesReplacer;
 
 return [
@@ -19,7 +19,7 @@ return [
      *  You can provide your own class given that it implements the
      *  CacheProfile interface.
      */
-    'cache_profile' => CacheAllSuccessfulGetRequests::class,
+    'cache_profile' => ResponseCacheProfile::class, // skips ?page=2+ (see class)
 
     /*
      *  Optionally, you can specify a header that will force a cache bypass.
@@ -92,7 +92,7 @@ return [
      * This class is responsible for generating a hash for a request. This hash
      * is used to look up a cached response.
      */
-    'hasher' => DefaultHasher::class,
+    'hasher' => ResponseCacheHasher::class, // keeps ?page=N (Webkul's drops all query strings)
 
     /*
      * This class is responsible for serializing responses.
