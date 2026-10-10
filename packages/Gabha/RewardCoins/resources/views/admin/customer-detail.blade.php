@@ -41,6 +41,9 @@
         <form method="POST" action="{{ route('admin.reward_coins.customer.grant', $customerId) }}">
             @csrf
 
+            {{-- One-time key: a double-submit posts the adjustment once. --}}
+            <input type="hidden" name="operation_key" value="{{ (string) \Illuminate\Support\Str::uuid() }}" />
+
             <div class="flex flex-wrap items-end gap-4">
                 <div>
                     <label class="mb-1 block text-sm text-gray-600 dark:text-gray-300">@lang('reward-coins::reward_coins.admin.grant.amount')</label>

@@ -4,45 +4,49 @@ declare(strict_types=1);
 
 namespace Gabha\RewardCoins\Services;
 
-use Gabha\RewardCoins\Enums\TransactionStatus;
 use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
-use Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
- * Lapses confirmed coins whose expiry window has passed.
+ * Lapses lots whose expiry has passed.
  *
- * Each expiry is its own atomic unit (ledger flip + balance debit) so one bad
- * row can never roll back the rest of the run.
+ * Only each lot's unspent remainder is expired ({@see CoinWalletService::expireLot()}),
+ * one lot per transaction, streamed in bounded chunks. A failing lot is logged
+ * and skipped so the rest of the run still completes; because each lot is
+ * idempotent, re-running after a crash simply picks up what is left.
  */
 class CoinExpiryService
 {
     public function __construct(
         private readonly CoinTransactionRepositoryInterface $ledger,
-        private readonly CoinWalletRepositoryInterface $wallets,
+        private readonly CoinWalletService $walletService,
     ) {
     }
 
     /**
-     * Expire all due coin batches and return how many were processed.
+     * Expire all due lots.
      *
-     * @return int
+     * @return array{lots: int, coins: int, failed: int}
      */
-    public function expireOldCoins(): int
+    public function expireOldCoins(): array
     {
-        $count = 0;
+        $result = ['lots' => 0, 'coins' => 0, 'failed' => 0];
 
-        foreach ($this->ledger->getExpired() as $transaction) {
-            DB::transaction(function () use ($transaction): void {
-                $this->wallets->decrementBalance((int) $transaction->customer_id, (int) $transaction->amount);
+        foreach ($this->ledger->lazyExpiredLots((int) config('reward_coins.batch_size', 200)) as $lot) {
+            try {
+                $result['coins'] += $this->walletService->expireLot($lot);
+                $result['lots']++;
+            } catch (Throwable $e) {
+                $result['failed']++;
 
-                $transaction->status = TransactionStatus::Expired;
-                $transaction->save();
-            });
-
-            $count++;
+                Log::error('RewardCoins: failed to expire coin lot.', [
+                    'transaction_id' => $lot->id,
+                    'error'          => $e->getMessage(),
+                ]);
+            }
         }
 
-        return $count;
+        return $result;
     }
 }

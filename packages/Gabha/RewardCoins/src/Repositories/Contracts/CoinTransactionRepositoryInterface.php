@@ -5,36 +5,26 @@ declare(strict_types=1);
 namespace Gabha\RewardCoins\Repositories\Contracts;
 
 use DateTimeInterface;
-use Gabha\RewardCoins\DTOs\CoinEarningPayload;
 use Gabha\RewardCoins\Enums\TransactionStatus;
 use Gabha\RewardCoins\Enums\TransactionType;
+use Gabha\RewardCoins\Models\CoinAllocation;
 use Gabha\RewardCoins\Models\CoinTransaction;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\LazyCollection;
 
 /**
- * Data-access contract for the coin ledger (coin_transactions).
+ * Data-access contract for the coin ledger (coin_transactions) and the lot
+ * allocations that tie each debit to the lot(s) it consumed.
  *
  * Keeping this behind an interface means the storage layer is swappable and
- * the services depend on the abstraction, never on Eloquent directly.
+ * the services depend on the abstraction, never on Eloquent directly. Methods
+ * documented as "locking" must be called inside a DB transaction.
  */
 interface CoinTransactionRepositoryInterface
 {
     /**
-     * Create an `earned` / `pending` ledger row for an order, with expiry set
-     * from the active settings.
-     *
-     * @param  CoinEarningPayload  $payload
-     * @param  int  $coins
-     * @return CoinTransaction
-     */
-    public function createEarning(CoinEarningPayload $payload, int $coins): CoinTransaction;
-
-    /**
      * Generic ledger insert used by the wallet service.
-     *
-     * (Addition to the base spec: the services need a primitive-driven creator;
-     * createEarning() is the payload-driven convenience built on top of this.)
      *
      * @param  int  $customerId
      * @param  TransactionType  $type
@@ -43,6 +33,9 @@ interface CoinTransactionRepositoryInterface
      * @param  int|null  $orderId
      * @param  string|null  $note
      * @param  DateTimeInterface|null  $expiresAt
+     * @param  int|null  $remaining  Opening balance of a credit lot; null for debits.
+     * @param  string|null  $operationKey  Unique idempotency key.
+     * @param  array<string, mixed>  $meta
      * @return CoinTransaction
      */
     public function record(
@@ -53,18 +46,86 @@ interface CoinTransactionRepositoryInterface
         ?int $orderId = null,
         ?string $note = null,
         ?DateTimeInterface $expiresAt = null,
+        ?int $remaining = null,
+        ?string $operationKey = null,
+        array $meta = [],
     ): CoinTransaction;
 
     /**
-     * Pending `earned` transactions tied to an order (for confirm/reverse).
+     * Record that $debit consumed $amount coins from $lot (null = legacy balance).
      *
-     * @param  int  $orderId
-     * @return Collection<int, CoinTransaction>
+     * @param  CoinTransaction  $debit
+     * @param  CoinTransaction|null  $lot
+     * @param  int  $amount
+     * @return CoinAllocation
      */
-    public function getPendingForOrder(int $orderId): Collection;
+    public function allocate(CoinTransaction $debit, ?CoinTransaction $lot, int $amount): CoinAllocation;
 
     /**
-     * Pending `earned` transactions for a customer (for manual admin approval).
+     * The row posted under an idempotency key, read with a row lock so the
+     * latest committed version is seen (locking).
+     *
+     * @param  string  $operationKey
+     * @return CoinTransaction|null
+     */
+    public function findByOperationKey(string $operationKey): ?CoinTransaction;
+
+    /**
+     * Re-read a single row with a row lock (locking).
+     *
+     * @param  int  $id
+     * @return CoinTransaction|null
+     */
+    public function lockById(int $id): ?CoinTransaction;
+
+    /**
+     * The order's single row of the given type — its earned lot or its
+     * redemption — with a row lock (locking).
+     *
+     * @param  int  $orderId
+     * @param  TransactionType  $type
+     * @return CoinTransaction|null
+     */
+    public function lockOrderRow(int $orderId, TransactionType $type): ?CoinTransaction;
+
+    /**
+     * All of an order's rows of one type (small, bounded per order).
+     *
+     * @param  int  $orderId
+     * @param  TransactionType  $type
+     * @return Collection<int, CoinTransaction>
+     */
+    public function getOrderRows(int $orderId, TransactionType $type): Collection;
+
+    /**
+     * Total coin magnitude already recorded for an order under a given type.
+     *
+     * @param  int  $orderId
+     * @param  TransactionType  $type
+     * @return int
+     */
+    public function sumAmountForOrder(int $orderId, TransactionType $type): int;
+
+    /**
+     * A customer's confirmed lots that still hold coins, in spend order:
+     * soonest-expiring first, non-expiring last, then oldest first (locking).
+     *
+     * @param  int  $customerId
+     * @param  int|null  $preferLotId  Lot to drain before the FIFO order.
+     * @return Collection<int, CoinTransaction>
+     */
+    public function lockSpendableLots(int $customerId, ?int $preferLotId = null): Collection;
+
+    /**
+     * A debit's allocations, newest first, with a row lock (locking).
+     *
+     * @param  int  $debitId
+     * @return Collection<int, CoinAllocation>
+     */
+    public function lockAllocationsFor(int $debitId): Collection;
+
+    /**
+     * Pending `earned` lots for a customer (for manual admin approval).
      *
      * @param  int  $customerId
      * @return Collection<int, CoinTransaction>
@@ -72,32 +133,22 @@ interface CoinTransactionRepositoryInterface
     public function getPendingForCustomer(int $customerId): Collection;
 
     /**
-     * Confirmed `redeemed` transactions tied to an order (for reverse).
+     * Pending `earned` lots whose return window has elapsed, streamed in
+     * id-ordered chunks so memory stays flat.
      *
-     * (Addition to the base spec: required to restore redeemed coins on
-     * cancellation.)
-     *
-     * @param  int  $orderId
-     * @return Collection<int, CoinTransaction>
+     * @param  int  $chunkSize
+     * @return LazyCollection<int, CoinTransaction>
      */
-    public function getRedeemedForOrder(int $orderId): Collection;
+    public function lazyAvailableForConfirmation(int $chunkSize = 200): LazyCollection;
 
     /**
-     * Live `earned` transactions tied to an order — both pending and confirmed
-     * (for the refund claw-back). Terminal rows (cancelled/expired) are excluded.
+     * Distinct order ids holding pending `earned` lots with no return-window
+     * stamp yet (the delivery reconciliation input), streamed.
      *
-     * @param  int  $orderId
-     * @return Collection<int, CoinTransaction>
+     * @param  int  $chunkSize
+     * @return LazyCollection<int, int>
      */
-    public function getEarnedForOrder(int $orderId): Collection;
-
-    /**
-     * Pending `earned` transactions whose return window has elapsed
-     * (available_at set and now past) — the confirm-available sweep input.
-     *
-     * @return Collection<int, CoinTransaction>
-     */
-    public function getAvailableForConfirmation(): Collection;
+    public function lazyOrdersMissingAvailability(int $chunkSize = 200): LazyCollection;
 
     /**
      * Stamp the return-window unlock time on an order's still-pending earned
@@ -110,14 +161,13 @@ interface CoinTransactionRepositoryInterface
     public function stampAvailableAt(int $orderId, DateTimeInterface $availableAt): int;
 
     /**
-     * Total coin magnitude already recorded for an order under a given type
-     * (used to cap repeated partial-refund claw-backs / restores).
+     * Confirmed lots whose expiry has lapsed, streamed in id-ordered chunks.
+     * Legacy lots without a tracked remainder are excluded (never guessed).
      *
-     * @param  int  $orderId
-     * @param  TransactionType  $type
-     * @return int
+     * @param  int  $chunkSize
+     * @return LazyCollection<int, CoinTransaction>
      */
-    public function sumAmountForOrder(int $orderId, TransactionType $type): int;
+    public function lazyExpiredLots(int $chunkSize = 200): LazyCollection;
 
     /**
      * Paginated, newest-first ledger for a customer (history table).
@@ -129,31 +179,12 @@ interface CoinTransactionRepositoryInterface
     public function getForCustomer(int $customerId, int $perPage = 15): LengthAwarePaginator;
 
     /**
-     * Confirmed transactions whose expiry has lapsed (for the expiry job).
-     *
-     * @return Collection<int, CoinTransaction>
-     */
-    public function getExpired(): Collection;
-
-    /**
-     * Total confirmed coins for a customer expiring within the next $days days
-     * (drives the "expiring soon" summary card).
+     * Unspent confirmed coins for a customer expiring within the next $days
+     * days (drives the "expiring soon" summary card).
      *
      * @param  int  $customerId
      * @param  int  $days
      * @return int
      */
     public function expiringSoonTotal(int $customerId, int $days): int;
-
-    /**
-     * Mark an order's still-active coin transactions as reversed/cancelled.
-     *
-     * Earned-pending rows become `cancelled`; redeemed rows become `reversed`.
-     * Wallet balances are adjusted separately by the calling service so the
-     * whole reversal is one atomic unit.
-     *
-     * @param  int  $orderId
-     * @return void
-     */
-    public function reverseForOrder(int $orderId): void;
 }

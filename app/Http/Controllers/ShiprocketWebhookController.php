@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ShiprocketOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Webkul\Sales\Models\Order;
 
@@ -78,6 +79,15 @@ class ShiprocketWebhookController extends Controller
             'status'  => $status,
             'courier' => $courier,
         ]);
+
+        /*
+         * Delivery opens the reward-coin return window. Exact match, so
+         * "RTO Delivered" never counts; listeners are idempotent, so a
+         * re-sent webhook is harmless.
+         */
+        if (strcasecmp(trim($status), 'Delivered') === 0) {
+            Event::dispatch('shiprocket.order.delivered', $order);
+        }
 
         return response()->json(['message' => 'ok']);
     }

@@ -9,21 +9,46 @@ use Gabha\RewardCoins\DTOs\ValidationResult;
 use Gabha\RewardCoins\Enums\TransactionType;
 use Gabha\RewardCoins\Exceptions\InsufficientCoinsException;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
 use Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Owns the redemption side: how many coins may be spent, what they are worth,
- * applying a redemption, and undoing one on cancellation/refund.
+ * and applying a redemption. Undoing one on cancellation/refund lives in
+ * {@see CoinOrderReversalService}.
  */
 class CoinRedemptionService
 {
+    /**
+     * Idempotency key of an order's redemption: one per order, ever.
+     *
+     * @param  int  $orderId
+     * @return string
+     */
+    public static function redemptionKey(int $orderId): string
+    {
+        return sprintf('redeem:order:%d', $orderId);
+    }
+
     public function __construct(
         private readonly CoinWalletService $walletService,
         private readonly CoinWalletRepositoryInterface $wallets,
-        private readonly CoinTransactionRepositoryInterface $ledger,
     ) {
+    }
+
+    /**
+     * The cart value coins are measured against: the pre-coin total without
+     * delivery. Coins discount products, never shipping, so the redeemable
+     * cap and the minimum order do not move when a shipping method is picked.
+     *
+     * @param  \Webkul\Checkout\Contracts\Cart  $cart  Totals collected, coin discount not yet folded in.
+     * @return float
+     */
+    public function eligibleTotal($cart): float
+    {
+        $shipping = (float) ($cart->base_shipping_amount_incl_tax ?? 0)
+            - (float) ($cart->selected_shipping_rate?->base_discount_amount ?? 0);
+
+        return round(max(0.0, (float) $cart->base_grand_total - max(0.0, $shipping)), 2);
     }
 
     /**
@@ -213,6 +238,7 @@ class CoinRedemptionService
                 type: TransactionType::Redeemed,
                 orderId: $orderId,
                 note: sprintf('Redeemed on order #%d', $orderId),
+                operationKey: self::redemptionKey($orderId),
             );
         } catch (InsufficientCoinsException $e) {
             return TransactionResult::failed($e->getMessage());
@@ -222,28 +248,6 @@ class CoinRedemptionService
             coinsAwarded: -$coins,
             message: sprintf('Redeemed %d coins (₹%s off).', $coins, number_format($this->getDiscountValue($coins), 2)),
         );
-    }
-
-    /**
-     * Undo every coin movement tied to an order: restore redeemed coins and
-     * cancel any still-pending earned coins. One atomic unit of work.
-     *
-     * @param  int  $orderId
-     * @return void
-     */
-    public function reverse(int $orderId): void
-    {
-        DB::transaction(function () use ($orderId): void {
-            foreach ($this->ledger->getRedeemedForOrder($orderId) as $transaction) {
-                $this->wallets->revertRedemption((int) $transaction->customer_id, (int) $transaction->amount);
-            }
-
-            foreach ($this->ledger->getPendingForOrder($orderId) as $transaction) {
-                $this->wallets->decrementPending((int) $transaction->customer_id, (int) $transaction->amount);
-            }
-
-            $this->ledger->reverseForOrder($orderId);
-        });
     }
 
     /**

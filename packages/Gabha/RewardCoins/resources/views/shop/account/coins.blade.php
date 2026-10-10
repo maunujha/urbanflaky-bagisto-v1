@@ -3,14 +3,26 @@
         @lang('reward-coins::reward_coins.account.title')
     </x-slot>
 
-    {{-- Account sidebar navigation --}}
-    <x-shop::layouts.account.navigation />
+    {{-- Account sidebar navigation (desktop; mobile reaches it via the back arrow) --}}
+    <div class="max-md:hidden">
+        <x-shop::layouts.account.navigation />
+    </div>
 
-    <div class="flex-1">
+    <div class="min-w-0 flex-auto mx-4 max-md:mx-6 max-sm:mx-4">
         <div class="flex items-center justify-between gap-4">
-            <h1 class="text-2xl font-bold">
-                @lang('reward-coins::reward_coins.account.title')
-            </h1>
+            <div class="flex items-center">
+                <a
+                    class="grid md:hidden"
+                    href="{{ route('shop.customers.account.index') }}"
+                    aria-label="@lang('reward-coins::reward_coins.account.back')"
+                >
+                    <span class="text-2xl icon-arrow-left rtl:icon-arrow-right"></span>
+                </a>
+
+                <h1 class="text-2xl font-bold max-md:text-xl max-sm:text-base ltr:ml-2.5 md:ltr:ml-0 rtl:mr-2.5 md:rtl:mr-0">
+                    @lang('reward-coins::reward_coins.account.title')
+                </h1>
+            </div>
 
             <x-reward-coins::coin-badge :balance="$wallet->balance" size="md" />
         </div>

@@ -99,13 +99,14 @@ class CoinDiscount
         /*
          * The pre-coin total: collectTotals() rebuilds the grand total from the
          * line items and dispatches *before* this collector folds anything in, so
-         * the value read here never includes a coin discount.
+         * the value read here never includes a coin discount. The redeemable cap
+         * is measured on products only (shipping excluded).
          */
         $preCoinTotal = (float) $cart->base_grand_total;
 
         // Clamp the request to what is actually redeemable now, so the displayed
         // saving can never exceed the wallet debit performed at placement.
-        $coins = min($stagedCoins, $this->redemption->getRedeemableCoins($customerId, $preCoinTotal));
+        $coins = min($stagedCoins, $this->redemption->getRedeemableCoins($customerId, $this->redemption->eligibleTotal($cart)));
 
         if ($coins <= 0) {
             return 0.0;

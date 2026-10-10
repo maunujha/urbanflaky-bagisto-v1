@@ -6,6 +6,11 @@
     colors="true"
 >
     <testsuites>
+        <!-- Application (app/, routes/) testsuites. -->
+        <testsuite name="App Feature Test">
+            <directory suffix="Test.php">tests/Feature</directory>
+        </testsuite>
+
         <!-- Admin package testsuites. -->
         <testsuite name="Admin Feature Test">
             <directory suffix="Test.php">packages/Webkul/Admin/tests/Feature</directory>
@@ -14,6 +19,11 @@
         <!-- Gabha Search (Meilisearch + NL) package testsuites. -->
         <testsuite name="Gabha Search Unit Test">
             <directory suffix="Test.php">packages/Gabha/Search/tests/Unit</directory>
+        </testsuite>
+
+        <!-- Gabha RewardCoins (accounting) package testsuites. -->
+        <testsuite name="Gabha RewardCoins Feature Test">
+            <directory suffix="Test.php">packages/Gabha/RewardCoins/tests/Feature</directory>
         </testsuite>
 
         <!-- Core package testsuites. -->

@@ -35,6 +35,37 @@ class CoinWalletRepository implements CoinWalletRepositoryInterface
     /**
      * {@inheritDoc}
      */
+    public function lock(int $customerId): CustomerCoinWallet
+    {
+        // Lock the existing row first. Calling insertOrIgnore on an existing
+        // wallet would take a shared lock on the duplicate key, and two
+        // workers each upgrading that to FOR UPDATE deadlock each other.
+        $wallet = $this->model->newQuery()
+            ->where('customer_id', $customerId)
+            ->lockForUpdate()
+            ->first();
+
+        if ($wallet) {
+            return $wallet;
+        }
+
+        // First movement ever: insertOrIgnore is race-safe against the unique
+        // customer_id index (unlike firstOrCreate).
+        $this->model->newQuery()->insertOrIgnore([
+            'customer_id' => $customerId,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        return $this->model->newQuery()
+            ->where('customer_id', $customerId)
+            ->lockForUpdate()
+            ->firstOrFail();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public function getBalance(int $customerId): int
     {
         // Pure read: never materialises a wallet (this runs on every storefront

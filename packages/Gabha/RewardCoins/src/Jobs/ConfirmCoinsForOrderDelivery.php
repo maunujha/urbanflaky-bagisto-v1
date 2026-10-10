@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Gabha\RewardCoins\Jobs;
 
-use Gabha\RewardCoins\Repositories\Contracts\CoinTransactionRepositoryInterface;
+use Gabha\RewardCoins\Services\CoinDeliveryService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -13,13 +13,16 @@ use Illuminate\Support\Facades\Log;
 use Throwable;
 
 /**
- * Queued: opens the post-delivery return window on a delivered order's
- * pending coins.
+ * Queued: opens the post-delivery return window on an order's pending coins.
  *
- * Carries only the order id and the already-computed unlock timestamp,
+ * Dispatched after the surrounding transaction commits, then re-checks
+ * delivery against the committed order (see {@see CoinDeliveryService}).
+ * Idempotent: a window already stamped is never moved, so retries and
+ * duplicate webhooks are harmless.
+ *
+ * Carries only the order id (an int) and the computed unlock timestamp,
  * never the Bagisto order model — see
- * {@see \Gabha\RewardCoins\Listeners\ConfirmCoinsOnDelivery} for why the
- * order model itself isn't safe to serialize onto a queue.
+ * {@see \Gabha\RewardCoins\Listeners\ConfirmCoinsOnDelivery}.
  */
 class ConfirmCoinsForOrderDelivery implements ShouldQueue
 {
@@ -30,13 +33,12 @@ class ConfirmCoinsForOrderDelivery implements ShouldQueue
         public readonly Carbon $availableAt,
     ) {
         $this->onQueue((string) config('reward_coins.queue', 'coins'));
+        $this->afterCommit();
     }
 
-    public function handle(CoinTransactionRepositoryInterface $transactions): void
+    public function handle(CoinDeliveryService $delivery): void
     {
-        // Idempotent: only stamps rows not already carrying an unlock time, so a
-        // repeated status save never resets a running window.
-        $transactions->stampAvailableAt($this->orderId, $this->availableAt);
+        $delivery->openReturnWindow($this->orderId, $this->availableAt);
     }
 
     public function failed(Throwable $e): void

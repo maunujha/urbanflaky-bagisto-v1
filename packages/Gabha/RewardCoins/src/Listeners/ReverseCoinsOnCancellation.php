@@ -45,4 +45,23 @@ class ReverseCoinsOnCancellation
 
         ReverseCoinsForOrder::dispatch((int) $order->id);
     }
+
+    /**
+     * Handle Bagisto's cancel event (sales.order.cancel.after).
+     *
+     * Fires for partial cancellations too — the uninvoiced items of a part
+     * delivered (typically COD) order — where the order status stays
+     * processing/completed and {@see self::handle()} would not act.
+     *
+     * @param  \Webkul\Sales\Contracts\Order  $order
+     * @return void
+     */
+    public function handleCancelled($order): void
+    {
+        if (! CoinSetting::isEnabled()) {
+            return;
+        }
+
+        ReverseCoinsForOrder::dispatch((int) $order->id);
+    }
 }

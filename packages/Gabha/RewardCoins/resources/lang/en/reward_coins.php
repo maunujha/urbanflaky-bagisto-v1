@@ -19,6 +19,7 @@ return [
             'reversed' => 'Reversed',
             'revoked'  => 'Revoked (Refund)',
             'refunded' => 'Restored (Refund)',
+            'deducted' => 'Deducted',
         ],
 
         'statuses' => [
@@ -32,6 +33,7 @@ return [
 
     'account' => [
         'title'             => 'My Coins',
+        'back'              => 'Back to My Account',
         'available-balance' => 'Available Balance',
         'pending'           => 'Pending',
         'lifetime-earned'   => 'Lifetime Earned',
@@ -130,6 +132,8 @@ return [
         'disabled'           => 'The reward coins program is currently unavailable.',
         'insufficient-coins' => 'You do not have enough coins for this redemption.',
         'no-cart'            => 'Your cart is empty.',
+        'cart-mismatch'      => 'This cart does not belong to your account. Please refresh and try again.',
+        'too-many-attempts'  => 'Too many attempts. Please wait a minute and try again.',
         'generic'            => 'Something went wrong. Please try again.',
     ],
 
