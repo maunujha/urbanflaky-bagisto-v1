@@ -43,6 +43,11 @@ final class ShipmentStage
     /** No further courier update changes these. */
     public const TERMINAL = [self::DELIVERED, self::RTO_DELIVERED, self::CANCELED, self::LOST];
 
+    /** Moving towards the customer: these (and only these) mean "shipped" to them. */
+    public const FORWARD = [
+        self::PICKED_UP, self::IN_TRANSIT, self::UNDELIVERED, self::OUT_FOR_DELIVERY, self::DELIVERED,
+    ];
+
     /** The parcel has physically left the warehouse. */
     public const IN_CARRIER_HANDS = [
         self::PICKED_UP, self::IN_TRANSIT, self::UNDELIVERED, self::OUT_FOR_DELIVERY,

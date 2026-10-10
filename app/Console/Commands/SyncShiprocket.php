@@ -32,7 +32,7 @@ class SyncShiprocket extends Command
     public function handle(ShipmentService $shipments, TrackingService $tracking, ShiprocketSettings $settings): int
     {
         if ($settings->autoPush()) {
-            $this->pushMissed();
+            $this->pushMissed($shipments);
         }
 
         if ($settings->autoAssignCourier()) {
@@ -44,7 +44,7 @@ class SyncShiprocket extends Command
         return self::SUCCESS;
     }
 
-    protected function pushMissed(): void
+    protected function pushMissed(ShipmentService $shipments): void
     {
         $orders = Order::query()
             ->whereNotIn('status', [Order::STATUS_CANCELED, Order::STATUS_CLOSED, Order::STATUS_PENDING_PAYMENT, Order::STATUS_COMPLETED])
@@ -55,7 +55,7 @@ class SyncShiprocket extends Command
                 ->whereNotNull('shiprocket_order_id'))
             ->when($this->option('order'), fn ($q, $id) => $q->where('increment_id', $id))
             ->get()
-            ->filter(fn (Order $order) => $order->haveStockableItems());
+            ->filter(fn (Order $order) => $shipments->shouldPush($order));
 
         foreach ($orders as $order) {
             $this->line("Order #{$order->increment_id}: queueing push");

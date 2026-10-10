@@ -40,14 +40,16 @@ class TrackOrderController extends Controller
             'contact'  => 'nullable|required_with:order_id|string|max:120',
         ]);
 
-        [$order, $shipment] = filled($data['awb'] ?? null)
+        $byAwb = filled($data['awb'] ?? null);
+
+        [$order, $shipment] = $byAwb
             ? $this->byAwb(trim($data['awb']))
             : $this->byOrder(ltrim(trim($data['order_id']), '#'), trim($data['contact']));
 
         if (! $order) {
             return response()->json([
                 'found'   => false,
-                'message' => filled($data['awb'] ?? null)
+                'message' => $byAwb
                     ? 'We couldn’t find that tracking number. Check the AWB in your shipping email or SMS, or track with your order number instead.'
                     : 'We couldn’t find an order with those details. Use the order number from your confirmation email and the email or phone number you ordered with.',
             ]);
@@ -57,7 +59,9 @@ class TrackOrderController extends Controller
             $this->refreshIfStale($shipment);
         }
 
-        return response()->json($this->present($order, $shipment?->refresh()));
+        /* An AWB alone proves nothing about who is asking: shipment progress
+           only, never the order number, destination or order date. */
+        return response()->json($this->present($order, $shipment?->refresh(), detailed: ! $byAwb));
     }
 
     /**
@@ -129,7 +133,7 @@ class TrackOrderController extends Controller
         }
     }
 
-    protected function present(Order $order, ?ShiprocketOrder $shipment): array
+    protected function present(Order $order, ?ShiprocketOrder $shipment, bool $detailed): array
     {
         $stage = $shipment?->status;
 
@@ -141,17 +145,17 @@ class TrackOrderController extends Controller
 
         return [
             'found'          => true,
-            'order_id'       => (string) $order->increment_id,
+            'order_id'       => $detailed ? (string) $order->increment_id : null,
             'awb'            => $shipment?->awb_code,
             'courier'        => $shipment?->courier_name,
             'current_status' => ShipmentStage::label($stage),
             'courier_status' => $shipment?->current_status,
             'stage'          => ShipmentStage::progress($stage),
             'state'          => $stage ?? 'new',
-            'destination'    => $address ? trim($address->city.', '.$address->state, ', ') : null,
+            'destination'    => $detailed && $address ? trim($address->city.', '.$address->state, ', ') : null,
             'edd'            => ShipmentStage::isActive($stage) ? $shipment?->etd?->format('D, d M') : null,
             'delivered_date' => $shipment?->delivered_at?->format('D, d M Y'),
-            'placed_on'      => $order->created_at->format('D, d M Y'),
+            'placed_on'      => $detailed ? $order->created_at->format('D, d M Y') : null,
             'note'           => $this->note($stage, $shipment),
             'activities'     => $shipment
                 ? $shipment->events()->limit(40)->get()->map(fn ($e) => [

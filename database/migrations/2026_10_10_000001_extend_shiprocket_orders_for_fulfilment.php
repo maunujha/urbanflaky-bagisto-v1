@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\Shiprocket\ShipmentStage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -39,11 +40,21 @@ return new class extends Migration
             $table->index('status');
         });
 
-        /* Legacy rows: "created" meant "pushed, nothing since". Rows that hold
-           an AWB (the canceled test order) keep their status. */
-        DB::table('shiprocket_orders')->where('status', 'created')->update(['status' => 'new']);
-
         DB::table('shiprocket_orders')->update(['awb_code' => DB::raw("NULLIF(awb_code, '')")]);
+
+        /* Legacy rows hold raw courier wording ("created", "IN TRANSIT",
+           "Delivered"…). Convert each to its stage code and keep the wording in
+           current_status; "created" and anything unrecognised mean "pushed,
+           nothing since". */
+        foreach (DB::table('shiprocket_orders')->get(['id', 'status']) as $row) {
+            $stage = ShipmentStage::fromStatus($row->status) ?? ShipmentStage::NEW;
+
+            DB::table('shiprocket_orders')->where('id', $row->id)->update([
+                'status'         => $stage,
+                'current_status' => strcasecmp((string) $row->status, 'created') === 0 ? null : $row->status,
+                'delivered_at'   => $stage === ShipmentStage::DELIVERED ? DB::raw('updated_at') : null,
+            ]);
+        }
 
         Schema::create('shiprocket_tracking_events', function (Blueprint $table) {
             $table->id();

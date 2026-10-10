@@ -34,6 +34,11 @@ class DeliveryRules
         return is_numeric($minimum) && (float) $minimum > 0 ? (float) $minimum : null;
     }
 
+    public function flatRateEnabled(): bool
+    {
+        return (bool) core()->getConfigData('sales.carriers.flatrate.active');
+    }
+
     public function qualifiesForFreeShipping(float $subtotal): bool
     {
         if (! $this->freeShippingEnabled()) {
@@ -42,7 +47,13 @@ class DeliveryRules
 
         $minimum = $this->freeShippingMinimum();
 
-        return $minimum === null || $subtotal >= $minimum;
+        if ($minimum === null || $subtotal >= $minimum) {
+            return true;
+        }
+
+        /* Below the minimum with no paid option switched on: ship free rather
+           than leave the customer with no way to check out. */
+        return ! $this->flatRateEnabled();
     }
 
     /** Product subtotal the threshold is measured against: item prices incl. GST. */
@@ -97,14 +108,16 @@ class DeliveryRules
      */
     public function summary(): array
     {
-        $free    = $this->freeShippingEnabled();
-        $minimum = $free ? $this->freeShippingMinimum() : null;
-        $flat    = (bool) core()->getConfigData('sales.carriers.flatrate.active');
+        $flat    = $this->flatRateEnabled();
+        $minimum = $this->freeShippingEnabled() ? $this->freeShippingMinimum() : null;
+
+        /* Free for everyone: no minimum, or a minimum with no paid fallback. */
+        $freeForAll = $this->freeShippingEnabled() && ($minimum === null || ! $flat);
 
         return [
-            'free'         => $free && $minimum === null,
-            'free_over'    => $minimum,
-            'fee'          => $flat && ! ($free && $minimum === null) ? (float) core()->getConfigData('sales.carriers.flatrate.default_rate') : null,
+            'free'         => $freeForAll,
+            'free_over'    => $freeForAll ? null : $minimum,
+            'fee'          => $flat && ! $freeForAll ? (float) core()->getConfigData('sales.carriers.flatrate.default_rate') : null,
             'fee_per_unit' => core()->getConfigData('sales.carriers.flatrate.type') === 'per_unit',
         ];
     }

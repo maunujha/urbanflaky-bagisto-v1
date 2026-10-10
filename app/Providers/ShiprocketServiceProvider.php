@@ -30,6 +30,8 @@ class ShiprocketServiceProvider extends ServiceProvider
 
         $this->loadViewsFrom(resource_path('views/shiprocket'), 'shiprocket');
 
+        $this->extendCoreConfigSections();
+
         /* Prepaid orders only exist once Razorpay has captured the payment,
            so "order saved" is the right moment for both COD and prepaid. */
         Event::listen('checkout.order.save.after', function ($order) {
@@ -52,5 +54,26 @@ class ShiprocketServiceProvider extends ServiceProvider
                 $viewRenderEventManager->addTemplate('shiprocket::admin.order-panel');
             }
         });
+    }
+
+    /**
+     * Append the free-shipping minimum and COD fields (config/shipping-system.php)
+     * to Bagisto's own Shipping and Payment sections, without editing core.
+     * Runs at boot, after every package has merged its `core` config, and
+     * skips fields already present so a cached config is not doubled.
+     */
+    protected function extendCoreConfigSections(): void
+    {
+        $extra = require base_path('config/shipping-system.php');
+
+        config(['core' => array_map(function ($item) use ($extra) {
+            foreach ($extra[$item['key'] ?? ''] ?? [] as $field) {
+                if (! collect($item['fields'] ?? [])->contains('name', $field['name'])) {
+                    $item['fields'][] = $field;
+                }
+            }
+
+            return $item;
+        }, config('core', []))]);
     }
 }

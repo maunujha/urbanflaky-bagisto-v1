@@ -299,13 +299,15 @@ it('tracks only AWBs this store issued', function () {
     ShiprocketOrder::where('order_id', $order->id)->update(['last_synced_at' => now()]);
 
     $this->postJson(route('shop.track-order.track'), ['awb' => '000000000000'])->assertJson(['found' => false]);
-    $this->postJson(route('shop.track-order.track'), ['awb' => 'AWB123'])->assertJson(['found' => true, 'order_id' => (string) $order->increment_id]);
+    /* An AWB alone never reveals the order number, destination or date. */
+    $this->postJson(route('shop.track-order.track'), ['awb' => 'AWB123'])
+        ->assertJson(['found' => true, 'awb' => 'AWB123', 'order_id' => null, 'destination' => null, 'placed_on' => null]);
 });
 
 it('applies the free-shipping threshold from admin settings', function () {
     $rules = app(DeliveryRules::class);
 
-    config(['carriers.free.active' => true, 'carriers.free.min_order_amount' => '']);
+    config(['carriers.free.active' => true, 'carriers.free.min_order_amount' => '', 'carriers.flatrate.active' => true]);
     expect($rules->qualifiesForFreeShipping(1))->toBeTrue()
         ->and($rules->promise())->toBe('Free delivery');
 
@@ -412,4 +414,97 @@ it('still renders the admin create-order page, which shares the panel hook', fun
     ]);
 
     $this->get(route('admin.sales.orders.create', $cart->id))->assertOk();
+});
+
+/*
+| Code-review fixes.
+*/
+
+it('never pushes an order that was already shipped another way', function () {
+    Http::fake();
+
+    $order = shippingOrder();
+
+    $item = $order->items->first();
+    \Webkul\Sales\Models\Shipment::factory()->create(['order_id' => $order->id]);
+    $item->update(['qty_shipped' => $item->qty_ordered]);
+
+    PushOrderToShiprocket::dispatchSync($order->id);
+
+    Http::assertNothingSent();
+    expect(ShiprocketOrder::where('order_id', $order->id)->exists())->toBeFalse();
+});
+
+it('keeps the AWB when the current courier is re-selected', function () {
+    fakeShiprocket(['*/orders/cancel/shipment/awbs' => Http::response(['message' => 'ok'])]);
+
+    $order = shippingOrder();
+    PushOrderToShiprocket::dispatchSync($order->id);
+
+    $shipment = ShiprocketOrder::where('order_id', $order->id)->first();
+
+    app(\App\Services\Shiprocket\ShipmentService::class)->assignCourier($shipment, '12');
+
+    expect($shipment->refresh()->awb_code)->toBe('AWB123');
+    Http::assertNotSent(fn ($request) => str_contains($request->url(), 'cancel/shipment/awbs'));
+});
+
+it('ships free below the minimum when no paid option is switched on', function () {
+    $rules = app(DeliveryRules::class);
+
+    config(['carriers.free.active' => true, 'carriers.free.min_order_amount' => '999', 'carriers.flatrate.active' => false]);
+
+    expect($rules->qualifiesForFreeShipping(500))->toBeTrue()
+        ->and($rules->promise())->toBe('Free delivery');
+
+    config(['carriers.flatrate.active' => true]);
+
+    expect($rules->qualifiesForFreeShipping(500))->toBeFalse()
+        ->and($rules->promise())->toBe('Free delivery over ₹999');
+});
+
+it('does not treat a Shiprocket validation error as undeliverable, nor cache it', function () {
+    Http::fake(['*' => Http::sequence()
+        ->push(['message' => 'Invalid pickup postcode'], 422)
+        ->push(['data' => ['available_courier_companies' => [['courier_company_id' => 1, 'courier_name' => 'X', 'rate' => 50, 'cod' => 1]]]])]);
+
+    $service = app(ServiceabilityService::class);
+
+    expect($service->check('302001'))->toBeNull()
+        ->and($service->check('302001'))->toMatchArray(['serviceable' => true]);
+});
+
+it('sends no shipped email or shipment when the first update is a return', function () {
+    fakeShiprocket();
+
+    $order = shippingOrder();
+    PushOrderToShiprocket::dispatchSync($order->id);
+
+    webhook($this, ['awb' => 'AWB123', 'current_status' => 'RTO DELIVERED'])->assertOk();
+
+    expect($order->refresh()->shipments)->toHaveCount(0)
+        ->and(ShiprocketOrder::where('order_id', $order->id)->value('status'))->toBe(ShipmentStage::RTO_DELIVERED);
+});
+
+it('does not complete a delivered order that Bagisto could not ship', function () {
+    fakeShiprocket();
+
+    $order = shippingOrder();
+    PushOrderToShiprocket::dispatchSync($order->id);
+
+    /* No shipping address: the Bagisto shipment cannot be created. */
+    OrderAddress::where('order_id', $order->id)->where('address_type', OrderAddress::ADDRESS_TYPE_SHIPPING)->delete();
+
+    webhook($this, ['awb' => 'AWB123', 'current_status' => 'DELIVERED'])->assertOk();
+
+    expect($order->refresh()->status)->not->toBe(Order::STATUS_COMPLETED)
+        ->and(ShiprocketOrder::where('order_id', $order->id)->value('status'))->toBe(ShipmentStage::DELIVERED);
+});
+
+it('adds the shipping and COD fields without editing core admin config', function () {
+    $core = collect(config('core'));
+
+    expect(collect($core->firstWhere('key', 'sales.carriers.free')['fields'])->where('name', 'min_order_amount'))->toHaveCount(1)
+        ->and(collect($core->firstWhere('key', 'sales.payment_methods.cashondelivery')['fields'])->pluck('name'))
+        ->toContain('max_order_total', 'check_pincode');
 });

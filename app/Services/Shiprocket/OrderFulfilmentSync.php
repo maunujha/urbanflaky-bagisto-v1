@@ -35,12 +35,20 @@ class OrderFulfilmentSync
 
         $failure = null;
 
-        if (in_array($to, ShipmentStage::IN_CARRIER_HANDS, true)) {
+        /* Returns and losses never trigger a "your order has shipped" email. */
+        if (in_array($to, ShipmentStage::FORWARD, true)) {
             $failure = $this->attempt(fn () => $this->ship($order, $shipment), $order, 'create shipment');
         }
 
         if ($to === ShipmentStage::DELIVERED) {
-            $failure = $this->attempt(fn () => $this->complete($order->refresh()), $order, 'complete order') ?? $failure;
+            /* Completed only once Bagisto agrees everything shipped; a retry
+               finishes the job after the shipment step succeeds. */
+            if (! $failure && ! $order->refresh()->canShip()) {
+                $failure = $this->attempt(fn () => $this->complete($order), $order, 'complete order');
+            } elseif (! $failure) {
+                $failure = new \RuntimeException("Order {$order->increment_id} delivered but not fully shipped in Bagisto; not completed.");
+                Log::warning($failure->getMessage());
+            }
 
             /* RewardCoins opens the return window from here; its listeners are idempotent. */
             Event::dispatch('shiprocket.order.delivered', $order);

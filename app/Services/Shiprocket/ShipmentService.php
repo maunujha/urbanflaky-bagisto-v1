@@ -23,12 +23,15 @@ class ShipmentService
     ) {}
 
     /**
-     * Whether an order should go to Shiprocket at all.
+     * Whether an order should go to Shiprocket at all. Never one that was
+     * already shipped another way: that would book a second courier.
      */
     public function shouldPush(Order $order): bool
     {
         return $order->haveStockableItems()
-            && ! in_array($order->status, [Order::STATUS_CANCELED, Order::STATUS_CLOSED, Order::STATUS_PENDING_PAYMENT], true);
+            && ! in_array($order->status, [Order::STATUS_CANCELED, Order::STATUS_CLOSED, Order::STATUS_PENDING_PAYMENT, Order::STATUS_COMPLETED], true)
+            && $order->canShip()
+            && $order->shipments()->doesntExist();
     }
 
     /**
@@ -78,7 +81,8 @@ class ShipmentService
         }
 
         if ($shipment->hasAwb()) {
-            if (! $courierId) {
+            /* Re-confirming the current courier must not release a valid AWB. */
+            if (! $courierId || $courierId === (string) $shipment->courier_company_id) {
                 return $shipment;
             }
 

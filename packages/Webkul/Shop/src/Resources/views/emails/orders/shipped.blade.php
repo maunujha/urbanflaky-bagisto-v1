@@ -68,7 +68,8 @@
                         </span>
                     </div>
 
-                    @if ($shipment->track_number)
+                    {{-- Only AWBs our tracking page knows: hand-shipped orders with another courier would show "not found". --}}
+                    @if ($shipment->track_number && \App\Models\ShiprocketOrder::where('order_id', $shipment->order_id)->where('awb_code', $shipment->track_number)->exists())
                         <div style="margin-top: 12px;">
                             <a
                                 href="{{ route('shop.track-order.index', ['awb' => $shipment->track_number]) }}"

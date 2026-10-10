@@ -23,7 +23,7 @@
         default                    => $shipment->stageLabel(),
     };
 
-    $canPush     = ! $shipment?->isPushed() && $order->haveStockableItems() && ! in_array($order->status, ['canceled', 'closed', 'pending_payment'], true);
+    $canPush      = ! $shipment?->isPushed() && app(\App\Services\Shiprocket\ShipmentService::class)->shouldPush($order);
     $beforePickup = $shipment?->isPushed() && $shipment->isBeforePickup();
 @endphp
 
@@ -111,7 +111,7 @@
                     @elseif ($canPush)
                         This order is not in Shiprocket yet.
                     @else
-                        Nothing to ship for this order.
+                        Nothing to send: this order is cancelled, awaiting payment, or already shipped another way.
                     @endif
                 </p>
             @endif

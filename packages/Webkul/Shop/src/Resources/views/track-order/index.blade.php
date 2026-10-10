@@ -296,7 +296,7 @@
                     <div class="rounded-2xl border border-uf-border bg-uf-surface2/60 p-5 md:p-6">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <div class="text-[11px] font-semibold uppercase tracking-wide text-uf-muted">Order #${esc(d.order_id)}</div>
+                                <div class="text-[11px] font-semibold uppercase tracking-wide text-uf-muted">${d.order_id ? `Order #${esc(d.order_id)}` : 'Tracking number'}</div>
                                 ${d.awb
                                     ? `<div class="font-mono text-lg font-bold text-uf-text">AWB ${esc(d.awb)}</div>`
                                     : `<div class="text-lg font-bold text-uf-text">Placed ${esc(d.placed_on)}</div>`}

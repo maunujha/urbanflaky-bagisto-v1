@@ -12,12 +12,12 @@ up so it does. Code lives in `app/Services/Shiprocket`, wired by
 | Checkout: address | No courier serves the pincode → no delivery option → customer is told and stays on the address step | `App\Shipping\Carriers\{Free,FlatRate}` |
 | Checkout: delivery | Exactly one option: Free Shipping when it applies, otherwise Flat Rate | same |
 | Checkout: payment | COD hidden above the max order value or where couriers can't collect cash | `App\Payment\CashOnDelivery` |
-| Order saved | Queued push. Prepaid orders only exist after Razorpay capture, so both COD and prepaid push at this moment | `PushOrderToShiprocket` |
+| Order saved | Queued push (never for orders already shipped another way). Prepaid orders only exist after Razorpay capture, so both COD and prepaid push at this moment | `PushOrderToShiprocket` |
 | Push | Create Shiprocket order (once, locked, adopts an existing one on retry), then assign the recommended courier (AWB) | `ShipmentService::push()` |
 | Pickup | Booked from the admin order page, or automatically if enabled | `ShipmentService::schedulePickup()` |
 | Courier scans | Webhook → status history + stage. Stage only moves forward | `ShiprocketWebhookController` → `TrackingService` |
-| Picked up | Bagisto shipment created (carrier + AWB) → "order shipped" email with a tracking link, order → Shipped | `OrderFulfilmentSync` |
-| Delivered | COD orders invoiced, order → Completed, `shiprocket.order.delivered` fired (RewardCoins return window opens) | same |
+| Picked up | Bagisto shipment created (carrier + AWB) → "order shipped" email with a tracking link, order → Shipped. Return or loss updates never do this | `OrderFulfilmentSync` |
+| Delivered | Once the Bagisto shipment exists: COD orders invoiced, order → Completed; `shiprocket.order.delivered` fired (RewardCoins return window opens) | same |
 | Cancelled in admin | Cancelled in Shiprocket too, while the parcel is still at the warehouse | `CancelShiprocketOrder` |
 | Every 30 min | Push missed orders, assign couriers that failed, poll tracking for quiet shipments | `php artisan shiprocket:sync` |
 
@@ -49,7 +49,11 @@ Shipment stages (`shiprocket_orders.status`): `new` → `awb_assigned` →
     e.g. `999` = free from ₹999.
   - Flat Rate: the fee for orders below the minimum (shown only when free
     shipping does not apply). Set the type to *Per Order* for one fee per order.
-- **Configure → Sales → Payment Methods → Cash on Delivery**
+    With a minimum set and Flat Rate off, every order ships free, so a
+    customer is never left without a delivery option.
+- **Configure → Sales → Payment Methods → Cash on Delivery** (these fields,
+  and the Free Shipping minimum, are added by `config/shipping-system.php`;
+  Bagisto's core files are not edited)
   - *Maximum Order Value for COD*: `2000` (blank = no limit).
   - *Check COD Availability by Pincode*: on.
 - **Configure → Sales → Shiprocket**: automation switches, pickup location
@@ -71,7 +75,9 @@ manifest, Shiprocket invoice, refresh tracking, cancel shipment.
 
 - `/track-order`: order number + email or phone, or an AWB this store
   issued. Answers from our own history, refreshed from the courier at most
-  every 15 minutes. `?awb=` tracks immediately; `?order=` prefills.
+  every 15 minutes. `?awb=` tracks immediately; `?order=` prefills. An AWB
+  alone shows shipment progress only, never the order number, destination
+  or order date.
 - Account → order: shipment card with stage, courier, AWB, ETA and a link to
   the tracking page.
 - "Order shipped" email: Track your order button.

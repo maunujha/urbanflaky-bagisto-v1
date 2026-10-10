@@ -46,8 +46,10 @@ class ServiceabilityService
                 'cod'               => 0,
             ]);
         } catch (ShiprocketException $e) {
-            /* "No courier service available" arrives as a 404-ish failure on some accounts. */
-            if ($e->getCode() === 404 || $e->getCode() === 422) {
+            /* Only Shiprocket's explicit "no courier" answer means undeliverable.
+               Any other error (bad pickup pincode, validation change, outage)
+               is unknown: never cache it, never block checkout on it. */
+            if (str_contains(strtolower($e->getMessage()), 'no courier')) {
                 return $this->remember($key, $this->summarise([]));
             }
 
