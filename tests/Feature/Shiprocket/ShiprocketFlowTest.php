@@ -508,3 +508,73 @@ it('adds the shipping and COD fields without editing core admin config', functio
         ->and(collect($core->firstWhere('key', 'sales.payment_methods.cashondelivery')['fields'])->pluck('name'))
         ->toContain('max_order_total', 'check_pincode');
 });
+
+/*
+| Admin saves (regression: a "nullable" rule silently blocked Save in the browser).
+*/
+
+it('uses only rules the admin browser validator knows', function () {
+    $rules = collect(config('core'))
+        ->flatMap(fn ($item) => $item['fields'] ?? [])
+        ->pluck('validation')
+        ->filter()
+        ->flatMap(fn ($v) => explode('|', $v))
+        ->map(fn ($rule) => explode(':', $rule)[0]);
+
+    expect($rules)->not->toContain('nullable');
+});
+
+function saveConfig($test, string $sectionKey, array $values)
+{
+    $item = collect(config('core'))->firstWhere('key', $sectionKey);
+    [$group, $sub, $section] = explode('.', $sectionKey);
+
+    return $test->post(route('admin.configuration.store', ['slug' => $group, 'slug2' => $sub]), [
+        'keys'    => [json_encode(['key' => $item['key'], 'fields' => $item['fields']])],
+        'channel' => core()->getDefaultChannelCode(),
+        'locale'  => 'en',
+        $group    => [$sub => [$section => $values]],
+    ]);
+}
+
+it('saves Free Shipping on with a blank or numeric minimum', function () {
+    $this->actingAs(\Webkul\User\Models\Admin::factory()->create(), 'admin');
+
+    saveConfig($this, 'sales.carriers.free', ['active' => 1, 'title' => 'Free Shipping', 'description' => 'Free Shipping', 'min_order_amount' => ''])
+        ->assertSessionHasNoErrors()->assertSessionHas('success');
+
+    expect(core()->getConfigData('sales.carriers.free.active'))->toEqual('1');
+
+    saveConfig($this, 'sales.carriers.free', ['active' => 1, 'title' => 'Free Shipping', 'description' => 'Free Shipping', 'min_order_amount' => '999'])
+        ->assertSessionHas('success');
+
+    expect(app(DeliveryRules::class)->freeShippingMinimum())->toEqual(999.0);
+
+    saveConfig($this, 'sales.carriers.free', ['active' => 1, 'title' => 'Free Shipping', 'description' => 'Free Shipping', 'min_order_amount' => '-5'])
+        ->assertSessionHasErrors('sales.carriers.free.min_order_amount');
+});
+
+it('saves the COD maximum and pincode check', function () {
+    $this->actingAs(\Webkul\User\Models\Admin::factory()->create(), 'admin');
+
+    saveConfig($this, 'sales.payment_methods.cashondelivery', [
+        'active' => 1, 'title' => 'Cash On Delivery', 'description' => 'Cash On Delivery', 'instructions' => '',
+        'generate_invoice' => 0, 'sort' => 6, 'max_order_total' => '2000', 'check_pincode' => 1,
+    ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+    expect(app(DeliveryRules::class)->codMaximum())->toEqual(2000.0)
+        ->and((bool) core()->getConfigData('sales.payment_methods.cashondelivery.check_pincode'))->toBeTrue();
+});
+
+it('renders the lookbook admin pages', function () {
+    $this->actingAs(\Webkul\User\Models\Admin::factory()->create(), 'admin');
+
+    $this->get(route('admin.lookbook.index'))->assertOk();
+    $this->get(route('admin.lookbook.create'))->assertOk();
+
+    $look = \App\Models\LookbookItem::query()->first();
+
+    if ($look) {
+        $this->get(route('admin.lookbook.edit', $look->id))->assertOk();
+    }
+});
