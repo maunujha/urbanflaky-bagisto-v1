@@ -47,6 +47,8 @@
 Building **topical authority in premium dark fashion**. Keyword cluster (use semantically — never stuff):
 dark aesthetic fashion · dark streetwear · monochrome fashion · oversized / premium oversized / black oversized t-shirts · heavyweight cotton t-shirts · minimal streetwear · premium cotton apparel · urban / oversized fashion India.
 
+**Live GSC data**: `urbanflaky-gsc` MCP (read-only, repo `../urbanflaky-gsc-mcp`) + skill `urbanflaky-gsc-seo` + `/gsc-audit` `/gsc-keywords` `/gsc-pages` `/gsc-indexing` `/gsc-monthly-report` — pull real metrics before any SEO claim.
+
 **Always preserve**: canonical URLs · clean URL structure · **no duplicate URLs** · breadcrumb / Product / Organization / FAQ schema · sitemap integrity · robots.txt · fast pages. (StructuredData helper is the single source of JSON-LD — keep core rich-snippets OFF; pages with own meta pass `:has-custom-seo="true"`.)
 
 **No thin pages — page requirements:**

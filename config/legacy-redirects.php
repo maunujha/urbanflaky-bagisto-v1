@@ -42,6 +42,10 @@ return [
         'pure-cotton-matty-polo-t-shirts'  => '/mens-t-shirts',
         'pod-t-shirts'                     => '/mens-t-shirts',
         'combo'                            => '/combos',
+        'combo-collection'                 => '/combos',
+        'dry-fit-tshirts'                  => '/mens-t-shirts',
+        'polo-t-shirts'                    => '/mens-t-shirts',
+        'mens'                             => '/mens',
         'active-wear'                      => '/mens-t-shirts',
         'active-wear-female'               => '/womens',
     ],
@@ -65,6 +69,8 @@ return [
     /* /blogs/{path} — a "{segment}/*" key matches every post under that blog */
     'blogs' => [
         'latest'             => '/blog',
+        'latest/top-streetwear-trends-2025'                            => '/blog/minimalist-streetwear-guide',
+        'latest/wardrobe-essentials-must-have-pieces-from-urbanflaky' => '/blog/monochrome-fashion-guide',
         'latest/*'           => '/blog',
         'combo'              => '/combos',
         'active-wear'        => '/mens-t-shirts',
@@ -74,5 +80,6 @@ return [
     /* Any other exact path */
     'paths' => [
         'blog/slim-fit-vs-regular-fit-which-t-shirt-is-right-for-you' => '/blog',
+        'account/register'                                            => '/customer/register',
     ],
 ];
