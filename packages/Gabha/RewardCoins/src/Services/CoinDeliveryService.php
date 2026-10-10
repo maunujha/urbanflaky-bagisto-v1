@@ -40,6 +40,8 @@ class CoinDeliveryService
      */
     private ?bool $hasShipmentTable = null;
 
+    private ?bool $hasDeliveredAt = null;
+
     public function __construct(
         private readonly CoinTransactionRepositoryInterface $ledger,
     ) {
@@ -230,7 +232,8 @@ class CoinDeliveryService
 
     /**
      * The order's Shiprocket row (status, updated_at), if the integration
-     * table exists and holds one.
+     * table exists and holds one. `updated_at` is the recorded delivery time
+     * when the table has one, so later edits to the row never move it.
      *
      * @param  int  $orderId
      * @return object|null
@@ -245,8 +248,10 @@ class CoinDeliveryService
             return null;
         }
 
+        $this->hasDeliveredAt ??= Schema::hasColumn($table, 'delivered_at');
+
         return DB::table($table)
             ->where('order_id', $orderId)
-            ->first(['status', 'updated_at']);
+            ->first(['status', $this->hasDeliveredAt ? DB::raw('COALESCE(delivered_at, updated_at) as updated_at') : 'updated_at']);
     }
 }

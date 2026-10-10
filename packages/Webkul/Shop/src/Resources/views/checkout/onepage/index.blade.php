@@ -634,7 +634,7 @@
                 <div v-show="step === 2">
                     <div class="co-card">
                         <div class="co-card-title">Shipping method</div>
-                        <div class="co-card-sub">Choose your preferred delivery speed</div>
+                        <div class="co-card-sub">Tracked to your door, with live updates on our tracking page</div>
 
                         <div v-if="loadingShipping" style="text-align:center;padding:24px;color:#a1a1aa;font-size:14px;">
                             Loading shipping methods…
@@ -700,6 +700,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        <p v-if="codUnavailable" class="co-card-sub" style="margin:-10px 0 20px">
+                            Cash on Delivery isn’t available for this order@{{ codMax ? ' (available on orders up to ' + formatMoney(codMax) + ' at serviceable pincodes)' : ' at this pincode' }}. Pay securely online instead.
+                        </p>
 
                         <div style="border-top:.5px solid #ececec;padding-top:18px">
                             <label class="co-label" style="margin-bottom:8px">Have a coupon?</label>
@@ -1028,6 +1032,8 @@
                 loadingShipping: false,
 
                 paymentMethods: [],
+                codEnabled: @json((bool) core()->getConfigData('sales.payment_methods.cashondelivery.active')),
+                codMax: @json(app(\App\Services\Shipping\DeliveryRules::class)->codMaximum()),
                 selectedPayment: null,
                 savingPayment: false,
                 loadingPayment: false,
@@ -1065,6 +1071,14 @@
         },
 
         computed: {
+            /* COD is switched on in admin but the server left it out: over the
+               order limit, or no courier collects cash at this pincode. */
+            codUnavailable() {
+                return this.codEnabled
+                    && this.paymentMethods.length > 0
+                    && ! this.paymentMethods.some(m => m.method === 'cashondelivery');
+            },
+
             submitLabel() {
                 if (this.editingAddressId) return 'Save & deliver here';
                 return this.isLoggedIn ? 'Save & deliver here' : 'Continue to shipping';
@@ -1367,10 +1381,13 @@
                             else             this.shippingMethods.push(group);
                         });
                     }
-                    /* Auto-select first available shipping method */
-                    if (this.shippingMethods.length > 0) {
-                        this.selectedShipping = this.shippingMethods[0].method;
+                    /* No carrier offers a rate: no courier serves this pincode. */
+                    if (this.shippingMethods.length === 0) {
+                        this.$emitter.emit('add-flash', { type: 'error', message: 'We don’t deliver to pincode ' + this.addr.postcode + ' yet. Please use another delivery address.' });
+                        return false;
                     }
+
+                    this.selectedShipping = this.shippingMethods[0].method;
 
                     this.step = 2;
                     window.scrollTo({ top: 0, behavior: 'smooth' });

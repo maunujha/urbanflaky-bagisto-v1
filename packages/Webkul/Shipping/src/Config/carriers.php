@@ -19,12 +19,4 @@ return [
         'default_rate' => '0',
         'class'        => 'Webkul\Shipping\Carriers\Free',
     ],
-
-    'shiprocket' => [
-        'code'        => 'shiprocket',
-        'title'       => 'Shiprocket',
-        'description' => 'Courier delivery via Shiprocket',
-        'active'      => true,
-        'class'       => 'Webkul\Shipping\Carriers\Shiprocket',
-    ],
 ];

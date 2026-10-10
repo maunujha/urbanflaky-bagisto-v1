@@ -47,6 +47,8 @@ deploy script repeats on each release.
 5. Shiprocket webhook: panel → Settings → Webhooks →
    `https://urbanflaky.in/webhooks/tracking`, header `x-api-key` =
    `SHIPROCKET_WEBHOOK_TOKEN` (endpoint rejects everything if unset).
+   Then set Courier Priority to "Recommended" and review the admin
+   settings and go-live test plan in `docs/SHIPROCKET.md`.
 
 ## 3. Nginx vhost (hardening that dev does not have)
 

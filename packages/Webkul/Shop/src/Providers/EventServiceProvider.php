@@ -3,7 +3,6 @@
 namespace Webkul\Shop\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use App\Listeners\CreateShiprocketOrder;
 use App\Listeners\MarkOrderShipped;
 use App\Listeners\SendOrderSms;
 use App\Listeners\SendRefundSms;
@@ -59,7 +58,6 @@ class EventServiceProvider extends ServiceProvider
          */
         'checkout.order.save.after' => [
             [Order::class, 'afterCreated'],
-            [CreateShiprocketOrder::class, 'handle'],
             [SendOrderSms::class, 'handle'],
         ],
 

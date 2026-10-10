@@ -53,8 +53,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: env('TRUSTED_PROXIES'));
     })
     ->withSchedule(function (Schedule $schedule) {
-        /* Sync AWB from Shiprocket every 30 minutes for orders missing tracking */
-        $schedule->command('shiprocket:sync-awb')->everyThirtyMinutes();
+        /* Shiprocket safety net: retry missed pushes, assign couriers, poll
+           tracking for shipments whose webhook went quiet. */
+        $schedule->command('shiprocket:sync')->everyThirtyMinutes()->withoutOverlapping(25);
 
         /* Reset search term use counts weekly to keep trending fresh */
         $schedule->command('search:reset-trending')->weekly();

@@ -83,37 +83,47 @@
 
         {!! view_render_event('bagisto.shop.customers.account.orders.view.before', ['order' => $order]) !!}
 
-        {{-- ── Shiprocket Tracking Card ── --}}
+        {{-- ── Shipment tracking card ── --}}
         @php $srOrder = App\Models\ShiprocketOrder::where('order_id', $order->id)->first(); @endphp
-        @if($srOrder)
-        <div class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-5 max-md:mt-4">
-            <div class="flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-400 mb-1">Shipment Tracking</p>
-                    <div class="flex items-center gap-3 flex-wrap">
-                        @if($srOrder->courier_name)
-                            <span class="text-sm font-semibold text-zinc-100">{{ $srOrder->courier_name }}</span>
-                            <span class="text-zinc-300">|</span>
-                        @endif
-                        @if($srOrder->awb_code)
-                            <span class="text-sm text-zinc-500">AWB: <span class="font-mono font-semibold text-zinc-100">{{ $srOrder->awb_code }}</span></span>
-                        @else
-                            <span class="text-sm text-zinc-400 italic">AWB not yet assigned</span>
-                        @endif
+        @if ($srOrder?->isPushed() && $order->status !== 'canceled')
+            <div class="mt-6 rounded-xl border border-white/10 bg-white/[0.03] p-5 max-md:mt-4">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-400">Shipment</p>
+
+                        <p class="text-base font-semibold text-zinc-100">{{ $srOrder->stageLabel() }}</p>
+
+                        <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-400">
+                            @if ($srOrder->courier_name)
+                                <span>{{ $srOrder->courier_name }}</span>
+                            @endif
+
+                            @if ($srOrder->hasAwb())
+                                <span>AWB <span class="font-mono font-semibold text-zinc-100">{{ $srOrder->awb_code }}</span></span>
+                            @else
+                                <span>Tracking appears once your order ships</span>
+                            @endif
+
+                            @if ($srOrder->etd && App\Services\Shiprocket\ShipmentStage::isActive($srOrder->status))
+                                <span>Expected {{ $srOrder->etd->format('D, d M') }}</span>
+                            @endif
+                        </p>
                     </div>
+
+                    @if ($srOrder->hasAwb())
+                        <a
+                            href="{{ $srOrder->tracking_url }}"
+                            class="inline-flex items-center gap-2 rounded-lg bg-uf-accent px-4 py-2 text-sm font-semibold text-black transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-uf-accent focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                        >
+                            Track order
+
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                                <path d="M1 7h12M8 3l5 4-5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    @endif
                 </div>
-                @if($srOrder->awb_code)
-                <a href="{{ $srOrder->tracking_url }}"
-                   target="_blank"
-                   class="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:opacity-85 transition-opacity">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                        <path d="M1 7h12M8 3l5 4-5 4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    Track Order
-                </a>
-                @endif
             </div>
-        </div>
         @endif
 
         <!-- Order view tabs -->

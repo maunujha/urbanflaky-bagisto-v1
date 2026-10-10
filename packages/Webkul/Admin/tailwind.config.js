@@ -6,6 +6,7 @@ module.exports = {
         "../../Gabha/RewardCoins/resources/**/*.blade.php",
         "../../Gabha/Search/src/Resources/**/*.blade.php",
         "../../Gabha/Inventory/src/Resources/**/*.blade.php",
+        "../../../resources/views/shiprocket/admin/**/*.blade.php",
     ],
 
     theme: {

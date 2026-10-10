@@ -38,12 +38,19 @@ uses(RewardCoinsTestCase::class)->in('../packages/Gabha/RewardCoins/tests');
 | two carriers. Enable them for the Shop test scope only — production config is
 | never touched, and the isolated test database carries no override rows, so this
 | config() value is what getConfigData() falls back to.
+|
+| They also expect both carriers side by side, which the store's own carriers
+| (App\Shipping\Carriers: one option, free-shipping threshold, pincode check)
+| deliberately prevent. Point this scope at the stock carriers; the store
+| rules are covered by tests/Feature/Shiprocket.
 */
 uses(ShopTestCase::class)
     ->beforeEach(function () {
         config([
             'carriers.flatrate.active' => true,
+            'carriers.flatrate.class'  => \Webkul\Shipping\Carriers\FlatRate::class,
             'carriers.free.active'     => true,
+            'carriers.free.class'      => \Webkul\Shipping\Carriers\Free::class,
         ]);
     })
     ->in('../packages/Webkul/Shop/tests');

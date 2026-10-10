@@ -3,29 +3,29 @@
 namespace App\Http\Controllers;
 
 use App\Models\ShiprocketOrder;
+use App\Services\Shiprocket\TrackingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
 use Webkul\Sales\Models\Order;
 
+/**
+ * Shiprocket tracking webhook (Shiprocket → Settings → API → Webhooks).
+ *
+ * Configure it with URL https://urbanflaky.in/webhooks/tracking (Shiprocket
+ * rejects URLs containing "shiprocket") and the SHIPROCKET_WEBHOOK_TOKEN as
+ * the x-api-key. Every authenticated call is answered 200, even for unknown
+ * orders, so Shiprocket never disables the hook.
+ */
 class ShiprocketWebhookController extends Controller
 {
-    /**
-     * Receive Shiprocket tracking webhook and update AWB / status.
-     *
-     * Shiprocket payload fields we use:
-     *   channel_order_id  → our Bagisto increment_id
-     *   order_id          → Shiprocket's internal order ID
-     *   awb               → AWB tracking number (integer)
-     *   courier_name      → courier company
-     *   current_status    → latest status string
-     */
-    public function handle(Request $request)
+    public function __construct(protected TrackingService $tracking) {}
+
+    public function handle(Request $request): JsonResponse
     {
         /*
-         * Verify token sent in x-api-key header. Fail closed: if no token is
-         * configured the endpoint must reject everything, otherwise a missing
-         * env var would silently open this CSRF-exempt route to anyone.
+         * Fail closed: with no token configured the endpoint rejects everything,
+         * otherwise a missing env var would open this CSRF-exempt route to anyone.
          */
         $expectedToken = config('shiprocket.webhook_token');
 
@@ -37,58 +37,59 @@ class ShiprocketWebhookController extends Controller
 
         $payload = $request->all();
 
+        $awb    = trim((string) ($payload['awb'] ?? ''));
+        $status = (string) ($payload['current_status'] ?? $payload['shipment_status'] ?? '');
+
+        $shipment = $this->findShipment($payload, $awb);
+
         Log::info('Shiprocket webhook received', [
-            'channel_order_id' => $payload['channel_order_id'] ?? null,
-            'awb'              => $payload['awb'] ?? null,
-            'current_status'   => $payload['current_status'] ?? ($payload['shipment_status'] ?? null),
+            'awb'      => $awb,
+            'status'   => $status,
+            'order'    => $shipment?->order?->increment_id,
         ]);
 
-        /* channel_order_id is what we passed as order_id when creating the order */
-        $channelOrderId = (string) ($payload['channel_order_id'] ?? '');
-        $awb            = (string) ($payload['awb']            ?? '');
-        $courier        = (string) ($payload['courier_name']   ?? '');
-        $status         = (string) ($payload['current_status'] ?? $payload['shipment_status'] ?? '');
-        $srOrderId      = (string) ($payload['order_id']       ?? '');
-
-        /* Return 200 for Shiprocket's test webhook (fake channel_order_id) */
-        if (! $channelOrderId || $channelOrderId === 'enter your channel order id') {
+        if (! $shipment) {
             return response()->json(['message' => 'ok']);
         }
 
-        $order = Order::where('increment_id', $channelOrderId)->first();
-
-        if (! $order) {
-            Log::warning('Shiprocket webhook: order not found', ['channel_order_id' => $channelOrderId]);
-            /* Still return 200 so Shiprocket does not keep retrying */
-            return response()->json(['message' => 'ok']);
-        }
-
-        ShiprocketOrder::updateOrCreate(
-            ['order_id' => $order->id],
-            array_filter([
-                'shiprocket_order_id' => $srOrderId  ?: null,
-                'awb_code'            => $awb         ?: null,
-                'courier_name'        => $courier      ?: null,
-                'status'              => $status       ?: null,
-            ])
-        );
-
-        Log::info('Shiprocket order updated via webhook', [
-            'order'   => $channelOrderId,
-            'awb'     => $awb,
+        $this->tracking->applyCourierUpdate($shipment, [
             'status'  => $status,
-            'courier' => $courier,
-        ]);
-
-        /*
-         * Delivery opens the reward-coin return window. Exact match, so
-         * "RTO Delivered" never counts; listeners are idempotent, so a
-         * re-sent webhook is harmless.
-         */
-        if (strcasecmp(trim($status), 'Delivered') === 0) {
-            Event::dispatch('shiprocket.order.delivered', $order);
-        }
+            'awb'     => $awb ?: null,
+            'courier' => $payload['courier_name'] ?? null,
+            'etd'     => $payload['etd'] ?? null,
+            'scans'   => array_map(fn ($scan) => [
+                'date'     => $scan['date'] ?? null,
+                'status'   => $scan['sr-status-label'] ?? ($scan['status'] ?? null),
+                'activity' => $scan['activity'] ?? null,
+                'location' => $scan['location'] ?? null,
+            ], is_array($payload['scans'] ?? null) ? $payload['scans'] : []),
+        ], 'webhook');
 
         return response()->json(['message' => 'ok']);
+    }
+
+    /**
+     * AWB first (unique per parcel), then Shiprocket's order id, then our
+     * order number, which Shiprocket echoes as order_id / channel_order_id.
+     */
+    protected function findShipment(array $payload, string $awb): ?ShiprocketOrder
+    {
+        if ($awb !== '' && $shipment = ShiprocketOrder::where('awb_code', $awb)->first()) {
+            return $shipment;
+        }
+
+        if ($srOrderId = (string) ($payload['sr_order_id'] ?? '')) {
+            if ($shipment = ShiprocketOrder::where('shiprocket_order_id', $srOrderId)->first()) {
+                return $shipment;
+            }
+        }
+
+        $incrementId = (string) ($payload['channel_order_id'] ?? $payload['order_id'] ?? '');
+
+        if ($incrementId === '' || ! $order = Order::where('increment_id', $incrementId)->first()) {
+            return null;
+        }
+
+        return ShiprocketOrder::where('order_id', $order->id)->first();
     }
 }

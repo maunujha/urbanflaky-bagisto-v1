@@ -3,193 +3,179 @@
 namespace App\Http\Controllers;
 
 use App\Models\ShiprocketOrder;
+use App\Services\Shiprocket\ShipmentStage;
+use App\Services\Shiprocket\TrackingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use Webkul\Sales\Models\Order;
 
+/**
+ * Public order tracking at /track-order.
+ *
+ * Two ways in: order number + the email or phone used on the order, or an
+ * AWB this store issued. Unknown input and wrong contact details get the same
+ * answer, so the page can't be used to discover orders. Answers come from our
+ * own shipment history, refreshed from the courier at most every few minutes.
+ */
 class TrackOrderController extends Controller
 {
-    const AUTH_URL  = 'https://apiv2.shiprocket.in/v1/external/auth/login';
-    const TRACK_URL = 'https://apiv2.shiprocket.in/v1/external/courier/track/awb/';
+    public function __construct(protected TrackingService $tracking) {}
 
-    /**
-     * Render the public order-tracking page.
-     */
-    public function index()
+    public function index(Request $request): View
     {
-        return view('shop::track-order.index');
+        return view('shop::track-order.index', [
+            'prefillAwb'   => mb_substr((string) $request->query('awb', ''), 0, 40),
+            'prefillOrder' => mb_substr((string) $request->query('order', ''), 0, 20),
+        ]);
     }
 
-    /**
-     * Resolve an AWB (or one of our order IDs) and return live Shiprocket status.
-     *
-     * Accepts either:
-     *   - a Shiprocket AWB / tracking number, or
-     *   - one of our order increment_ids (mapped to its AWB via shiprocket_orders).
-     */
     public function track(Request $request): JsonResponse
     {
-        $request->validate([
-            'awb' => 'required|string|max:40',
+        $data = $request->validate([
+            'awb'      => 'nullable|required_without:order_id|string|max:40',
+            'order_id' => 'nullable|required_without:awb|string|max:20',
+            'contact'  => 'nullable|required_with:order_id|string|max:120',
         ]);
 
-        $input = trim($request->input('awb'));
+        $byAwb = filled($data['awb'] ?? null);
 
-        $awb = $this->resolveAwb($input);
+        [$order, $shipment] = $byAwb
+            ? $this->byAwb(trim($data['awb']))
+            : $this->byOrder(ltrim(trim($data['order_id']), '#'), trim($data['contact']));
 
-        if (! $awb) {
+        if (! $order) {
             return response()->json([
                 'found'   => false,
-                'message' => "We couldn't find a shipment for \"{$input}\". Tracking becomes available 24–48 hours after dispatch. Please double-check your AWB or Order ID.",
+                'message' => $byAwb
+                    ? 'We couldn’t find that tracking number. Check the AWB in your shipping email or SMS, or track with your order number instead.'
+                    : 'We couldn’t find an order with those details. Use the order number from your confirmation email and the email or phone number you ordered with.',
             ]);
         }
 
-        $token = $this->getToken();
+        if ($shipment) {
+            $this->refreshIfStale($shipment);
+        }
 
-        if (! $token) {
-            return response()->json([
-                'found'   => false,
-                'message' => 'Tracking is temporarily unavailable. Please try again in a few minutes or contact our support team.',
-            ], 503);
+        /* An AWB alone proves nothing about who is asking: shipment progress
+           only, never the order number, destination or order date. */
+        return response()->json($this->present($order, $shipment?->refresh(), detailed: ! $byAwb));
+    }
+
+    /**
+     * @return array{0: ?Order, 1: ?ShiprocketOrder}
+     */
+    protected function byAwb(string $awb): array
+    {
+        $shipment = ShiprocketOrder::with('order')->where('awb_code', $awb)->first();
+
+        return [$shipment?->order, $shipment];
+    }
+
+    /**
+     * @return array{0: ?Order, 1: ?ShiprocketOrder}
+     */
+    protected function byOrder(string $incrementId, string $contact): array
+    {
+        $order = Order::with(['addresses'])->where('increment_id', $incrementId)->first();
+
+        if (! $order || ! $this->contactMatches($order, $contact)) {
+            return [null, null];
+        }
+
+        return [$order, ShiprocketOrder::where('order_id', $order->id)->first()];
+    }
+
+    /** Email (any case) or the last 10 digits of a phone on the order. */
+    protected function contactMatches(Order $order, string $contact): bool
+    {
+        if (str_contains($contact, '@')) {
+            $emails = collect([$order->customer_email])
+                ->merge($order->addresses->pluck('email'))
+                ->filter()
+                ->map(fn ($e) => mb_strtolower(trim($e)));
+
+            return $emails->contains(mb_strtolower($contact));
+        }
+
+        $digits = substr(preg_replace('/\D/', '', $contact), -10);
+
+        return strlen($digits) === 10 && $order->addresses
+            ->pluck('phone')
+            ->filter()
+            ->contains(fn ($phone) => substr(preg_replace('/\D/', '', $phone), -10) === $digits);
+    }
+
+    /**
+     * Pull the courier's latest scans when our record is older than the
+     * live-refresh window; one refresh per AWB per window, whoever asks.
+     */
+    protected function refreshIfStale(ShiprocketOrder $shipment): void
+    {
+        if (! $shipment->hasAwb() || ! ShipmentStage::isActive($shipment->status)) {
+            return;
+        }
+
+        $minutes = (int) config('shiprocket.sync.live_refresh_minutes', 15);
+        $fresh   = now()->subMinutes($minutes);
+
+        if (($shipment->last_synced_at && $shipment->last_synced_at->gt($fresh))
+            || ! Cache::add('shiprocket:live:'.$shipment->awb_code, 1, $minutes * 60)) {
+            return;
         }
 
         try {
-            $response = Http::withToken($token)
-                ->timeout(12)
-                ->get(self::TRACK_URL . urlencode($awb));
-
-            if ($response->status() === 401) {
-                Cache::forget('shiprocket_token');
-            }
-
-            if ($response->successful()) {
-                $data = $this->normalize($response->json('tracking_data') ?? [], $awb);
-
-                if ($data) {
-                    return response()->json($data);
-                }
-            }
-        } catch (\Exception $e) {
-            Log::warning('Order tracking failed', ['awb' => $awb, 'error' => $e->getMessage()]);
+            $this->tracking->refresh($shipment);
+        } catch (\Throwable $e) {
+            Log::warning('Live tracking refresh failed', ['awb' => $shipment->awb_code, 'error' => $e->getMessage()]);
         }
-
-        return response()->json([
-            'found'   => false,
-            'message' => "No movement found for AWB {$awb} yet. If your order shipped recently, please allow 24–48 hours for the courier to update tracking.",
-        ]);
     }
 
-    /**
-     * Turn whatever the customer typed into a real AWB code.
-     */
-    protected function resolveAwb(string $input): ?string
+    protected function present(Order $order, ?ShiprocketOrder $shipment, bool $detailed): array
     {
-        /* Maybe it's one of our order IDs → look up its stored AWB. */
-        $srOrder = ShiprocketOrder::whereHas('order', fn ($q) => $q->where('increment_id', $input))
-            ->whereNotNull('awb_code')
-            ->where('awb_code', '!=', '')
-            ->first();
+        $stage = $shipment?->status;
 
-        if ($srOrder?->awb_code) {
-            return $srOrder->awb_code;
+        if ($order->status === Order::STATUS_CANCELED) {
+            $stage = ShipmentStage::CANCELED;
         }
 
-        /* Otherwise treat the input itself as the AWB. */
-        return $input !== '' ? $input : null;
-    }
-
-    /**
-     * Reshape the Shiprocket tracking payload into the structure our view expects.
-     */
-    protected function normalize(array $tracking, string $awb): ?array
-    {
-        $track = $tracking['shipment_track'][0] ?? null;
-
-        $activities = $tracking['shipment_track_activities'] ?? [];
-
-        /* Shiprocket returns track_status = 0 with no track when the AWB is unknown. */
-        if (! $track && empty($activities)) {
-            return null;
-        }
-
-        $status = $track['current_status'] ?? ($activities[0]['activity'] ?? 'Pending');
+        $address = $order->shipping_address;
 
         return [
             'found'          => true,
-            'awb'            => $track['awb_code'] ?? $awb,
-            'courier'        => $track['courier_name'] ?? ($tracking['courier_name'] ?? null),
-            'current_status' => $status,
-            'origin'         => $track['origin'] ?? null,
-            'destination'    => $track['destination'] ?? null,
-            'consignee'      => $this->maskName($track['consignee_name'] ?? null),
-            'edd'            => $tracking['etd'] ?? ($track['edd'] ?? null),
-            'delivered_date' => $track['delivered_date'] ?? null,
-            'stage'          => $this->stage($status),
-            'activities'     => array_map(fn ($a) => [
-                'date'     => $a['date']     ?? null,
-                'activity' => $a['activity'] ?? ($a['status'] ?? ''),
-                'location' => $a['location'] ?? '',
-            ], $activities),
+            'order_id'       => $detailed ? (string) $order->increment_id : null,
+            'awb'            => $shipment?->awb_code,
+            'courier'        => $shipment?->courier_name,
+            'current_status' => ShipmentStage::label($stage),
+            'courier_status' => $shipment?->current_status,
+            'stage'          => ShipmentStage::progress($stage),
+            'state'          => $stage ?? 'new',
+            'destination'    => $detailed && $address ? trim($address->city.', '.$address->state, ', ') : null,
+            'edd'            => ShipmentStage::isActive($stage) ? $shipment?->etd?->format('D, d M') : null,
+            'delivered_date' => $shipment?->delivered_at?->format('D, d M Y'),
+            'placed_on'      => $detailed ? $order->created_at->format('D, d M Y') : null,
+            'note'           => $this->note($stage, $shipment),
+            'activities'     => $shipment
+                ? $shipment->events()->limit(40)->get()->map(fn ($e) => [
+                    'date'     => $e->event_at?->toIso8601String(),
+                    'activity' => $e->activity,
+                    'location' => $e->location,
+                ])->all()
+                : [],
         ];
     }
 
-    /**
-     * Partially mask a consignee name so this public, enumerable endpoint never
-     * exposes a full name. "Rahul Sharma" becomes "R•••• S•••••".
-     */
-    protected function maskName(?string $name): ?string
+    protected function note(?string $stage, ?ShiprocketOrder $shipment): ?string
     {
-        if (! $name = trim((string) $name)) {
-            return null;
-        }
-
-        return implode(' ', array_map(function ($word) {
-            $first = mb_substr($word, 0, 1);
-
-            return $first.str_repeat('•', max(0, mb_strlen($word) - 1));
-        }, preg_split('/\s+/', $name)));
-    }
-
-    /**
-     * Map a free-text courier status to one of five progress stages (0–4).
-     */
-    protected function stage(string $status): int
-    {
-        $s = strtolower($status);
-
         return match (true) {
-            str_contains($s, 'deliver') && ! str_contains($s, 'out for') => 4,
-            str_contains($s, 'out for delivery')                          => 3,
-            str_contains($s, 'transit'), str_contains($s, 'dispatch'),
-            str_contains($s, 'shipped'), str_contains($s, 'reached')      => 2,
-            str_contains($s, 'picked'), str_contains($s, 'pickup'),
-            str_contains($s, 'manifest')                                  => 1,
-            default                                                       => 0,
+            $stage === ShipmentStage::CANCELED      => 'This order was cancelled.',
+            $stage === ShipmentStage::UNDELIVERED   => 'The courier couldn’t complete delivery and will try again. Keep your phone reachable, or contact us to update the address.',
+            in_array($stage, [ShipmentStage::RTO_INITIATED, ShipmentStage::RTO_DELIVERED], true) => 'This parcel is on its way back to us. Contact support and we’ll sort it out.',
+            $stage === ShipmentStage::LOST          => 'This parcel is delayed with the courier. Our team is on it; contact support for an update.',
+            ! $shipment?->hasAwb()                  => 'We’re preparing your order. Tracking appears here as soon as it ships.',
+            default                                 => null,
         };
-    }
-
-    /**
-     * Get or refresh the cached Shiprocket auth token.
-     */
-    protected function getToken(): ?string
-    {
-        return Cache::remember('shiprocket_token', 23 * 3600, function () {
-            try {
-                $response = Http::timeout(10)->post(self::AUTH_URL, [
-                    'email'    => config('shiprocket.email'),
-                    'password' => config('shiprocket.password'),
-                ]);
-
-                if ($response->successful() && $response->json('token')) {
-                    return $response->json('token');
-                }
-            } catch (\Exception $e) {
-                Log::error('Shiprocket auth failed', ['message' => $e->getMessage()]);
-            }
-
-            return null;
-        });
     }
 }

@@ -88,5 +88,8 @@
         -->
         <env name="DB_DATABASE" value="my_bagisto_store_test" force="true"/>
         <env name="RESPONSE_CACHE_ENABLED" value="false" force="true"/>
+        <!-- Never reach the live Shiprocket account from tests; tests fake HTTP and set these. -->
+        <env name="SHIPROCKET_EMAIL" value="" force="true"/>
+        <env name="SHIPROCKET_PASSWORD" value="" force="true"/>
     </php>
 </phpunit>
