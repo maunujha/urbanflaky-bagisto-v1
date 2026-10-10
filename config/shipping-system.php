@@ -17,7 +17,7 @@ return [
             'info'          => 'Order subtotal (incl. GST) for free shipping. Leave blank for free shipping on every order. Below the minimum, customers see Flat Rate, so switch Flat Rate on when you set one (with Flat Rate off, every order ships free).',
             'type'          => 'text',
             'depends'       => 'active:1',
-            'validation'    => 'nullable|numeric|min:0',
+            'validation'    => 'decimal',
             'channel_based' => true,
             'locale_based'  => false,
         ],
@@ -31,7 +31,7 @@ return [
             'info'          => 'Cash on Delivery is hidden above this order total (₹). Leave blank for no limit.',
             'type'          => 'text',
             'depends'       => 'active:1',
-            'validation'    => 'nullable|numeric|min:0',
+            'validation'    => 'decimal',
             'channel_based' => true,
             'locale_based'  => false,
         ], [
