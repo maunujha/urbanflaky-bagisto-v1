@@ -67,6 +67,17 @@
                             @lang('shop::app.emails.orders.tracking-number', ['tracking_number' =>  $shipment->track_number])
                         </span>
                     </div>
+
+                    @if ($shipment->track_number)
+                        <div style="margin-top: 12px;">
+                            <a
+                                href="{{ route('shop.track-order.index', ['awb' => $shipment->track_number]) }}"
+                                style="display: inline-block; padding: 10px 20px; border-radius: 6px; background: #0a0a0a; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none;"
+                            >
+                                Track your order
+                            </a>
+                        </div>
+                    @endif
                 </div>
 
                 @php $additionalDetails = \Webkul\Payment\Payment::getAdditionalDetails($shipment->order->payment->method); @endphp

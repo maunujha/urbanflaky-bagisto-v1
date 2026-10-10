@@ -19,7 +19,9 @@ class MarkOrderShipped
      */
     public function handle($shipment): void
     {
-        $order = $shipment->order;
+        /* Reload: the relation may have been cached earlier in this request
+           (inventory update), before updateOrderStatus() changed the status. */
+        $order = $shipment->order?->refresh();
 
         if (! $order) {
             return;

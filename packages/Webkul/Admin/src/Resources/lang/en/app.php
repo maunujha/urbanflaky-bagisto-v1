@@ -4787,6 +4787,8 @@ return [
 
                     'free-shipping' => [
                         'description' => 'Description',
+                        'min-order-amount' => 'Minimum Order Amount',
+                        'min-order-amount-info' => 'Order subtotal (incl. GST) needed for free shipping. Leave blank for free shipping on every order. When it applies, Flat Rate is hidden so customers see one option.',
                         'page-title' => 'Free Shipping',
                         'status' => 'Status',
                         'title' => 'Title',
@@ -4822,6 +4824,10 @@ return [
                     'cash-on-delivery' => 'Cash On Delivery',
                     'cash-on-delivery-info' => 'Payment method where customers pay in cash upon receiving goods or services at their doorstep.',
                     'client-id' => 'Client ID',
+                    'cod-check-pincode' => 'Check COD Availability by Pincode',
+                    'cod-check-pincode-info' => 'Hide Cash on Delivery when no Shiprocket courier can collect cash at the delivery pincode.',
+                    'cod-max-order-total' => 'Maximum Order Value for COD',
+                    'cod-max-order-total-info' => 'Cash on Delivery is hidden above this order total (₹). Leave blank for no limit.',
                     'client-id-info' => 'Use "sb" for testing.',
                     'client-secret' => 'Client Secret',
                     'client-secret-info' => 'Add your secret key here',

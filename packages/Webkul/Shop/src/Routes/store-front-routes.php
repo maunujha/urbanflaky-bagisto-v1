@@ -28,7 +28,7 @@ Route::get('track-order', [TrackOrderController::class, 'index'])
 
 Route::post('track-order/track', [TrackOrderController::class, 'track'])
     ->name('shop.track-order.track')
-    ->middleware('throttle:30,1');
+    ->middleware('throttle:15,1');
 
 /**
  * Fallback route.

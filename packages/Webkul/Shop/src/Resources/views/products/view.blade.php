@@ -639,11 +639,15 @@
                                     @endif
                                 @endif
 
+                                @php
+                                    $deliveryPromise = app(\App\Services\Shipping\DeliveryRules::class)->promise();
+                                @endphp
+
                                 <!-- Trust Badges -->
                                 <div class="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 pt-2">
                                     <span class="flex items-center gap-2 text-sm font-medium text-zinc-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7ed957" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-                                        Free delivery
+                                        {{ $deliveryPromise ?? 'Tracked delivery' }}
                                     </span>
                                     <span class="flex items-center gap-2 text-sm font-medium text-zinc-200">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7ed957" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.1"/></svg>
@@ -706,7 +710,9 @@
                                                 Delivery by <strong class="ltr:ml-0.5 rtl:mr-0.5 text-white">@{{ deliveryResult.days }}</strong>
                                                 <span v-if="deliveryResult.cod" class="text-xs text-zinc-400">· COD available</span>
                                             </p>
-                                            <p v-if="deliveryResult.free" class="mt-1 text-xs text-zinc-400 ltr:pl-6 rtl:pr-6">Free shipping on this order</p>
+                                            <p v-if="deliveryResult.free" class="mt-1 text-xs text-zinc-400 ltr:pl-6 rtl:pr-6">Free delivery on this order</p>
+                                            <p v-else-if="deliveryResult.free_over" class="mt-1 text-xs text-zinc-400 ltr:pl-6 rtl:pr-6">Free delivery on orders over ₹@{{ Number(deliveryResult.free_over).toLocaleString('en-IN') }}</p>
+                                            <p v-if="deliveryResult.cod && deliveryResult.cod_max" class="mt-1 text-xs text-zinc-400 ltr:pl-6 rtl:pr-6">Cash on Delivery on orders up to ₹@{{ Number(deliveryResult.cod_max).toLocaleString('en-IN') }}</p>
                                         </template>
                                         <p v-else class="text-sm text-red-400">Delivery not available to this pincode.</p>
                                     </div>
@@ -719,7 +725,7 @@
                                     <div class="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-zinc-300">
                                         <span class="flex items-center gap-2">
                                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
-                                            Free delivery
+                                            {{ $deliveryPromise ?? 'Tracked delivery' }}
                                         </span>
                                         <span class="h-4 w-px bg-white/10"></span>
                                         <span class="flex items-center gap-2">
