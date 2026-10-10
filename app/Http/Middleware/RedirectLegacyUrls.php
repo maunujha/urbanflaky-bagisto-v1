@@ -36,6 +36,10 @@ class RedirectLegacyUrls
             $path = substr($path, 3);
         }
 
+        /* Collection feeds (/collections/x.atom) and tag filters (/collections/x/tag)
+           resolve like the collection itself. */
+        $path = preg_replace(['~\.atom$~', '~^(collections/[^/]+)/[^/]+$~'], ['', '$1'], $path);
+
         $map = config('legacy-redirects');
 
         if (preg_match('~^(products|collections|pages|policies)/([^/]+)$~', $path, $m)) {
