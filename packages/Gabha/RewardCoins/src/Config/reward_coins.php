@@ -46,12 +46,29 @@ return [
     |--------------------------------------------------------------------------
     |
     | Floor (store currency) below which coins cannot be redeemed on a cart.
+    | Measured, like the coverage caps, on the product total: shipping is
+    | excluded (CoinRedemptionService::eligibleTotal()).
     | Set to 0 to disable the floor. The per-order coverage caps (percentage and
     | absolute ceiling) still live on the coin_settings row; this is a separate,
     | config-only eligibility gate enforced by CoinRedemptionService::validateRedemption().
     |
     */
     'min_order_for_redemption' => (float) env('REWARD_COINS_MIN_ORDER_REDEEM', 200),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Checkout Rate Limit
+    |--------------------------------------------------------------------------
+    |
+    | Caps the checkout apply/remove endpoints (each recomputes the cart and
+    | reads the wallet). Per customer, plus a wider per-IP ceiling so one
+    | source cannot rotate accounts. Requests per minute.
+    |
+    */
+    'rate_limit' => [
+        'per_customer' => 10,
+        'per_ip'       => 30,
+    ],
 
     /*
     | Reserved alternate earning knob. The active earning formula uses the
@@ -76,16 +93,39 @@ return [
     | Order Status Triggers
     |--------------------------------------------------------------------------
     |
-    | Bagisto core has no "delivered" status — in this store delivery maps to
-    | the `completed` status (set by the Shiprocket webhook / admin). These
-    | lists let the listeners react to the right status transitions without
-    | hardcoding them. NOTE: the Shiprocket *delivery* path saves the order
-    | directly and does not fire `sales.order.update-status.after`; admin status
-    | changes (and cancellations via either path) do.
+    | Bagisto core has no "delivered" status. `confirm_on_statuses` is trusted
+    | as delivery only for orders WITHOUT a carrier record (manual fulfilment):
+    | Bagisto sets `completed` the moment an order is fully shipped. Carrier
+    | orders are delivered when their carrier status says so (see `delivery`).
+    | `reverse_on_statuses` means the whole order was undone.
     |
     */
     'confirm_on_statuses' => ['completed'],
     'reverse_on_statuses' => ['canceled', 'closed'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Delivery Evidence
+    |--------------------------------------------------------------------------
+    |
+    | `event`              Fired by the Shiprocket tracking webhook with the
+    |                      order when a shipment is delivered.
+    | `shipment_table`     Carrier table holding one row per order with a
+    |                      `status` column (null disables the carrier check).
+    | `delivered_statuses` Carrier statuses (case-insensitive, exact match) that
+    |                      mean delivered. "RTO Delivered" is deliberately absent.
+    |
+    */
+    'delivery' => [
+        'event'              => 'shiprocket.order.delivered',
+        'shipment_table'     => 'shiprocket_orders',
+        'delivered_statuses' => ['delivered'],
+    ],
+
+    /*
+    | Rows per batch for the expiry, confirmation and reconciliation sweeps.
+    */
+    'batch_size' => 200,
 
     /*
     |--------------------------------------------------------------------------

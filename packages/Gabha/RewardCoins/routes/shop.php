@@ -1,6 +1,7 @@
 <?php
 
 use Gabha\RewardCoins\Http\Controllers\Shop\CoinController;
+use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Webkul\Core\Http\Middleware\NoCacheMiddleware;
 
@@ -22,11 +23,13 @@ Route::middleware(['web', 'customer', NoCacheMiddleware::class])->group(function
         ->name('shop.customers.account.coins.index');
 
     /*
-     * Checkout redemption staging (AJAX).
+     * Checkout redemption staging (AJAX), throttled per customer and per IP.
      */
-    Route::post('checkout/coins/apply', [CoinController::class, 'apply'])
-        ->name('shop.checkout.coins.apply');
+    Route::middleware('throttle:'.RewardCoinsServiceProvider::CHECKOUT_LIMITER)->group(function () {
+        Route::post('checkout/coins/apply', [CoinController::class, 'apply'])
+            ->name('shop.checkout.coins.apply');
 
-    Route::post('checkout/coins/remove', [CoinController::class, 'remove'])
-        ->name('shop.checkout.coins.remove');
+        Route::post('checkout/coins/remove', [CoinController::class, 'remove'])
+            ->name('shop.checkout.coins.remove');
+    });
 });

@@ -1,5 +1,6 @@
 <?php
 
+use Gabha\RewardCoins\Tests\RewardCoinsTestCase;
 use Webkul\Admin\Tests\AdminTestCase;
 use Webkul\Core\Tests\CoreTestCase;
 use Webkul\Customer\Tests\CustomerTestCase;
@@ -22,6 +23,7 @@ ini_set('memory_limit', '1024M');
 |
 */
 
+uses(Tests\TestCase::class)->in('Feature');
 uses(AdminTestCase::class)->in('../packages/Webkul/Admin/tests');
 uses(CoreTestCase::class)->in('../packages/Webkul/Core/tests');
 uses(CustomerTestCase::class)->in('../packages/Webkul/Customer/tests');
@@ -29,6 +31,7 @@ uses(DataGridTestCase::class)->in('../packages/Webkul/DataGrid/tests');
 uses(InstallerTestCase::class)->in('../packages/Webkul/Installer/tests');
 uses(PaymentTestCase::class)->in('../packages/Webkul/Payment/tests');
 uses(RazorpayTestCase::class)->in('../packages/Webkul/Razorpay/tests');
+uses(RewardCoinsTestCase::class)->in('../packages/Gabha/RewardCoins/tests');
 /*
 | This store ships via Shiprocket and disables the flat-rate and free carriers
 | in production config. The stock checkout tests, however, assert against those

@@ -20,6 +20,7 @@ enum TransactionType: string
     case Reversed = 'reversed';
     case Revoked  = 'revoked';
     case Refunded = 'refunded';
+    case Deducted = 'deducted';
 
     /**
      * Human-readable, translated label for display.
@@ -36,14 +37,16 @@ enum TransactionType: string
             self::Reversed => trans('reward-coins::reward_coins.transaction.types.reversed'),
             self::Revoked  => trans('reward-coins::reward_coins.transaction.types.revoked'),
             self::Refunded => trans('reward-coins::reward_coins.transaction.types.refunded'),
+            self::Deducted => trans('reward-coins::reward_coins.transaction.types.deducted'),
         };
     }
 
     /**
      * Whether this type increases a customer's coin balance.
      *
-     * Adjustments are operator-driven and may be positive or negative, so they
-     * are treated as credits here; the signed amount is decided by the caller.
+     * `adjusted` is an admin credit; admin debits are recorded as `deducted`.
+     * (Rows written before `deducted` existed used `adjusted` for both
+     * directions and remain ambiguous; see docs/REWARD-COINS-ACCOUNTING.md.)
      *
      * @return bool
      */
@@ -51,7 +54,7 @@ enum TransactionType: string
     {
         return match ($this) {
             self::Earned, self::Adjusted, self::Refunded => true,
-            self::Redeemed, self::Expired, self::Reversed, self::Revoked => false,
+            self::Redeemed, self::Expired, self::Reversed, self::Revoked, self::Deducted => false,
         };
     }
 

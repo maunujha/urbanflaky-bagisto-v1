@@ -14,13 +14,12 @@ use Webkul\Shop\Http\Controllers\API\CustomerController;
 use Webkul\Shop\Http\Controllers\API\OnepageController;
 use Webkul\Shop\Http\Controllers\API\ProductController;
 use Webkul\Shop\Http\Controllers\API\ReviewController;
-use Webkul\Shop\Http\Controllers\API\ShiprocketWebhookController;
 use Webkul\Shop\Http\Controllers\API\WishlistController;
 use Webkul\Shop\Http\Controllers\SaleController;
 
-// Shiprocket webhook — no CSRF, no throttle, token-verified in controller
-Route::post('api/webhooks/shiprocket', [ShiprocketWebhookController::class, 'handle'])
-    ->name('api.webhooks.shiprocket');
+// Shiprocket webhooks arrive at POST /webhooks/tracking (routes/web.php). The
+// legacy /api/webhooks/shiprocket route was retired: it sat behind CSRF, so no
+// external call ever reached it.
 
 Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () {
     Route::controller(CoreController::class)->prefix('core')->group(function () {

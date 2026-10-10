@@ -8,8 +8,8 @@ use Gabha\RewardCoins\Services\CoinExpiryService;
 use Illuminate\Console\Command;
 
 /**
- * Expires coins whose window has lapsed. Scheduled daily by the service
- * provider; can also be run on demand: `php artisan reward-coins:expire`.
+ * Expires the unspent remainder of lapsed coin lots. Scheduled daily by the
+ * service provider; can also be run on demand: `php artisan reward-coins:expire`.
  */
 class ExpireCoinsCommand extends Command
 {
@@ -25,7 +25,7 @@ class ExpireCoinsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Expire reward coins whose expiry date has passed and debit the wallets.';
+    protected $description = 'Expire the unspent remainder of reward-coin lots whose expiry date has passed.';
 
     /**
      * Execute the console command.
@@ -35,10 +35,15 @@ class ExpireCoinsCommand extends Command
      */
     public function handle(CoinExpiryService $expiryService): int
     {
-        $count = $expiryService->expireOldCoins();
+        $result = $expiryService->expireOldCoins();
 
-        $this->info(sprintf('Expired %d coin transaction(s).', $count));
+        $this->info(sprintf(
+            'Expired %d coin(s) across %d lot(s); %d lot(s) failed.',
+            $result['coins'],
+            $result['lots'],
+            $result['failed'],
+        ));
 
-        return self::SUCCESS;
+        return $result['failed'] > 0 ? self::FAILURE : self::SUCCESS;
     }
 }

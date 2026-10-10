@@ -6,59 +6,72 @@ namespace Gabha\RewardCoins\Listeners;
 
 use Gabha\RewardCoins\Jobs\ConfirmCoinsForOrderDelivery;
 use Gabha\RewardCoins\Models\CoinSetting;
-use Illuminate\Support\Carbon;
+use Gabha\RewardCoins\Services\CoinDeliveryService;
 
 /**
- * Opens the post-delivery return window on a customer's pending coins once their
- * order reaches a "delivered" status (sales.order.update-status.after).
+ * Opens the post-delivery return window on an order's pending coins.
  *
- * Bagisto core has no `delivered` status — in this store delivery maps to
- * `completed` (see config `reward_coins.confirm_on_statuses`). Note: the
- * Shiprocket *delivery* webhook saves the order directly and does not fire this
- * event; admin status changes to `completed` do.
+ * Two entry points, one outcome:
+ *  - {@see self::handle()} on `sales.order.update-status.after` when the order
+ *    reaches a `confirm_on_statuses` status (admin / Bagisto completion);
+ *  - {@see self::handleDelivered()} on the carrier delivery event fired by the
+ *    Shiprocket tracking webhook.
  *
- * This listener no longer confirms coins. It only stamps `available_at` =
- * delivery + pending_confirmation_days. The coins stay `pending` (not spendable)
- * until that window elapses, when {@see \Gabha\RewardCoins\Console\ConfirmAvailableCoinsCommand}
- * promotes them. Cancellation/void of pending coins is handled separately by
- * {@see ReverseCoinsOnCancellation}.
+ * Neither confirms coins: they only stamp `available_at` = delivery +
+ * pending_confirmation_days; `reward-coins:confirm-available` promotes them
+ * once that passes. Whether the order really is delivered is decided when the
+ * queued job runs, after the surrounding transaction commits, by
+ * {@see CoinDeliveryService::isDelivered()} — so the transient `completed`
+ * Bagisto sets while a shipment is being created never opens a window.
  *
- * Runs synchronously itself (it only reads $order->status/$order->id, both
- * scalar columns), then queues the actual write as
- * {@see ConfirmCoinsForOrderDelivery}, carrying only the order id and the
- * computed unlock timestamp. Queueing the live $order model directly used to
- * crash with "Serialization of 'Closure' is not allowed" — something in core
- * Bagisto's order relation graph isn't reliably serializable. Queueing just
- * these primitives sidesteps the crash while keeping the write off this
- * request's critical path.
+ * Only the order id and the unlock time are queued (the order model's relation
+ * graph is not reliably serializable).
  */
 class ConfirmCoinsOnDelivery
 {
+    public function __construct(
+        private readonly CoinDeliveryService $delivery,
+    ) {
+    }
+
     /**
-     * Handle the order status-change event.
+     * Handle an order status change.
      *
      * @param  \Webkul\Sales\Contracts\Order  $order
      * @return void
      */
     public function handle($order): void
     {
-        if (! CoinSetting::isEnabled()) {
+        if (! in_array($order->status, (array) config('reward_coins.confirm_on_statuses', ['completed']), true)) {
             return;
         }
 
-        $confirmStatuses = (array) config('reward_coins.confirm_on_statuses', ['completed']);
+        $this->dispatch($order);
+    }
 
-        if (! in_array($order->status, $confirmStatuses, true)) {
+    /**
+     * Handle a carrier "delivered" notification.
+     *
+     * @param  \Webkul\Sales\Contracts\Order  $order
+     * @return void
+     */
+    public function handleDelivered($order): void
+    {
+        $this->dispatch($order);
+    }
+
+    /**
+     * Queue the window stamp for the order.
+     *
+     * @param  \Webkul\Sales\Contracts\Order  $order
+     * @return void
+     */
+    private function dispatch($order): void
+    {
+        if (! CoinSetting::isEnabled() || empty($order->customer_id)) {
             return;
         }
 
-        // Return-window length (days) before delivered coins become spendable.
-        $windowDays = (int) CoinSetting::active()->pending_confirmation_days;
-
-        $availableAt = $windowDays > 0
-            ? Carbon::now()->addDays($windowDays)
-            : Carbon::now();
-
-        ConfirmCoinsForOrderDelivery::dispatch((int) $order->id, $availableAt);
+        ConfirmCoinsForOrderDelivery::dispatch((int) $order->id, $this->delivery->availableAtFor());
     }
 }

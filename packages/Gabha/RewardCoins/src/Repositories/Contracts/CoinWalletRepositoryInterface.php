@@ -29,6 +29,18 @@ interface CoinWalletRepositoryInterface
     public function getOrCreate(int $customerId): CustomerCoinWallet;
 
     /**
+     * Fetch (creating if needed) the customer's wallet with a row lock.
+     *
+     * Every coin mutation takes this lock first, so all movements for one
+     * customer serialise and the lot/ledger reads that follow see committed
+     * state. Must be called inside a DB transaction.
+     *
+     * @param  int  $customerId
+     * @return CustomerCoinWallet
+     */
+    public function lock(int $customerId): CustomerCoinWallet;
+
+    /**
      * Current spendable (confirmed) balance.
      *
      * @param  int  $customerId

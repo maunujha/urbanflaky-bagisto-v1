@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Exceptions\Handler;
 use App\Support\CrawlableLinks;
 use App\Support\DataLayer;
 use Barryvdh\Debugbar\Facades\Debugbar;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\ParallelTesting;
@@ -40,6 +42,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        /* Core binds its handler in register(), after this provider's register()
+           runs, so the override goes here (the handler is resolved lazily). */
+        $this->app->bind(ExceptionHandler::class, Handler::class);
+
         /* Blog imagery is editorial: the core small/medium/large templates all
            cover-crop to a square, so blog views use these scale-only templates
            instead. Registered at runtime so the package config stays untouched

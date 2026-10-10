@@ -15,7 +15,7 @@
 
     if ($coinsActive) {
         $coinRedemption = app(\Gabha\RewardCoins\Services\CoinRedemptionService::class);
-        $coinPreTotal   = (float) ($coinCart?->base_grand_total ?? 0);
+        $coinPreTotal   = $coinCart ? $coinRedemption->eligibleTotal($coinCart) : 0.0;   // products only, shipping excluded
         $coinsApplied   = (int) session(\Gabha\RewardCoins\Checkout\CoinDiscount::EFFECTIVE_KEY, 0);
 
         // Add back any coin discount already folded into the cart so the cap is
@@ -266,6 +266,10 @@
         .co-btn-next { font-size:14px; }
         .co-page { padding-bottom:calc(48px + env(safe-area-inset-bottom, 0px)); }
     }
+
+    /* reCAPTCHA v3 badge overlapped checkout controls on mobile. Google permits
+       hiding it when the attribution text is shown (rendered under Place order). */
+    .grecaptcha-badge { visibility:hidden; }
 </style>
 @endpush
 
@@ -649,7 +653,7 @@
                                     <div class="co-ship-eta">@{{ method.method_description || method.carrier_title }}</div>
                                 </div>
                                 <span class="co-ship-price" :class="{'is-free': method.base_price == 0}">
-                                    @{{ method.base_price == 0 ? 'Free' : '₹' + method.base_price }}
+                                    @{{ method.base_price == 0 ? 'Free' : formatMoney(method.base_price) }}
                                 </span>
                             </div>
                         </div>
@@ -831,6 +835,16 @@
                             <span v-else>Placing order…</span>
                         </button>
                     </div>
+
+                    @if (core()->getConfigData('customer.captcha.credentials.status'))
+                        <p class="mt-4 text-center text-[11px] leading-relaxed text-zinc-500">
+                            This site is protected by reCAPTCHA and the Google
+                            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="underline hover:text-zinc-300">Privacy Policy</a>
+                            and
+                            <a href="https://policies.google.com/terms" target="_blank" rel="noopener" class="underline hover:text-zinc-300">Terms of Service</a>
+                            apply.
+                        </p>
+                    @endif
                 </div>
 
                 {{-- ── Step 5: Success ── --}}
@@ -1475,9 +1489,9 @@
                 }
             },
 
-            /* ── Reward coins ── */
+            /* ── Money: same symbol as server-formatted prices (store currency setting) ── */
             formatMoney(amount) {
-                return '₹' + Number(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return @json(core()->getBaseCurrency()?->symbol ?: core()->getBaseCurrencyCode()) + ' ' + Number(amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             },
 
             async applyCoins() {

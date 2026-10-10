@@ -118,7 +118,8 @@
             "Webkul\\Installer\\Tests\\": "packages/Webkul/Installer/tests",
             "Webkul\\Payment\\Tests\\": "packages/Webkul/Payment/tests",
             "Webkul\\Razorpay\\Tests\\": "packages/Webkul/Razorpay/tests",
-            "Webkul\\Shop\\Tests\\": "packages/Webkul/Shop/tests"
+            "Webkul\\Shop\\Tests\\": "packages/Webkul/Shop/tests",
+            "Gabha\\RewardCoins\\Tests\\": "packages/Gabha/RewardCoins/tests"
         }
     },
     "scripts": {

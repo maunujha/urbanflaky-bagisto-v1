@@ -1288,6 +1288,21 @@ return [
             'title' => '403 Forbidden',
         ],
 
+        '405' => [
+            'description' => 'This page can\'t be opened that way. Please go back and try again.',
+            'title' => '405 Method Not Allowed',
+        ],
+
+        '419' => [
+            'description' => 'Your session expired while this page was open. Please refresh the page and try again.',
+            'title' => '419 Page Expired',
+        ],
+
+        '429' => [
+            'description' => 'Too many requests in a short time. Please wait a moment and try again.',
+            'title' => '429 Too Many Requests',
+        ],
+
         '500' => [
             'description' => 'Oops! Something went wrong. It seems we\'re having trouble loading the page you\'re looking for.',
             'title' => '500 Internal Server Error',

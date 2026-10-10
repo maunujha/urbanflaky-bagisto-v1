@@ -14,6 +14,7 @@ use Gabha\RewardCoins\Repositories\Contracts\CoinWalletRepositoryInterface;
 use Gabha\RewardCoins\Services\CoinWalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Throwable;
 use Webkul\Admin\Http\Controllers\Controller;
@@ -175,17 +176,23 @@ class CoinAdminController extends Controller
     public function grantCoins(int $id, Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'amount' => 'required|integer|min:1',
-            'action' => 'required|in:add,deduct',
-            'note'   => 'nullable|string|max:255',
+            'amount'        => 'required|integer|min:1',
+            'action'        => 'required|in:add,deduct',
+            'note'          => 'nullable|string|max:255',
+            'operation_key' => 'nullable|uuid',
         ]);
 
         $note = $data['note'] ?: trans('reward-coins::reward_coins.admin.grant.default-note');
 
+        // The form carries a one-time key, so a double-submit or a resubmitted
+        // page posts the adjustment once.
+        $key  = sprintf('admin:%s', $data['operation_key'] ?? (string) Str::uuid());
+        $meta = ['admin_id' => auth()->guard('admin')->id()];
+
         try {
             $data['action'] === 'add'
-                ? $this->walletService->credit($id, (int) $data['amount'], TransactionType::Adjusted, null, $note, TransactionStatus::Confirmed)
-                : $this->walletService->debit($id, (int) $data['amount'], TransactionType::Adjusted, null, $note, TransactionStatus::Confirmed);
+                ? $this->walletService->credit($id, (int) $data['amount'], TransactionType::Adjusted, null, $note, TransactionStatus::Confirmed, $key, $meta)
+                : $this->walletService->debit($id, (int) $data['amount'], TransactionType::Deducted, null, $note, $key, $meta);
 
             session()->flash('success', trans('reward-coins::reward_coins.admin.grant.success'));
         } catch (Throwable $e) {

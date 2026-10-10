@@ -90,7 +90,20 @@ class CoinController extends Controller
             ], 422);
         }
 
-        $cartTotal = (float) $cart->base_grand_total;
+        /*
+         * Coins may only discount the customer's own cart: validation reads this
+         * customer's wallet, while the collector debits the cart owner's.
+         */
+        if ((int) $cart->customer_id !== $customerId) {
+            return response()->json([
+                'success'    => false,
+                'error_code' => 'cart_mismatch',
+                'message'    => trans('reward-coins::reward_coins.errors.cart-mismatch'),
+                'max_coins'  => 0,
+            ], 403);
+        }
+
+        $cartTotal = $this->redemption->eligibleTotal($cart);
 
         // Single source of truth for every redemption rule; structured failure.
         $result = $this->redemption->validateRedemption($customerId, $requestedCoins, $cartTotal);

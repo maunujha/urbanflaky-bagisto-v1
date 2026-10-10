@@ -13,10 +13,12 @@ use Webkul\Customer\Models\CustomerProxy;
 use Webkul\Sales\Models\OrderProxy;
 
 /**
- * A single immutable ledger entry in a customer's coin history.
+ * A single ledger entry in a customer's coin history.
  *
  * Every credit/debit is one row; the running wallet balances are derived from
- * these by the wallet service. Data-only model — no business logic lives here.
+ * these by the wallet service. Amounts are never edited; only a lot's
+ * lifecycle fields (`status`, `remaining`, `available_at`) move. Data-only
+ * model — no business logic lives here.
  */
 class CoinTransaction extends Model
 {
@@ -37,8 +39,11 @@ class CoinTransaction extends Model
         'type',
         'status',
         'amount',
+        'remaining',
+        'operation_key',
         'order_id',
         'note',
+        'meta',
         'expires_at',
         'available_at',
     ];
@@ -52,6 +57,8 @@ class CoinTransaction extends Model
         'type'         => TransactionType::class,
         'status'       => TransactionStatus::class,
         'amount'       => 'integer',
+        'remaining'    => 'integer',
+        'meta'         => 'array',
         'expires_at'   => 'datetime',
         'available_at' => 'datetime',
     ];
