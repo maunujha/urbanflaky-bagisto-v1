@@ -69,13 +69,13 @@
                                  de-prioritised. The fixed aspect-square box means a
                                  late-arriving slide cannot shift layout. --}}
                             <img
-                                class="aspect-square max-h-full w-full max-w-full select-none transition-transform duration-300 ease-in-out"
+                                class="aspect-square max-h-full w-full max-w-full select-none object-cover transition-transform duration-300 ease-in-out"
                                 :src="media.large_image_fallback_url || media.large_image_url"
-                                :alt="media.large_image_url"
+                                alt="{{ $product->name }}"
                                 width="600"
                                 height="600"
                                 :loading="index === 0 ? null : 'lazy'"
-                                :fetchpriority="index === 0 ? null : 'low'"
+                                :fetchpriority="index === 0 ? 'high' : 'low'"
                                 decoding="async"
                             />
                         </picture>

@@ -3,6 +3,7 @@
     'hasFeature'      => true,
     'hasFooter'       => true,
     'hasCustomSeo'    => false,
+    'hasPreloader'    => false,
     'metaDescription' => 'Premium oversized and heavyweight cotton t-shirts in monochrome. Dark-aesthetic streetwear for men and women, Rs 299-799, shipped across India.',
     'metaKeywords'    => 'urbanflaky, oversized t-shirts, dark streetwear, monochrome fashion, heavyweight cotton t-shirts, minimal streetwear india',
     'robots'          => 'index, follow',
@@ -84,13 +85,15 @@
             href="{{ core()->getCurrentChannel()->favicon_url ?? bagisto_asset('images/favicon.ico') }}"
         />
 
-        {{-- Vite assets. The stylesheet <link>s are rewritten to load non-render-
-             blocking (media="print" → flipped to "all" on load): the browser paints
-             the inline-styled full-screen preloader immediately instead of blocking
-             on ~207 KB of CSS, so FCP is no longer CSS-gated. The preloader masks the
-             brief unstyled window and only exits on window.load (after the CSS has
-             applied), so there is no FOUC. If the markup ever changes and the regex
-             stops matching, the links fall back to render-blocking — safe, no break. --}}
+        {{-- Vite assets. Normally the stylesheets are render-blocking: the page
+             paints once, fully styled, with no FOUC.
+
+             Pages that opt into the preloader (homepage) rewrite the <link>s to load
+             non-render-blocking (media="print" → flipped to "all" on load) so the
+             inline-styled preloader paints on the first frame; it masks the unstyled
+             window and only exits once every sheet has applied. If the markup ever
+             changes and the regex stops matching, the links fall back to
+             render-blocking — safe, no break. --}}
         @php
             $ufVite = themes()->setBagistoVite([
                 'src/Resources/assets/css/app.css',
@@ -98,15 +101,19 @@
                 'src/Resources/assets/js/app.js',
             ])->toHtml();
 
-            $ufVite = preg_replace(
-                '#<link rel="stylesheet" href="([^"]+)"\s*/?>#i',
-                '<link rel="stylesheet" href="$1" media="print" onload="this.media=\'all\';this.onload=null"><noscript><link rel="stylesheet" href="$1"></noscript>',
-                $ufVite
-            );
+            if ($hasPreloader) {
+                $ufVite = preg_replace(
+                    '#<link rel="stylesheet" href="([^"]+)"\s*/?>#i',
+                    '<link rel="stylesheet" href="$1" media="print" onload="this.media=\'all\';this.onload=null"><noscript><link rel="stylesheet" href="$1"></noscript>',
+                    $ufVite
+                );
+            }
         @endphp
         {!! $ufVite !!}
-        {{-- Safety net: guarantee any leftover print-media sheet applies by load. --}}
-        <script>addEventListener('load',function(){document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach(function(l){l.media='all';});});</script>
+        @if ($hasPreloader)
+            {{-- Safety net: guarantee any leftover print-media sheet applies by load. --}}
+            <script>addEventListener('load',function(){document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach(function(l){l.media='all';});});</script>
+        @endif
 
         {{-- Self-hosted fonts (Poppins + DM Serif Display). @font-face lives in
              urbanflaky.css; files in public/fonts/. Preload the two most-used
@@ -137,8 +144,10 @@
         <!-- Google Tag Manager (noscript) — must be first child of <body> -->
         <x-shop::layouts.tracking.noscript />
 
-        <!-- Premium "UF" site preloader — sibling before #app so Vue never manages it -->
-        <x-shop::layouts.preloader />
+        <!-- Premium "UF" site preloader (homepage only) — sibling before #app so Vue never manages it -->
+        @if ($hasPreloader)
+            <x-shop::layouts.preloader />
+        @endif
 
         <!-- GDPR cookie consent — sibling before #app so Vue never manages it -->
         @if (\App\Support\CookieConsent::enabled())
@@ -202,14 +211,19 @@
         {!! view_render_event('bagisto.shop.layout.vue-app-mount.before') !!}
         <script>
             /**
-             * Load event, the purpose of using the event is to mount the application
-             * after all of our `Vue` components which is present in blade file have
-             * been registered in the app. No matter what `app.mount()` should be
-             * called in the last.
+             * Mount once every `Vue` component in the blade files has been
+             * registered. Those registrations are `type="module"` scripts, which
+             * always execute before DOMContentLoaded — so mounting here is safe and
+             * the Vue-rendered UI (gallery, product cards) no longer waits for
+             * window.load, i.e. for every image and third-party script to finish.
              */
-            window.addEventListener("load", function (event) {
+            if (document.readyState === "loading") {
+                document.addEventListener("DOMContentLoaded", function () {
+                    app.mount("#app");
+                });
+            } else {
                 app.mount("#app");
-            });
+            }
         </script>
 
         {!! view_render_event('bagisto.shop.layout.vue-app-mount.after') !!}

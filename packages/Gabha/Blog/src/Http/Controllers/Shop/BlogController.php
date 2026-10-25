@@ -8,11 +8,6 @@ use Illuminate\View\View;
 class BlogController
 {
     /**
-     * Posts shown per page on the listing.
-     */
-    const PER_PAGE = 9;
-
-    /**
      * Columns the card layouts actually render. The `content` column holds the
      * full article HTML (tens of KB per row) and is never shown on a listing,
      * so it is left out of every query that only builds cards. `image` must
@@ -44,7 +39,7 @@ class BlogController
             ->published()
             ->orderByDesc('published_at')
             ->orderByDesc('id')
-            ->paginate(self::PER_PAGE, self::CARD_COLUMNS);
+            ->paginate(config('blog.per_page'), self::CARD_COLUMNS);
 
         return view('blog::shop.index', compact('blogs'));
     }
@@ -61,16 +56,10 @@ class BlogController
             ->where('slug', $slug)
             ->firstOrFail();
 
-        $recentBlogs = $this->blogRepository
-            ->getModel()
-            ->newQuery()
-            ->published()
-            ->where('id', '!=', $blog->id)
-            ->orderByDesc('published_at')
-            ->orderByDesc('id')
-            ->limit(3)
-            ->get(self::CARD_COLUMNS);
+        $relatedBlogs = $this->blogRepository->getRelated($blog, self::CARD_COLUMNS, config('blog.related_limit'));
 
-        return view('blog::shop.show', compact('blog', 'recentBlogs'));
+        $collectionLinks = $this->blogRepository->getCollectionLinks($blog);
+
+        return view('blog::shop.show', compact('blog', 'relatedBlogs', 'collectionLinks'));
     }
 }

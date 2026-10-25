@@ -140,8 +140,21 @@
 @stack('datalayer')
 
 @if ($ahrefsKey)
-    {{-- Ahrefs Web Analytics — cookieless, so it loads regardless of the consent layer. --}}
-    <script src="https://analytics.ahrefs.com/analytics.js" data-key="{{ $ahrefsKey }}" async></script>
+    {{-- Ahrefs Web Analytics — cookieless, so it loads regardless of the consent layer.
+         Injected once the page has loaded and the main thread is idle: as an async
+         <head> script it ran a ~400ms long task in the middle of page start-up on
+         mobile. A pageview is all it records, so starting late loses nothing. --}}
+    <script>
+        addEventListener('load', function () {
+            (window.requestIdleCallback || function (cb) { setTimeout(cb, 1500); })(function () {
+                var s = document.createElement('script');
+                s.src = 'https://analytics.ahrefs.com/analytics.js';
+                s.async = true;
+                s.setAttribute('data-key', @json($ahrefsKey));
+                document.head.appendChild(s);
+            }, { timeout: 4000 });
+        });
+    </script>
 @endif
 
 @unless ($ccEnabled)

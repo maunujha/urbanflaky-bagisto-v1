@@ -15,6 +15,11 @@ use Webkul\Tax\Models\TaxRate;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
+/*
+ * Catalog-rule expectations are floored: Urbanflaky floors every catalog-rule price to a
+ * whole rupee (CatalogRuleProductPrice::calculate()), so ₹2,337.60 sells at ₹2,337.
+ */
+
 it('should fails the validation error when the certain inputs not provided when add a bundle product to the cart with a cart rule of the no coupon type for all customer group type', function () {
     // Arrange.
     $product = (new ProductFaker([
@@ -2705,7 +2710,7 @@ it('should fails the validation error when the certain inputs not provided when 
     $product->load('bundle_options.product');
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -2781,7 +2786,7 @@ it('should check discount price if catalog rule applied for percentage price for
     $product->load('bundle_options.product');
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -2861,7 +2866,7 @@ it('should fails the validation error when the certain inputs not provided when 
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -2937,7 +2942,7 @@ it('should check discount price if catalog rule applied for percentage price for
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3019,7 +3024,7 @@ it('should fails the validation error when the certain inputs not provided when 
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3095,7 +3100,7 @@ it('should check discount price if catalog rule applied for percentage price for
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100));
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)));
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3178,7 +3183,7 @@ it('should fails the validation error when the certain inputs not provided when 
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3253,7 +3258,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3336,7 +3341,7 @@ it('should fails the validation error when the certain inputs not provided when 
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3415,7 +3420,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3500,7 +3505,7 @@ it('should fails the validation error when the certain inputs not provided when 
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3579,7 +3584,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
     ];
 
     foreach ($product->bundle_options as $bundleOption) {
-        $bundleOptions['prices'][] = $bundleOption->product->price - $catalogRule->discount_amount;
+        $bundleOptions['prices'][] = floor($bundleOption->product->price - $catalogRule->discount_amount);
 
         $bundleOptions['bundle_option_quantities'][$bundleOption->id] = 1;
 
@@ -3674,7 +3679,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - $catalogRule->discount_amount,
+                    'price' => floor($bundleOption->product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 1,
                     'catalog_rule_id' => $catalogRule->id,
                 ],
@@ -3737,7 +3742,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - $catalogRule->discount_amount,
+                    'price' => floor($bundleOption->product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 2,
                     'catalog_rule_id' => $catalogRule->id,
                 ],
@@ -3800,7 +3805,7 @@ it('should check discount price if catalog rule applied for fixed price for bund
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - $catalogRule->discount_amount,
+                    'price' => floor($bundleOption->product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 3,
                     'catalog_rule_id' => $catalogRule->id,
                 ],
@@ -3862,7 +3867,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 1,
                     'catalog_rule_id' => $catalogRule->id,
                 ],
@@ -3923,7 +3928,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 2,
                     'catalog_rule_id' => $catalogRule->id,
                 ],
@@ -3985,7 +3990,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($bundleOption->product->price - ($bundleOption->product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 3,
                     'catalog_rule_id' => $catalogRule->id,
                 ],

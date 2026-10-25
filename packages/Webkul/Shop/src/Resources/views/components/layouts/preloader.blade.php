@@ -6,11 +6,13 @@
     the loader paints on the very first frame, before the built
     stylesheet finishes downloading (zero FOUC, zero extra request).
 
-    Rendered as a sibling BEFORE #app so the Vue mount never manages
-    or removes it. Plays the full intro once per browser session;
-    repeat page loads get a snappy minimal version. It exits the
-    instant the page is ready (window 'load') with a hard safety cap
-    so it can never get stuck covering the page.
+    Homepage only (layout :has-preloader) — on every other page it
+    would sit in front of the LCP. Rendered as a sibling BEFORE #app so
+    the Vue mount never manages or removes it. Plays the intro once per
+    browser session; repeat loads exit as soon as the page is ready. It
+    exits the instant the page is styled and parsed (DOMContentLoaded +
+    sheets applied) with a hard safety cap so it can never get stuck
+    covering the page.
     ============================================================
 --}}
 <div id="uf-preloader" role="presentation" aria-hidden="true">
@@ -274,8 +276,8 @@
             var first   = true;
             try { first = !sessionStorage.getItem('ufVisited'); } catch (e) {}
 
-            var MIN  = first ? 1800 : 700;   // min on-screen time so the intro reads premium
-            var MAX  = 6000;                 // hard safety cap — never get stuck
+            var MIN  = first ? 900 : 0;      // min on-screen time so the intro reads premium
+            var MAX  = 3000;                 // hard safety cap — never get stuck
             var start = Date.now();
             var done  = false;
 
@@ -303,10 +305,22 @@
                 setTimeout(finish, wait);
             }
 
-            if (document.readyState === 'complete') {
-                onReady();
+            /* Exit as soon as the page can be shown — DOM parsed (Vue mounts on
+               DOMContentLoaded) and every non-blocking stylesheet applied — rather
+               than on window.load, which also waits for every image and
+               third-party script and held the loader up for seconds. */
+            function whenStyled() {
+                if (document.querySelector('link[rel="stylesheet"][media="print"]')) {
+                    setTimeout(whenStyled, 50);
+                } else {
+                    onReady();
+                }
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', whenStyled);
             } else {
-                window.addEventListener('load', onReady);
+                whenStyled();
             }
 
             setTimeout(finish, MAX); // absolute safety net

@@ -134,7 +134,8 @@ it('should store the subscription of the shop', function () {
     postJson(route('shop.subscription.store'), [
         'email' => $email = fake()->email(),
     ])
-        ->assertRedirect();
+        ->assertOk()
+        ->assertJson(['success' => true]);
 
     $this->assertModelWise([
         SubscribersList::class => [
@@ -153,7 +154,8 @@ it('should store the subscription of the shop and send the mail to the admin', f
     postJson(route('shop.subscription.store'), [
         'email' => $email = fake()->email(),
     ])
-        ->assertRedirect();
+        ->assertOk()
+        ->assertJson(['success' => true]);
 
     $this->assertModelWise([
         SubscribersList::class => [

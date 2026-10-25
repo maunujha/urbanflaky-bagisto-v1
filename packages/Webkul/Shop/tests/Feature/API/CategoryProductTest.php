@@ -147,10 +147,11 @@ it('returns category products sorted by price descending', function () {
         ->map(fn ($price) => core()->formatPrice($price))
         ->toArray();
 
-    // Act and Assert.
-    getJson(route('shop.api.products.index', ['category_id' => $specifiedCategory->id, 'sort' => 'price-desc']))
-        ->assertOk()
-        ->assertSeeTextInOrder($expectedPricesInDescOrder);
+    // Act and Assert. Compare decoded prices: raw JSON escapes ₹ as ₹.
+    $response = getJson(route('shop.api.products.index', ['category_id' => $specifiedCategory->id, 'sort' => 'price-desc']))
+        ->assertOk();
+
+    expect($response->json('data.*.prices.final.formatted_price'))->toBe(array_values($expectedPricesInDescOrder));
 });
 
 it('returns category products sorted by price ascending', function () {
@@ -169,8 +170,9 @@ it('returns category products sorted by price ascending', function () {
         ->map(fn ($price) => core()->formatPrice($price))
         ->toArray();
 
-    // Act and Assert.
-    getJson(route('shop.api.products.index', ['category_id' => $specifiedCategory->id, 'sort' => 'price-asc']))
-        ->assertOk()
-        ->assertSeeTextInOrder($expectedPricesInAscOrder);
+    // Act and Assert. Compare decoded prices: raw JSON escapes ₹ as ₹.
+    $response = getJson(route('shop.api.products.index', ['category_id' => $specifiedCategory->id, 'sort' => 'price-asc']))
+        ->assertOk();
+
+    expect($response->json('data.*.prices.final.formatted_price'))->toBe(array_values($expectedPricesInAscOrder));
 });

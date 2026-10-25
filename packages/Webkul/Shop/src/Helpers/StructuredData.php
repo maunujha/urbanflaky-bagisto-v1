@@ -2,6 +2,7 @@
 
 namespace Webkul\Shop\Helpers;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Webkul\Product\Helpers\Review as ReviewHelper;
@@ -195,26 +196,16 @@ class StructuredData
                 '@type' => 'Organization',
                 'name'  => self::SELLER_NAME,
             ],
-            /* Flat-rate carrier config (sales.carriers.flatrate). No deliveryTime is emitted
-               because the store commits to no delivery SLA. */
-            'shippingDetails' => [
-                '@type'        => 'OfferShippingDetails',
-                'shippingRate' => [
-                    '@type'    => 'MonetaryAmount',
-                    'value'    => '50',
-                    'currency' => 'INR',
-                ],
-                'shippingDestination' => [
-                    '@type'          => 'DefinedRegion',
-                    'addressCountry' => 'IN',
-                ],
-            ],
-            /* hasMerchantReturnPolicy is deliberately omitted. Google requires
-               returnPolicyCategory (finite window + merchantReturnDays, unlimited, or
-               not permitted), and the published policy fixes no day window — a
-               link-only node failed rich-results validation on every single-Offer
-               product. Re-add once /return-policy states a window. */
+            'shippingDetails' => $this->getShippingDetails($product),
         ];
+
+        if ($validFrom = $product->created_at?->format('Y-m-d')) {
+            $common['validFrom'] = $validFrom;
+        }
+
+        if ($returnPolicy = $this->getReturnPolicy($product)) {
+            $common['hasMerchantReturnPolicy'] = $returnPolicy;
+        }
 
         /* Price varies across variants → AggregateOffer. */
         if ($max > $min) {
@@ -232,6 +223,121 @@ class StructuredData
             'price'           => $this->formatPrice($min),
             'priceValidUntil' => now()->addYear()->format('Y-m-d'),
         ], $common);
+    }
+
+    /**
+     * OfferShippingDetails from the flat-rate carrier config (sales.carriers.flatrate).
+     *
+     * deliveryTime is emitted only when every handling/transit day bound is configured
+     * (config/products.php → structured_data.delivery_time), so the schema never states
+     * a delivery promise the store has not made. Made-on-Demand products are produced
+     * after ordering, so the ready-stock dispatch window does not apply to them.
+     *
+     * @param  \Webkul\Product\Contracts\Product  $product
+     * @return array
+     */
+    protected function getShippingDetails($product): array
+    {
+        $details = [
+            '@type'        => 'OfferShippingDetails',
+            'shippingRate' => [
+                '@type'    => 'MonetaryAmount',
+                'value'    => (string) (core()->getConfigData('sales.carriers.flatrate.default_rate') ?: 50),
+                'currency' => 'INR',
+            ],
+            'shippingDestination' => [
+                '@type'          => 'DefinedRegion',
+                'addressCountry' => 'IN',
+            ],
+        ];
+
+        $days = config('products.structured_data.delivery_time', []);
+
+        $bounds = [
+            'handling_min' => $days['handling_min'] ?? null,
+            'handling_max' => $days['handling_max'] ?? null,
+            'transit_min'  => $days['transit_min'] ?? null,
+            'transit_max'  => $days['transit_max'] ?? null,
+        ];
+
+        if ($product->is_made_on_demand || in_array(null, $bounds, true)) {
+            return $details;
+        }
+
+        $details['deliveryTime'] = [
+            '@type'        => 'ShippingDeliveryTime',
+            'handlingTime' => [
+                '@type'    => 'QuantitativeValue',
+                'minValue' => (int) $bounds['handling_min'],
+                'maxValue' => (int) $bounds['handling_max'],
+                'unitCode' => 'DAY',
+            ],
+            'transitTime' => [
+                '@type'    => 'QuantitativeValue',
+                'minValue' => (int) $bounds['transit_min'],
+                'maxValue' => (int) $bounds['transit_max'],
+                'unitCode' => 'DAY',
+            ],
+        ];
+
+        return $details;
+    }
+
+    /**
+     * MerchantReturnPolicy built from the return window the RMA module actually enforces
+     * for this product — the same eligibility rules OrderItemResource snapshots at checkout:
+     * allowed product type, allow_rma enabled, then the product's active RMA rule period or
+     * the global sales.rma.setting.default_allow_days.
+     *
+     * Omitted for products the store would not accept back, so the schema never promises
+     * a return the RMA flow refuses.
+     *
+     * @param  \Webkul\Product\Contracts\Product  $product
+     * @return array|null
+     */
+    protected function getReturnPolicy($product): ?array
+    {
+        $allowedTypes = array_map('trim', explode(',', (string) core()->getConfigData('sales.rma.setting.select_allowed_product_type')));
+
+        if (! in_array($product->type, $allowedTypes, true)) {
+            return null;
+        }
+
+        $attributeIds = DB::table('attributes')->whereIn('code', ['allow_rma', 'rma_rule_id'])->pluck('id', 'code');
+
+        /* Stored values only, exactly as the RMA flow reads them — the attribute default is ignored there. */
+        $allowRma = DB::table('product_attribute_values')
+            ->where('product_id', $product->id)
+            ->where('attribute_id', $attributeIds['allow_rma'] ?? 0)
+            ->value('boolean_value');
+
+        if ((int) $allowRma !== 1) {
+            return null;
+        }
+
+        $rulePeriod = DB::table('product_attribute_values')
+            ->where('product_id', $product->id)
+            ->where('attribute_id', $attributeIds['rma_rule_id'] ?? 0)
+            ->join('rma_rules', function ($join) {
+                $join->on('product_attribute_values.integer_value', '=', 'rma_rules.id')
+                    ->where('rma_rules.status', 1);
+            })
+            ->value('rma_rules.return_period');
+
+        $days = (int) ($rulePeriod ?? core()->getConfigData('sales.rma.setting.default_allow_days'));
+
+        if ($days < 1) {
+            return null;
+        }
+
+        return [
+            '@type'                => 'MerchantReturnPolicy',
+            'applicableCountry'    => 'IN',
+            'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+            'merchantReturnDays'   => $days,
+            'returnMethod'         => 'https://schema.org/ReturnByMail',
+            'merchantReturnLink'   => url('return-policy'),
+        ];
     }
 
     /**

@@ -12,10 +12,10 @@ use Throwable;
 /**
  * Pre-generate the resized blog derivatives that the storefront requests.
  *
- * Webkul\ImageCache resizes on the fly and, despite the name, caches nothing
- * server-side — it re-decodes and re-encodes the source on every cold request.
- * For blog imagery that source can be 18 megapixels, so a cold request costs
- * real CPU.
+ * Webkul\ImageCache resizes on the fly and writes the result to public/cache on
+ * the first request, but that first request still decodes the source — and for
+ * blog imagery the source can be 18 megapixels, so a cold request costs real
+ * CPU. Warming moves that cost off the first visitor.
  *
  * nginx is configured as `location ^~ /cache/ { try_files $uri /index.php...; }`,
  * so a file that actually exists at public/cache/<template>/<path> is served

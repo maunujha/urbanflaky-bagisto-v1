@@ -81,5 +81,6 @@ return [
     'paths' => [
         'blog/slim-fit-vs-regular-fit-which-t-shirt-is-right-for-you' => '/blog',
         'account/register'                                            => '/customer/register',
+        'pod'                                                         => '/mens-t-shirts',
     ],
 ];

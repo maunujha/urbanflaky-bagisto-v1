@@ -10,6 +10,15 @@ use function Pest\Laravel\get;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
 
+/**
+ * A random password that always satisfies the admin policy (UserForm: min 8, mixed case,
+ * numbers). fake()->password() only sometimes does, which made these tests flaky.
+ */
+function policyPassword(): string
+{
+    return fake()->regexify('[A-Z]{2}[a-z]{4}[0-9]{3}');
+}
+
 it('should returns the user index page', function () {
     // Act and Assert.
     $this->loginAsAdmin();
@@ -53,7 +62,7 @@ it('should store the newly created admin', function () {
         'name' => fake()->name(),
         'role_id' => 1,
         'email' => fake()->email,
-        'password' => $password = fake()->password(),
+        'password' => $password = policyPassword(),
         'password_confirmation' => $password,
         'image' => [
             UploadedFile::fake()->image('avatar.jpg'),
@@ -81,7 +90,7 @@ it('should fails the validation error with tempered avatar provided when store t
         'name' => fake()->name(),
         'role_id' => 1,
         'email' => fake()->email(),
-        'password' => $password = fake()->password(),
+        'password' => $password = policyPassword(),
         'password_confirmation' => $password,
         'image' => [
             UploadedFile::fake()->image('avatar.php'),
@@ -139,7 +148,7 @@ it('should update the existing admin', function () {
         ],
         'role_id' => 1,
         'email' => fake()->email(),
-        'password' => $password = fake()->password(),
+        'password' => $password = policyPassword(),
         'password_confirmation' => $password,
     ])
         ->assertOk()
@@ -167,7 +176,7 @@ it('should fails the validation error with tempered avatar provided when update 
         ],
         'role_id' => 1,
         'email' => fake()->email(),
-        'password' => $password = fake()->password(),
+        'password' => $password = policyPassword(),
         'password_confirmation' => $password,
     ])
         ->assertJsonValidationErrorFor('image.0')
@@ -193,7 +202,7 @@ it('can update the users without new image', function () {
         ],
         'role_id' => 1,
         'email' => fake()->email(),
-        'password' => $password = fake()->password(),
+        'password' => $password = policyPassword(),
         'password_confirmation' => $password,
     ])
         ->assertOk();
@@ -223,7 +232,7 @@ it('should delete the existing admin', function () {
 it('should delete self admin', function () {
     // Arrange.
     $admin = Admin::factory()->create([
-        'password' => Hash::make($password = fake()->password()),
+        'password' => Hash::make($password = policyPassword()),
     ]);
 
     // Act and Assert.

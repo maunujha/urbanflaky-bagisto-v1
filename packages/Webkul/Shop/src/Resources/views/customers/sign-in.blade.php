@@ -320,11 +320,11 @@
     }
 
     window.addEventListener('load', function() {
-        /* app.mount() fires on this SAME load event but is registered after us
-           (the layout renders @stack('scripts') before the mount <script>), so
-           Vue replaces these nodes right after this callback runs. Defer with a
-           0ms timeout so we read the final Vue-rendered DOM, and re-query the
-           nodes each tick so a detached reference can never freeze the timer. */
+        /* app.mount() has already run (on DOMContentLoaded) by the time load
+           fires, so the Vue-rendered nodes exist. The 0ms timeout and the
+           per-tick re-query are kept as cheap insurance: they always read the
+           final Vue-rendered DOM, and a detached reference can never freeze
+           the timer. */
         setTimeout(function() {
             var box0 = document.getElementById('otp-0');
             if (box0) box0.focus();

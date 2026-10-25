@@ -28,18 +28,19 @@
                         :key="category.id"
                         :href="category.slug"
                         :class="['uf-cat-card', category.card_background ? 'uf-bg-' + category.card_background : 'uf-bg-default']"
-                        :aria-label="category.name"
                     >
+                        {{-- No aria-label: the visible name + CTA is the accessible name
+                             (an aria-label that differs from it fails WCAG 2.5.3). --}}
                         <div class="uf-cat-card-image">
-                            <picture v-if="category.logo?.original_image_url">
+                            <picture v-if="category.logo?.card_image_url">
                                 <source
                                     type="image/webp"
-                                    :srcset="category.logo.original_image_url"
-                                    v-if="category.logo.original_image_fallback_url"
+                                    :srcset="category.logo.card_image_url"
+                                    v-if="category.logo.card_image_fallback_url"
                                 >
 
                                 <img
-                                    :src="category.logo.original_image_fallback_url || category.logo.original_image_url"
+                                    :src="category.logo.card_image_fallback_url || category.logo.card_image_url"
                                     :alt="category.name"
                                     loading="lazy"
                                     decoding="async"

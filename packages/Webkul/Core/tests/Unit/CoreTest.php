@@ -169,12 +169,14 @@ it('should format the price with default symbol based on the current currency an
     // Arrange
     $expectedSymbol = '$';
 
-    $channel = Channel::factory()->create();
-
-    $channel->base_currency->update([
+    /* Own USD currency: the store's seeded base currency (id 1) is INR, not the stock USD. */
+    $usd = Currency::factory()->create([
+        'code' => 'USD',
         'symbol' => null,
         'currency_position' => null,
     ]);
+
+    $channel = Channel::factory()->create(['base_currency_id' => $usd->id]);
 
     $price = number_format(fake()->randomFloat(min: 1, max: 500), $channel->base_currency->decimal);
 
@@ -367,10 +369,10 @@ it('should format the price based on the current currency and place the code on 
 
 it('should format the price based on the mentioned currency and place the symbol on the left side', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::LEFT->value,
     ]);
 
@@ -378,23 +380,23 @@ it('should format the price based on the mentioned currency and place the symbol
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->symbol.$price);
+    expect($formattedPrice)->toBe($euroCurrency->symbol.$price);
 });
 
 it('should format the price based on the mentioned currency and place the symbol on the left side with space', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::LEFT_WITH_SPACE->value,
     ]);
 
@@ -402,23 +404,23 @@ it('should format the price based on the mentioned currency and place the symbol
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->symbol.' '.$price);
+    expect($formattedPrice)->toBe($euroCurrency->symbol.' '.$price);
 });
 
 it('should format the price based on the mentioned currency and place the symbol on the right side', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::RIGHT->value,
     ]);
 
@@ -426,23 +428,23 @@ it('should format the price based on the mentioned currency and place the symbol
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($price.$indianCurrency->symbol);
+    expect($formattedPrice)->toBe($price.$euroCurrency->symbol);
 });
 
 it('should format the price based on the mentioned currency and place the symbol on the right side with space', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::RIGHT_WITH_SPACE->value,
     ]);
 
@@ -450,22 +452,22 @@ it('should format the price based on the mentioned currency and place the symbol
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($price.' '.$indianCurrency->symbol);
+    expect($formattedPrice)->toBe($price.' '.$euroCurrency->symbol);
 });
 
 it('should format the price based on the mentioned currency and place the code on the left side if the symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::LEFT->value,
     ]);
@@ -474,22 +476,22 @@ it('should format the price based on the mentioned currency and place the code o
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->code.$price);
+    expect($formattedPrice)->toBe($euroCurrency->code.$price);
 });
 
 it('should format the price based on the mentioned currency and place the code on the left side with space if the symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::LEFT_WITH_SPACE->value,
     ]);
@@ -498,22 +500,22 @@ it('should format the price based on the mentioned currency and place the code o
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->code.' '.$price);
+    expect($formattedPrice)->toBe($euroCurrency->code.' '.$price);
 });
 
 it('should format the price based on the mentioned currency and place the code on the right side if the symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::RIGHT->value,
     ]);
@@ -522,22 +524,22 @@ it('should format the price based on the mentioned currency and place the code o
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($price.$indianCurrency->code);
+    expect($formattedPrice)->toBe($price.$euroCurrency->code);
 });
 
 it('should format the price based on the mentioned currency and place the code on the right side with space if the symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::RIGHT_WITH_SPACE->value,
     ]);
@@ -546,173 +548,173 @@ it('should format the price based on the mentioned currency and place the code o
 
     $channel->currencies()->sync(Currency::all()->pluck('id')->toArray());
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     core()->setCurrentChannel($channel);
 
     // Act
-    $formattedPrice = core()->formatPrice($price, $indianCurrency->code);
+    $formattedPrice = core()->formatPrice($price, $euroCurrency->code);
 
     // Assert
-    expect($formattedPrice)->toBe($price.' '.$indianCurrency->code);
+    expect($formattedPrice)->toBe($price.' '.$euroCurrency->code);
 });
 
 it('should format the base price and place the symbol on the left side', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::LEFT->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->symbol.$price);
+    expect($formattedPrice)->toBe($euroCurrency->symbol.$price);
 });
 
 it('should format the base price and place the symbol on the left side with space', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::LEFT_WITH_SPACE->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->symbol.' '.$price);
+    expect($formattedPrice)->toBe($euroCurrency->symbol.' '.$price);
 });
 
 it('should format the base price and place the symbol on the right side', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::RIGHT->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($price.$indianCurrency->symbol);
+    expect($formattedPrice)->toBe($price.$euroCurrency->symbol);
 });
 
 it('should format the base price and place the symbol on the right side with space', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
-        'symbol' => '₹',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
+        'symbol' => '€',
         'currency_position' => CurrencyPositionEnum::RIGHT_WITH_SPACE->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($price.' '.$indianCurrency->symbol);
+    expect($formattedPrice)->toBe($price.' '.$euroCurrency->symbol);
 });
 
 it('should format the base price and place the code on the left side if symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::LEFT->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->code.$price);
+    expect($formattedPrice)->toBe($euroCurrency->code.$price);
 });
 
 it('should format the base price and place the code on the left side with space if symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::LEFT_WITH_SPACE->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($indianCurrency->code.' '.$price);
+    expect($formattedPrice)->toBe($euroCurrency->code.' '.$price);
 });
 
 it('should format the base price and place the code on the right side if symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::RIGHT->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($price.$indianCurrency->code);
+    expect($formattedPrice)->toBe($price.$euroCurrency->code);
 });
 
 it('should format the base price and place the code on the right side with space if symbol is not present', function () {
     // Arrange
-    $indianCurrency = Currency::factory()->create([
-        'code' => 'INR',
-        'name' => 'Indian Rupee',
+    $euroCurrency = Currency::factory()->create([
+        'code' => 'EUR',
+        'name' => 'Euro',
         'symbol' => '',
         'currency_position' => CurrencyPositionEnum::RIGHT_WITH_SPACE->value,
     ]);
 
-    config()->set('app.currency', $indianCurrency->code);
+    config()->set('app.currency', $euroCurrency->code);
 
-    $price = number_format(fake()->randomFloat(min: 1, max: 500), $indianCurrency->decimal);
+    $price = number_format(fake()->randomFloat(min: 1, max: 500), $euroCurrency->decimal);
 
     // Act
     $formattedPrice = core()->formatBasePrice($price);
 
     // Assert
-    expect($formattedPrice)->toBe($price.' '.$indianCurrency->code);
+    expect($formattedPrice)->toBe($price.' '.$euroCurrency->code);
 });

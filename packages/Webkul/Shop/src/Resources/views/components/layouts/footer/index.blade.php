@@ -108,7 +108,7 @@
 
             {{-- Brand Column --}}
             <div>
-                <a href="{{ route('shop.home.index') }}" class="uf-logo-lockup" style="text-decoration:none;" aria-label="{{ config('app.name') }}">
+                <a href="{{ route('shop.home.index') }}" class="uf-logo-lockup" style="text-decoration:none;">
                     <div class="uf-logo-square">UF</div>
                     <div>
                         <div class="uf-logo-brand">Urban Flaky</div>

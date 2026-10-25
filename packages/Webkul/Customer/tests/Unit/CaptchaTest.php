@@ -4,7 +4,14 @@ use Illuminate\Support\Facades\Http;
 use Webkul\Core\Facades\Core;
 use Webkul\Customer\Captcha;
 
+/*
+ * The store runs standard reCAPTCHA v3 (api.js + siteverify, form-encoded secret/response,
+ * top-level success/score), not the stock reCAPTCHA Enterprise assessments API.
+ */
 beforeEach(function () {
+    /* A missing fake must fail the test, never reach Google with dummy keys. */
+    Http::preventStrayRequests();
+
     Core::shouldReceive('getConfigData')
         ->with('customer.captcha.credentials.project_id')
         ->andReturn('test-project')
@@ -139,7 +146,7 @@ it('returns default score threshold when not configured', function () {
 
 it('returns the client endpoint', function () {
     // Arrange
-    $expected = 'https://www.google.com/recaptcha/enterprise.js';
+    $expected = 'https://www.google.com/recaptcha/api.js';
 
     // Act
     $captcha = new Captcha;
@@ -149,20 +156,13 @@ it('returns the client endpoint', function () {
     expect($endpoint)->toBe($expected);
 });
 
-it('returns the site verify endpoint with project id', function () {
-    // Arrange
-    $projectId = 'test-project-123';
-
-    Core::shouldReceive('getConfigData')
-        ->with('customer.captcha.credentials.project_id')
-        ->andReturn($projectId);
-
+it('returns the v3 site verify endpoint', function () {
     // Act
     $captcha = new Captcha;
     $endpoint = $captcha->getSiteVerifyEndpoint();
 
     // Assert
-    expect($endpoint)->toBe("https://recaptchaenterprise.googleapis.com/v1/projects/{$projectId}/assessments");
+    expect($endpoint)->toBe('https://www.google.com/recaptcha/api/siteverify');
 });
 
 it('renders empty string when captcha is inactive', function () {
@@ -255,11 +255,11 @@ it('returns false when api key is not configured', function () {
     expect($result)->toBeFalse();
 });
 
-it('returns false when project id is not configured', function () {
+it('returns false when google reports the token as unsuccessful', function () {
     // Arrange
-    Core::shouldReceive('getConfigData')
-        ->with('customer.captcha.credentials.project_id')
-        ->andReturn(null);
+    Http::fake([
+        '*' => Http::response(['success' => false, 'error-codes' => ['invalid-input-response']], 200),
+    ]);
 
     // Act
     $captcha = new Captcha;
@@ -286,10 +286,7 @@ it('returns false when site key is not configured', function () {
 it('returns true when validation succeeds with score above threshold', function () {
     // Arrange
     Http::fake([
-        '*' => Http::response([
-            'tokenProperties' => ['valid' => true],
-            'riskAnalysis' => ['score' => 0.9],
-        ], 200),
+        '*' => Http::response(['success' => true, 'score' => 0.9], 200),
     ]);
 
     // Act
@@ -303,10 +300,7 @@ it('returns true when validation succeeds with score above threshold', function 
 it('returns false when validation fails with score below threshold', function () {
     // Arrange
     Http::fake([
-        '*' => Http::response([
-            'tokenProperties' => ['valid' => true],
-            'riskAnalysis' => ['score' => 0.3],
-        ], 200),
+        '*' => Http::response(['success' => true, 'score' => 0.3], 200),
     ]);
 
     // Act
@@ -320,10 +314,7 @@ it('returns false when validation fails with score below threshold', function ()
 it('returns false when token is invalid', function () {
     // Arrange
     Http::fake([
-        '*' => Http::response([
-            'tokenProperties' => ['valid' => false],
-            'riskAnalysis' => ['score' => 0.9],
-        ], 200),
+        '*' => Http::response(['success' => false, 'score' => 0.9], 200),
     ]);
 
     // Act
@@ -460,38 +451,28 @@ it('does not add captcha validation messages when inactive', function () {
 it('sends correct payload to google api', function () {
     // Arrange
     Http::fake([
-        '*' => Http::response([
-            'tokenProperties' => ['valid' => true],
-            'riskAnalysis' => ['score' => 0.9],
-        ], 200),
+        '*' => Http::response(['success' => true, 'score' => 0.9], 200),
     ]);
 
     // Act
     $captcha = new Captcha;
     $captcha->validateResponse('test-token-value');
 
-    // Assert
+    // Assert: v3 siteverify takes a form-encoded secret (admin "API Key") + token.
     Http::assertSent(function ($request) {
         $data = $request->data();
-        $url = $request->url();
 
-        return str_contains($url, '?key=test-api-key')
-            && isset($data['event']['token'])
-            && $data['event']['token'] === 'test-token-value'
-            && isset($data['event']['siteKey'])
-            && $data['event']['siteKey'] === 'test-site-key'
-            && isset($data['event']['expectedAction'])
-            && $data['event']['expectedAction'] === 'submit';
+        return $request->url() === 'https://www.google.com/recaptcha/api/siteverify'
+            && $request->isForm()
+            && ($data['secret'] ?? null) === 'test-api-key'
+            && ($data['response'] ?? null) === 'test-token-value';
     });
 });
 
 it('validates with exact threshold score', function () {
     // Arrange
     Http::fake([
-        '*' => Http::response([
-            'tokenProperties' => ['valid' => true],
-            'riskAnalysis' => ['score' => 0.5],
-        ], 200),
+        '*' => Http::response(['success' => true, 'score' => 0.5], 200),
     ]);
 
     // Act

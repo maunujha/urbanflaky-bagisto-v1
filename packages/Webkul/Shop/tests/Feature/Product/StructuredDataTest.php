@@ -356,6 +356,70 @@ it('falls back to Home > Product when the product has no category', function () 
     expect($items[1]['name'])->toBe($product->name);
 });
 
+/**
+ * Switch the channel-scoped allow_rma attribute on for a product.
+ */
+function allowReturns($product)
+{
+    $attributeId = \Illuminate\Support\Facades\DB::table('attributes')->where('code', 'allow_rma')->value('id');
+
+    $channel = core()->getDefaultChannelCode();
+
+    \Webkul\Product\Models\ProductAttributeValue::query()->updateOrCreate(
+        ['unique_id' => implode('|', [$channel, $product->id, $attributeId])],
+        ['product_id' => $product->id, 'attribute_id' => $attributeId, 'channel' => $channel, 'boolean_value' => 1]
+    );
+
+    return app(\Webkul\Product\Repositories\ProductRepository::class)->find($product->id);
+}
+
+it('emits the enforced RMA return window for a returnable product', function () {
+    $offers = productNode(buildGraph(allowReturns(makeSimpleProduct())))['offers'];
+
+    expect($offers['hasMerchantReturnPolicy']['@type'])->toBe('MerchantReturnPolicy');
+    expect($offers['hasMerchantReturnPolicy']['returnPolicyCategory'])->toBe('https://schema.org/MerchantReturnFiniteReturnWindow');
+    expect($offers['hasMerchantReturnPolicy']['merchantReturnDays'])->toBe((int) core()->getConfigData('sales.rma.setting.default_allow_days'));
+    expect($offers['hasMerchantReturnPolicy']['applicableCountry'])->toBe('IN');
+    expect($offers)->toHaveKey('validFrom');
+});
+
+it('omits the return policy for a product the RMA flow would not accept back', function () {
+    $offers = productNode(buildGraph(makeSimpleProduct()))['offers'];
+
+    expect($offers)->not->toHaveKey('hasMerchantReturnPolicy');
+});
+
+it('emits deliveryTime only when every handling and transit bound is configured', function () {
+    config(['products.structured_data.delivery_time' => [
+        'handling_min' => 1, 'handling_max' => 2, 'transit_min' => null, 'transit_max' => null,
+    ]]);
+
+    $partial = productNode(buildGraph(makeSimpleProduct()))['offers']['shippingDetails'];
+
+    expect($partial)->not->toHaveKey('deliveryTime');
+
+    config(['products.structured_data.delivery_time' => [
+        'handling_min' => 1, 'handling_max' => 2, 'transit_min' => 3, 'transit_max' => 7,
+    ]]);
+
+    $full = productNode(buildGraph(makeSimpleProduct()))['offers']['shippingDetails'];
+
+    expect($full['deliveryTime']['handlingTime']['maxValue'])->toBe(2);
+    expect($full['deliveryTime']['transitTime']['minValue'])->toBe(3);
+    expect($full['deliveryTime']['transitTime']['unitCode'])->toBe('DAY');
+
+    // Made-on-Demand products are produced after ordering: no ready-stock dispatch promise.
+    $madeOnDemand = makeSimpleProduct();
+
+    \Webkul\Product\Models\Product::query()->whereKey($madeOnDemand->id)->update(['is_made_on_demand' => 1]);
+
+    $madeOnDemand = app(\Webkul\Product\Repositories\ProductRepository::class)->find($madeOnDemand->id);
+
+    $mod = productNode(buildGraph($madeOnDemand))['offers']['shippingDetails'];
+
+    expect($mod)->not->toHaveKey('deliveryTime');
+});
+
 it('selects Offer for simple and AggregateOffer for ranged configurable products', function () {
     // Simple → Offer.
     $simpleNode = productNode(buildGraph(makeSimpleProduct()));
