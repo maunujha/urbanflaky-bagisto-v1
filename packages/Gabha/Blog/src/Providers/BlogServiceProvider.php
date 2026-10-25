@@ -50,6 +50,11 @@ class BlogServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(
+            dirname(__DIR__).'/Config/blog.php',
+            'blog'
+        );
+
+        $this->mergeConfigFrom(
             dirname(__DIR__).'/Config/menu.php',
             'menu.admin'
         );

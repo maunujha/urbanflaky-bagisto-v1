@@ -2,6 +2,7 @@
 
 namespace Gabha\Blog\Database\Seeders;
 
+use Gabha\Blog\Database\Content\Articles;
 use Gabha\Blog\Models\Blog;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -74,6 +75,9 @@ class BlogSeeder extends Seeder
             $post['status'] = 1;
             $post['published_at'] = Carbon::now()->subDays($daysAgo);
             $post['slug'] = \Illuminate\Support\Str::slug($post['title']);
+
+            /* Full editorial copy supersedes the original stub where one exists. */
+            $post = array_merge($post, Articles::all()[$post['slug']] ?? []);
 
             Blog::updateOrCreate(['slug' => $post['slug']], $post);
         }

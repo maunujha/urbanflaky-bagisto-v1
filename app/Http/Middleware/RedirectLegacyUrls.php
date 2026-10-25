@@ -31,7 +31,11 @@ class RedirectLegacyUrls
     {
         $path = strtolower(trim(rawurldecode($path), '/'));
 
-        /* Shopify served a Hindi copy of every page under /hi/. */
+        /* Shopify served a Hindi copy of every page under /hi/, with its home page at /hi. */
+        if ($path === 'hi') {
+            return '/';
+        }
+
         if (str_starts_with($path, 'hi/')) {
             $path = substr($path, 3);
         }

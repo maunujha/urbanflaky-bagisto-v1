@@ -2,12 +2,19 @@
 
 namespace Gabha\Blog\Repositories;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Webkul\Category\Models\CategoryTranslation;
 use Webkul\Core\Eloquent\Repository;
 
 class BlogRepository extends Repository
 {
+    /**
+     * Words too generic to signal a shared topic between posts.
+     */
+    const STOP_WORDS = ['your', 'with', 'that', 'this', 'from', 'guide', 'urbanflaky', 'never', 'last', 'longer', 'they', 'style', 'under'];
+
     /**
      * Specify Model class name.
      */
@@ -54,6 +61,76 @@ class BlogRepository extends Repository
             ->where('slug', $slug)
             ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
             ->exists();
+    }
+
+    /**
+     * Published posts most related to the given one, ranked by shared topic words
+     * across slug, title and meta keywords, newest first on ties.
+     *
+     * Ranking by topic (not recency) means every article — not only the three
+     * newest — earns contextual internal links from its sibling posts.
+     */
+    public function getRelated($blog, array $columns, int $limit): Collection
+    {
+        $topic = $this->topicWords($blog);
+
+        return $this->model
+            ->newQuery()
+            ->published()
+            ->where('id', '!=', $blog->id)
+            ->orderByDesc('published_at')
+            ->orderByDesc('id')
+            ->get(array_unique([...$columns, 'meta_keywords']))
+            ->sortByDesc(fn ($candidate) => count(array_intersect($topic, $this->topicWords($candidate))))
+            ->take($limit)
+            ->values();
+    }
+
+    /**
+     * Collections to link from a post, resolved from the topic map in
+     * config('blog.collection_links'). Only active categories that exist are
+     * returned, keyed by slug with their display name.
+     *
+     * @return \Illuminate\Support\Collection<string, string> slug => name
+     */
+    public function getCollectionLinks($blog): Collection
+    {
+        $config = config('blog.collection_links');
+
+        $haystack = Str::lower($blog->slug.' '.$blog->title.' '.$blog->meta_keywords);
+
+        $slugs = collect($config['topics'] ?? [])
+            ->filter(fn ($topic) => Str::contains($haystack, $topic['keywords']))
+            ->flatMap(fn ($topic) => $topic['collections'])
+            ->merge($config['default'] ?? [])
+            ->unique()
+            ->values();
+
+        $names = CategoryTranslation::query()
+            ->whereIn('slug', $slugs)
+            ->where('locale', app()->getLocale())
+            ->whereIn('category_id', fn ($query) => $query->select('id')->from('categories')->where('status', 1))
+            ->pluck('name', 'slug');
+
+        return $slugs
+            ->filter(fn ($slug) => $names->has($slug))
+            ->take($config['limit'] ?? 4)
+            ->mapWithKeys(fn ($slug) => [$slug => $names[$slug]]);
+    }
+
+    /**
+     * Significant lower-case words describing a post's topic.
+     */
+    protected function topicWords($blog): array
+    {
+        $text = Str::lower($blog->slug.' '.$blog->title.' '.$blog->meta_keywords);
+
+        $words = preg_split('/[^a-z0-9]+/', str_replace('-', ' ', $text), -1, PREG_SPLIT_NO_EMPTY);
+
+        return array_values(array_unique(array_filter(
+            $words,
+            fn ($word) => strlen($word) > 3 && ! in_array($word, self::STOP_WORDS, true)
+        )));
     }
 
     /**

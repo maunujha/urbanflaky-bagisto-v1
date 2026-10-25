@@ -155,6 +155,29 @@
                 {!! webp_picture_html(\App\Support\RichText::demoteH1($blog->content)) !!}
             </div>
 
+            {{-- Shop the edit: contextual links from the article to its collections --}}
+            @if ($collectionLinks->isNotEmpty())
+                <aside class="mt-12 rounded-2xl border border-uf-border bg-uf-surface p-6 max-md:p-5" aria-labelledby="shop-the-edit-heading">
+                    <h2 id="shop-the-edit-heading" class="text-xs font-semibold uppercase tracking-[0.2em] text-uf-muted">
+                        @lang('blog::app.shop.shop-the-edit')
+                    </h2>
+
+                    <ul class="mt-4 flex flex-wrap gap-2.5">
+                        @foreach ($collectionLinks as $slug => $name)
+                            <li>
+                                <a
+                                    href="{{ route('shop.product_or_category.index', $slug) }}"
+                                    class="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-uf-border px-4 text-sm font-medium text-uf-text transition-colors hover:border-uf-accent hover:text-uf-accent focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-uf-accent"
+                                >
+                                    {{ $name }}
+                                    <span class="icon-arrow-right text-base" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </aside>
+            @endif
+
             {{-- Back to blog --}}
             <div class="mt-12 border-t border-uf-border pt-8">
                 <a
@@ -167,15 +190,15 @@
             </div>
         </div>
 
-        {{-- Recent posts --}}
-        @if ($recentBlogs->isNotEmpty())
-            <section class="mx-auto mt-16 max-w-5xl border-t border-uf-border pt-12" aria-labelledby="recent-posts-heading">
-                <h2 id="recent-posts-heading" class="mb-7 text-2xl font-bold text-uf-text">
-                    @lang('blog::app.shop.recent-posts')
+        {{-- Related reading (ranked by shared topic, not recency) --}}
+        @if ($relatedBlogs->isNotEmpty())
+            <section class="mx-auto mt-16 max-w-5xl border-t border-uf-border pt-12" aria-labelledby="related-posts-heading">
+                <h2 id="related-posts-heading" class="mb-7 text-2xl font-bold text-uf-text">
+                    @lang('blog::app.shop.related-posts')
                 </h2>
 
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
-                    @foreach ($recentBlogs as $recent)
+                    @foreach ($relatedBlogs as $recent)
                         <article class="group flex flex-col overflow-hidden rounded-2xl border border-uf-border bg-uf-surface transition-colors hover:border-uf-accent/50">
                             <a
                                 href="{{ route('shop.blog.show', $recent->slug) }}"
