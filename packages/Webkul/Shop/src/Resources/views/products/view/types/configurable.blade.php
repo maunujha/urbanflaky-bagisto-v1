@@ -552,21 +552,27 @@
                     },
 
                     preloadVariantImages () {
-                        // Silently preload all variant images after mount so
-                        // switching variants feels instant (images served from cache)
-                        this.$nextTick(() => {
+                        // Warm each variant's lead image so switching variants feels
+                        // instant — but only once the page has loaded and the main
+                        // thread is idle. Vue now mounts on DOMContentLoaded, and
+                        // firing every large + medium variant image at mount (~40
+                        // requests) competed with the gallery's LCP image. The rest
+                        // of a variant's gallery loads when it is actually shown.
+                        const warm = () => {
                             Object.values(this.config.variant_images).forEach(images => {
-                                images.forEach(image => {
-                                    if (image.large_image_url) {
-                                        new Image().src = image.large_image_url;
-                                    }
-
-                                    if (image.medium_image_url) {
-                                        new Image().src = image.medium_image_url;
-                                    }
-                                });
+                                if (images[0]?.large_image_url) {
+                                    new Image().src = images[0].large_image_url;
+                                }
                             });
-                        });
+                        };
+
+                        const whenIdle = () => (window.requestIdleCallback || ((cb) => setTimeout(cb, 1500)))(warm, { timeout: 4000 });
+
+                        if (document.readyState === 'complete') {
+                            whenIdle();
+                        } else {
+                            window.addEventListener('load', whenIdle, { once: true });
+                        }
                     },
 
                     reloadImages () {
