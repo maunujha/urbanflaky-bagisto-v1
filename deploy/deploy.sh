@@ -50,6 +50,17 @@ php artisan route:cache
 php artisan event:cache
 php artisan responsecache:clear || true
 
+step "Image derivative cache (public/cache writable by PHP-FPM)"
+# The resizer writes each /cache/<template>/... derivative here so nginx can
+# serve it statically. PHP-FPM runs as www-data, so the tree must be group
+# www-data + setgid (new dirs inherit the group); same scheme as storage/.
+# Best-effort: a failure only means images keep being resized in PHP.
+mkdir -p public/cache
+{ chgrp -R www-data public/cache \
+  && find public/cache -type d -exec chmod 2775 {} + \
+  && find public/cache -type f -exec chmod 664 {} + ; } \
+  || echo "!! could not make public/cache group-writable for www-data (images still work, just slower)"
+
 step "Restart queue worker + PHP-FPM"
 sudo supervisorctl restart 'urbanflaky-worker:*'
 sudo systemctl restart php8.3-fpm
