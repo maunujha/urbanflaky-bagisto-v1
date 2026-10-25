@@ -609,13 +609,15 @@
 
                                             {!! view_render_event('bagisto.shop.products.view.add_to_cart.after', ['product' => $product]) !!}
                                         @else
-                                            <button
-                                                type="button"
-                                                class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
-                                                @click="$refs.contactUsModal.open()"
+                                            {{-- A link, not an inline enquiry modal: the modal's reCAPTCHA
+                                                 loaded ~380 KiB of Google JS on every product page. The
+                                                 contact page keeps the captcha-protected form. --}}
+                                            <a
+                                                href="{{ route('shop.home.contact_us') }}"
+                                                class="secondary-button w-full min-w-0 max-w-full whitespace-nowrap text-center max-md:py-3 max-sm:rounded-lg max-sm:px-3 max-sm:py-3.5"
                                             >
                                                 @lang('shop::app.components.layouts.footer.contact-us')
-                                            </button>
+                                            </a>
                                         @endif
                                     </div>
 
@@ -853,111 +855,6 @@
                     </div>
                 </form>
             </x-shop::form>
-
-            <!-- Contact Us Modal -->
-            <x-shop::modal ref="contactUsModal">
-                <x-slot:header>
-                <h2 class="text-md font-semibold max-md:text-base">
-                        @lang('shop::app.products.view.contact-us.title')
-                    </h2>
-                </x-slot>
-
-                <x-slot:content>
-                    <x-shop::form :action="route('shop.home.contact_us.send_mail')">
-                        <x-shop::form.control-group>
-                            <x-shop::form.control-group.label class="required">
-                                @lang('shop::app.products.view.contact-us.name')
-                            </x-shop::form.control-group.label>
-
-                            <x-shop::form.control-group.control
-                                type="text"
-                                name="name"
-                                rules="required"
-                                :value="old('name')"
-                                :label="trans('shop::app.products.view.contact-us.name')"
-                                :placeholder="trans('shop::app.products.view.contact-us.name')"
-                                :aria-label="trans('shop::app.products.view.contact-us.name')"
-                                aria-required="true"
-                            />
-
-                            <x-shop::form.control-group.error control-name="name" />
-                        </x-shop::form.control-group>
-
-                        <x-shop::form.control-group>
-                            <x-shop::form.control-group.label class="required">
-                                @lang('shop::app.products.view.contact-us.email')
-                            </x-shop::form.control-group.label>
-
-                            <x-shop::form.control-group.control
-                                type="email"
-                                name="email"
-                                rules="required|email"
-                                :value="old('email')"
-                                :label="trans('shop::app.products.view.contact-us.email')"
-                                :placeholder="trans('shop::app.products.view.contact-us.email')"
-                                :aria-label="trans('shop::app.products.view.contact-us.email')"
-                                aria-required="true"
-                            />
-
-                            <x-shop::form.control-group.error control-name="email" />
-                        </x-shop::form.control-group>
-
-                        <x-shop::form.control-group>
-                            <x-shop::form.control-group.label>
-                                @lang('shop::app.products.view.contact-us.phone-number')
-                            </x-shop::form.control-group.label>
-
-                            <x-shop::form.control-group.control
-                                type="text"
-                                name="contact"
-                                rules="phone"
-                                :value="old('contact')"
-                                :label="trans('shop::app.products.view.contact-us.phone-number')"
-                                :placeholder="trans('shop::app.products.view.contact-us.phone-number')"
-                                :aria-label="trans('shop::app.products.view.contact-us.phone-number')"
-                            />
-
-                            <x-shop::form.control-group.error control-name="contact" />
-                        </x-shop::form.control-group>
-
-                        <x-shop::form.control-group>
-                            <x-shop::form.control-group.label class="required">
-                                @lang('shop::app.products.view.contact-us.desc')
-                            </x-shop::form.control-group.label>
-
-                            <x-shop::form.control-group.control
-                                type="textarea"
-                                name="message"
-                                rules="required"
-                                :label="trans('shop::app.products.view.contact-us.message')"
-                                :placeholder="trans('shop::app.products.view.contact-us.describe-here')"
-                                :aria-label="trans('shop::app.products.view.contact-us.message')"
-                                aria-required="true"
-                                rows="6"
-                            />
-
-                            <x-shop::form.control-group.error control-name="message" />
-                        </x-shop::form.control-group>
-
-                        @if (core()->getConfigData('customer.captcha.credentials.status'))
-                            <x-shop::form.control-group class="mt-5">
-                                {!! \Webkul\Customer\Facades\Captcha::render() !!}
-
-                                <x-shop::form.control-group.error control-name="recaptcha_token" />
-                            </x-shop::form.control-group>
-                        @endif
-
-                        <div class="mt-6 flex justify-end">
-                            <button
-                                type="submit"
-                                class="primary-button rounded-2xl px-8 py-3 max-sm:rounded-lg max-sm:px-6 max-sm:py-3"
-                            >
-                                @lang('shop::app.products.view.contact-us.submit')
-                            </button>
-                        </div>
-                    </x-shop::form>
-                </x-slot>
-            </x-shop::modal>
         </script>
 
         <script type="module">
@@ -1336,13 +1233,9 @@
             });
         </script>
 
-        @if (core()->getConfigData('customer.captcha.credentials.status'))
-            {!! \Webkul\Customer\Facades\Captcha::renderJS() !!}
-        @endif
-
         {{-- Sticky Add-to-Cart Bar
-             Runs after window.load (same event Vue uses to mount) so all
-             Vue-rendered elements like #product-atc-actions are in the DOM. --}}
+             Runs after window.load (Vue has already mounted on DOMContentLoaded)
+             so all Vue-rendered elements like #product-atc-actions are in the DOM. --}}
         <script>
         window.addEventListener('load', function () {
             /* Give Vue a tick to finish rendering after mount */

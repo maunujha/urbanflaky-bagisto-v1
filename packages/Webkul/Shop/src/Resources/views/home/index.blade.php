@@ -102,7 +102,7 @@
     @endif
 @endpush
 
-<x-shop::layouts :has-custom-seo="true">
+<x-shop::layouts :has-custom-seo="true" :has-preloader="true">
     <!-- Page Title -->
     <x-slot:title>
         {{ $channel->home_seo['meta_title'] ?? "Urbanflaky | Premium Oversized T-Shirts & Dark Streetwear" }}

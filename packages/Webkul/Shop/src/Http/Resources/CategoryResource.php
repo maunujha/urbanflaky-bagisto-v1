@@ -33,6 +33,11 @@ class CategoryResource extends JsonResource
                 'original_image_fallback_url' => ($fallback = webp_fallback_path($this->logo_path))
                     ? url('cache/original/'.$fallback)
                     : null,
+                /* Scale-only, card-sized copy for the homepage category cards. */
+                'card_image_url' => url('cache/category_card/'.$this->logo_path),
+                'card_image_fallback_url' => $fallback
+                    ? url('cache/category_card/'.$fallback)
+                    : null,
             ]),
             'banner' => $this->when($this->banner_path, fn () => [
                 'small_image_url' => url('cache/small/'.$this->banner_path),

@@ -53,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         config([
             'imagecache.templates.blog_card' => \App\Support\ImageTemplates\BlogCard::class,
             'imagecache.templates.blog_wide' => \App\Support\ImageTemplates\BlogWide::class,
+            'imagecache.templates.category_card' => \App\Support\ImageTemplates\CategoryCard::class,
         ]);
 
         ParallelTesting::setUpTestDatabase(function (string $database, int $token) {

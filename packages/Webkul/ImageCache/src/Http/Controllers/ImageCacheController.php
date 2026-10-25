@@ -68,9 +68,50 @@ class ImageCacheController extends Controller
 
             $content = (string) $image->encodeByMediaType();
 
+            $this->persistDerivative($template, $filename, $content);
+
             return $this->buildResponse($content);
         } catch (Exception) {
             abort(404, 'Unable to process image.');
+        }
+    }
+
+    /**
+     * Write the derivative to public/cache/{template}/{filename}.
+     *
+     * nginx routes /cache/ through `try_files $uri /index.php`, so once the file
+     * exists every later request is served statically instead of re-decoding and
+     * re-encoding the source in PHP (~300-450ms per image). Best-effort: a failed
+     * write only means the next request is resized again. Source filenames are
+     * content hashes, so a replaced image gets a new URL rather than a stale file;
+     * after changing template dimensions, delete public/cache to regenerate.
+     */
+    protected function persistDerivative(string $template, string $filename, string $content): void
+    {
+        $filename = $this->sanitizeFilename($filename);
+
+        if (
+            ! preg_match('/^[A-Za-z0-9_-]+$/', $template)
+            || ! preg_match('/\.(webp|jpe?g|png|gif|avif)$/i', $filename)
+        ) {
+            return;
+        }
+
+        $target = public_path('cache/'.$template.'/'.$filename);
+
+        try {
+            if (! is_dir($directory = dirname($target))) {
+                mkdir($directory, 0o775, true);
+            }
+
+            /* Write-then-rename so nginx can never serve a half-written file. */
+            $temp = $target.'.'.bin2hex(random_bytes(4)).'.tmp';
+
+            if (file_put_contents($temp, $content) !== false && ! @rename($temp, $target)) {
+                @unlink($temp);
+            }
+        } catch (\Throwable) {
+            // Optimisation only — never fail the image response over it.
         }
     }
 

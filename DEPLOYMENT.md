@@ -72,7 +72,14 @@ server {
     # Bagisto on-the-fly image resizer (Webkul\ImageCache). MUST be ABOVE the static
     # regex — /cache/{size}/product/*.webp|jpg are DYNAMIC Laravel routes, not files.
     # Omit it and every product image 404s while /storage originals still load fine.
-    location ^~ /cache/ { try_files $uri /index.php$is_args$args; }
+    # The resizer writes each derivative to public/cache/<template>/<path> on first
+    # request, so try_files then serves it statically — hence the long expiry
+    # (filenames are content hashes, so a changed image gets a new URL).
+    location ^~ /cache/ {
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri /index.php$is_args$args;
+    }
 
     location / { try_files $uri $uri/ /index.php$is_args$args; }
 

@@ -72,7 +72,7 @@
                             <template v-if="attachment.type === 'image'">
                                 <!-- For Desktop -->
                                 <img
-                                    :src="attachment.url"
+                                    :src="hasOpened ? attachment.url : null"
                                     class="max-h-full max-w-full transition-transform duration-300 ease-out max-md:hidden"
                                     :class="{
                                         'cursor-zoom-in': ! isZooming,
@@ -90,7 +90,7 @@
 
                                 <!-- For Mobile -->
                                 <img
-                                    :src="attachment.url"
+                                    :src="hasOpened ? attachment.url : null"
                                     class="max-h-full max-w-full transition-transform duration-300 ease-out md:hidden"
                                     :class="{
                                         'cursor-zoom-in': ! isZooming,
@@ -112,7 +112,7 @@
                             :class="{
                                 '!border-navyBlue': currentIndex === index + 1,
                             }"
-                            :src="attachment.url"
+                            :src="hasOpened ? attachment.url : null"
                             :key="index"
                             v-if="attachment.type === 'image'"
                             @click="navigate(currentIndex = index + 1)"
@@ -161,7 +161,9 @@
             },
 
             watch: {
-                isImageZooming(newVal, oldVal) {  
+                isImageZooming(newVal, oldVal) {
+                    this.hasOpened = true;
+
                     this.currentIndex = parseInt(this.initialIndex.split('_').pop()) + 1;
 
                     this.navigate(this.currentIndex);
@@ -173,6 +175,11 @@
             data() {
                 return {
                     isOpen: this.isImageZooming,
+
+                    /* The overlay is in the DOM (hidden) from page load; its
+                       full-resolution images only get a src once it is first
+                       opened, so a product page doesn't download every original. */
+                    hasOpened: this.isImageZooming,
 
                     isDragging: false,
 
@@ -202,6 +209,8 @@
                 },
 
                 open() {
+                    this.hasOpened = true;
+
                     this.isOpen = true;
 
                     document.body.style.overflow = 'hidden';
