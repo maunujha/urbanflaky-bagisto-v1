@@ -1,135 +1,137 @@
 <?php
 
-use Illuminate\Support\Facades\Mail;
-use Webkul\Admin\Mail\Customer\RegistrationNotification as AdminRegistrationNotification;
-use Webkul\Core\Models\CoreConfig;
-use Webkul\Shop\Mail\Customer\EmailVerificationNotification;
-use Webkul\Shop\Mail\Customer\RegistrationNotification as ShopRegistrationNotification;
+use Webkul\Customer\Models\Customer;
+use Webkul\Shop\Services\SmsAlertService;
 
 use function Pest\Laravel\get;
 use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 
+/*
+ * Urbanflaky sign-up is phone-first: name + Indian mobile number, then a 4-digit SMS OTP.
+ * No email or password is collected; the account is only created once the OTP verifies.
+ */
+
+function signupDetails(array $overrides = []): array
+{
+    return array_merge([
+        'first_name' => fake()->firstName(),
+        'last_name'  => fake()->lastName(),
+        'phone'      => '9'.fake()->numerify('#########'),
+    ], $overrides);
+}
+
+function fakeSms(bool $delivered = true)
+{
+    return test()->mock(SmsAlertService::class, function ($mock) use ($delivered) {
+        $mock->shouldReceive('sendOtp')->andReturn($delivered);
+
+        /* Post-signup notifications (welcome / registration SMS) from listeners. */
+        foreach (['sendWelcome', 'sendRegistration'] as $notification) {
+            $mock->shouldReceive($notification)->andReturn(true)->byDefault();
+        }
+    });
+}
+
 it('returns a successful response', function () {
-    // Act and Assert.
     get(route('shop.customers.register.index'))
         ->assertOk()
-        ->assertSeeText(trans('shop::app.customers.signup-form.page-title'));
+        ->assertSeeText('Create Account');
 });
 
-it('should fails validation error when certain inputs are invalid when register', function () {
-    // Act and Assert.
+it('requires a name and phone number', function () {
     postJson(route('shop.customers.register.store'))
         ->assertJsonValidationErrorFor('first_name')
         ->assertJsonValidationErrorFor('last_name')
-        ->assertJsonValidationErrorFor('email')
-        ->assertJsonValidationErrorFor('password')
+        ->assertJsonValidationErrorFor('phone')
         ->assertUnprocessable();
 });
 
-it('should fails validation error when email is not valid when register', function () {
-    // Act and Assert.
-    postJson(route('shop.customers.register.store'), [
-        'email' => 'invalid.email.com',
-    ])
-        ->assertJsonValidationErrorFor('first_name')
-        ->assertJsonValidationErrorFor('last_name')
-        ->assertJsonValidationErrorFor('email')
-        ->assertJsonValidationErrorFor('password')
+it('rejects a phone number that is not a 10-digit Indian mobile', function (string $phone) {
+    postJson(route('shop.customers.register.store'), signupDetails(['phone' => $phone]))
+        ->assertJsonValidationErrorFor('phone')
         ->assertUnprocessable();
+})->with(['12345', '5123456789', '98765432101', 'phone-here']);
+
+it('rejects a phone number that already has an account', function () {
+    $customer = Customer::factory()->create(['phone' => '9876543210']);
+
+    postJson(route('shop.customers.register.store'), signupDetails(['phone' => $customer->phone]))
+        ->assertJsonValidationErrorFor('phone');
 });
 
-it('should fails validation error when password length is not valid when register', function () {
-    // Act and Assert.
-    postJson(route('shop.customers.register.store'), [
-        'password' => 'shop',
-    ])
-        ->assertJsonValidationErrorFor('first_name')
-        ->assertJsonValidationErrorFor('last_name')
-        ->assertJsonValidationErrorFor('email')
-        ->assertJsonValidationErrorFor('password')
-        ->assertUnprocessable();
+it('sends an otp and holds the account until the phone is verified', function () {
+    fakeSms();
+
+    $details = signupDetails();
+
+    post(route('shop.customers.register.store'), $details)
+        ->assertRedirectToRoute('shop.customers.register.index')
+        ->assertSessionHas('show_otp_modal', true)
+        ->assertSessionHas('signup_pending.phone', $details['phone']);
+
+    expect(session('signup_otp'))->toMatch('/^\d{4}$/');
+
+    expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
 });
 
-it('successfully registers a customer', function () {
-    CoreConfig::where('code', 'customer.settings.email.verification')->update([
-        'value' => 0,
-    ]);
+it('returns to the form with an error when the otp sms cannot be sent', function () {
+    fakeSms(delivered: false);
 
-    // Arrange.
-    $requestedCustomer = [
-        'first_name' => fake()->firstName(),
-        'last_name' => fake()->lastName(),
-        'email' => fake()->email(),
-        'password' => 'admin123',
-        'password_confirmation' => 'admin123',
-    ];
-
-    // Act and Assert.
-    post(route('shop.customers.register.store'), $requestedCustomer)
-        ->assertRedirectToRoute('shop.customer.session.index')
-        ->assertSessionHas('success', trans('shop::app.customers.signup-form.success'));
+    post(route('shop.customers.register.store'), signupDetails())
+        ->assertRedirect()
+        ->assertSessionHas('error', trans('shop::app.customers.otp.send-failed'))
+        ->assertSessionMissing('signup_pending');
 });
 
-it('successfully registers a customer and send mail to the customer verify the account', function () {
-    // Arrange.
-    Mail::fake();
+it('creates the account and signs the customer in when the otp is correct', function () {
+    $sms = fakeSms();
 
-    CoreConfig::factory()->create([
-        'code' => 'customer.settings.email.verification',
-        'value' => 1,
-    ]);
+    $details = signupDetails();
 
-    $requestedCustomer = [
-        'first_name' => fake()->firstName(),
-        'last_name' => fake()->lastName(),
-        'email' => fake()->email(),
-        'password' => 'admin123',
-        'password_confirmation' => 'admin123',
-    ];
+    $sms->shouldReceive('sendWelcome')->once()->with($details['phone'])->andReturn(true);
 
-    // Act and Assert.
-    post(route('shop.customers.register.store'), $requestedCustomer)
-        ->assertRedirectToRoute('shop.customer.session.index')
-        ->assertSessionHas('success', trans('shop::app.customers.signup-form.success-verify'));
+    post(route('shop.customers.register.store'), $details);
 
-    Mail::assertQueued(EmailVerificationNotification::class);
-
-    Mail::assertQueuedCount(1);
-});
-
-it('registers a customer successfully and sends a registration email to customer and admin along with a success message', function () {
-    // Arrange.
-    Mail::fake();
-
-    CoreConfig::where('code', 'emails.general.notifications.emails.general.notifications.registration')->update([
-        'value' => 1,
-    ]);
-
-    CoreConfig::where('code', 'emails.general.notifications.emails.general.notifications.customer_registration_confirmation_mail_to_admin')->update([
-        'value' => 1,
-    ]);
-
-    CoreConfig::where('code', 'customer.settings.email.verification')->update([
-        'value' => 0,
-    ]);
-
-    $requestedCustomer = [
-        'first_name' => fake()->firstName(),
-        'last_name' => fake()->lastName(),
-        'email' => fake()->email(),
-        'password' => 'admin123',
-        'password_confirmation' => 'admin123',
-    ];
-
-    // Act and Assert.
-    post(route('shop.customers.register.store'), $requestedCustomer)
-        ->assertRedirectToRoute('shop.customer.session.index')
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => session('signup_otp')])
+        ->assertRedirect(route('shop.home.index'))
         ->assertSessionHas('success', trans('shop::app.customers.signup-form.success'));
 
-    Mail::assertQueued(AdminRegistrationNotification::class);
+    $customer = Customer::query()->where('phone', $details['phone'])->first();
 
-    Mail::assertQueued(ShopRegistrationNotification::class);
+    expect($customer)->not->toBeNull();
+    expect($customer->first_name)->toBe($details['first_name']);
+    expect((int) $customer->is_verified)->toBe(1);
+    expect(auth()->guard('customer')->id())->toBe($customer->id);
+});
 
-    Mail::assertQueuedCount(2);
+it('does not create the account when the otp is wrong', function () {
+    fakeSms();
+
+    $details = signupDetails();
+
+    post(route('shop.customers.register.store'), $details);
+
+    $wrongOtp = session('signup_otp') === '1111' ? '2222' : '1111';
+
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => $wrongOtp])
+        ->assertRedirectToRoute('shop.customers.register.index')
+        ->assertSessionHas('error', trans('shop::app.customers.otp.invalid-otp'));
+
+    expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
+});
+
+it('does not create the account when the otp has expired', function () {
+    fakeSms();
+
+    $details = signupDetails();
+
+    post(route('shop.customers.register.store'), $details);
+
+    session()->put('signup_otp_expires_at', now()->subMinute()->toDateTimeString());
+
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => session('signup_otp')])
+        ->assertSessionHas('error', trans('shop::app.customers.otp.otp-expired'));
+
+    expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
 });

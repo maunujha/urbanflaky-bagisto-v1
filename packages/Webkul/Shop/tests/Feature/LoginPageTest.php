@@ -11,7 +11,7 @@ it('returns a successful response', function () {
     // Act and Assert.
     get(route('shop.customer.session.index'))
         ->assertOk()
-        ->assertSeeText(trans('shop::app.customers.login-form.page-title'));
+        ->assertSeeText('Sign In');
 });
 
 it('should fails validation errors when email and password not provided when login', function () {

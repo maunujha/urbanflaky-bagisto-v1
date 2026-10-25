@@ -16,6 +16,16 @@ use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
 
+/*
+ * These cases are written against Bagisto's stock tax settings. The store's GST migration
+ * (2026_07_23_120000) stores store-wide "including_tax" rows, which would outrank the
+ * per-test CoreConfig rows below, so each test starts from the stock defaults instead.
+ * DatabaseTransactions rolls this back after every test.
+ */
+beforeEach(function () {
+    CoreConfig::query()->where('code', 'like', 'sales.taxes.%')->delete();
+});
+
 it('should display the cart items for a guest user', function () {
     // Arrange.
     $product = (new ProductFaker([

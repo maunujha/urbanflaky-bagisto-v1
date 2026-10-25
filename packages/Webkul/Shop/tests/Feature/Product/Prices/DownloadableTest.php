@@ -17,6 +17,11 @@ use Webkul\Tax\Models\TaxRate;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
+/*
+ * Catalog-rule expectations are floored: Urbanflaky floors every catalog-rule price to a
+ * whole rupee (CatalogRuleProductPrice::calculate()), so ₹2,337.60 sells at ₹2,337.
+ */
+
 it('should fails the validation error when the certain inputs not provided when add a downloadable product to the cart with a cart rule of the no coupon type for all customer group type', function () {
     // Arrange.
     $product = (new ProductFaker([
@@ -2330,7 +2335,7 @@ it('should check discount price if catalog rule applied for percentage price for
         ],
     ]))->getDownloadableProductFactory()->create();
 
-    $grandTotal = $product->price - ($product->price * ($catalogRule->discount_amount / 100));
+    $grandTotal = floor($product->price - ($product->price * ($catalogRule->discount_amount / 100)));
 
     // Act and Assert.
     $response = postJson(route('shop.api.checkout.cart.store', [
@@ -2438,7 +2443,7 @@ it('should check discount price if catalog rule applied for percentage price for
         ],
     ]))->getDownloadableProductFactory()->create();
 
-    $grandTotal = $product->price - ($product->price * ($catalogRule->discount_amount / 100));
+    $grandTotal = floor($product->price - ($product->price * ($catalogRule->discount_amount / 100)));
 
     // Act and Assert.
     $this->loginAsCustomer($customer);
@@ -2548,7 +2553,7 @@ it('should check discount price if catalog rule applied for percentage price for
         ],
     ]))->getDownloadableProductFactory()->create();
 
-    $grandTotal = $product->price - ($product->price * ($catalogRule->discount_amount / 100));
+    $grandTotal = floor($product->price - ($product->price * ($catalogRule->discount_amount / 100)));
 
     // Act and Assert.
     $this->loginAsCustomer($customer);
@@ -2674,9 +2679,9 @@ it('should check discount price if catalog rule applied for fixed price for down
         ->assertJsonPath('data.items_count', 1)
         ->assertJsonPath('data.items_qty', 1);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['grand_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['grand_total']);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['sub_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['sub_total']);
 
     $this->prepareCatalogRule($catalogRule);
 
@@ -2786,9 +2791,9 @@ it('should check discount price if catalog rule applied for fixed price for down
         ->assertJsonPath('data.items_count', 1)
         ->assertJsonPath('data.items_qty', 1);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['grand_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['grand_total']);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['sub_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['sub_total']);
 
     $this->prepareCatalogRule($catalogRule);
 
@@ -2904,9 +2909,9 @@ it('should check discount price if catalog rule applied for fixed price for down
         ->assertJsonPath('data.items_count', 1)
         ->assertJsonPath('data.items_qty', 1);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['grand_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['grand_total']);
 
-    $this->assertPrice($product->price - $catalogRule->discount_amount, $response['data']['sub_total']);
+    $this->assertPrice(floor($product->price - $catalogRule->discount_amount), $response['data']['sub_total']);
 
     $this->prepareCatalogRule($catalogRule);
 
@@ -2954,7 +2959,7 @@ it('should check discount price if catalog rule applied for fixed price for down
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - $catalogRule->discount_amount,
+                'price' => floor($product->price - $catalogRule->discount_amount),
                 'customer_group_id' => 1,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,
@@ -3008,7 +3013,7 @@ it('should check discount price if catalog rule applied for fixed price for down
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - $catalogRule->discount_amount,
+                'price' => floor($product->price - $catalogRule->discount_amount),
                 'customer_group_id' => 2,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,
@@ -3062,7 +3067,7 @@ it('should check discount price if catalog rule applied for fixed price for down
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - $catalogRule->discount_amount,
+                'price' => floor($product->price - $catalogRule->discount_amount),
                 'customer_group_id' => 3,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,
@@ -3115,7 +3120,7 @@ it('should check discount price if catalog rule applied for percentage price for
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - ($product->price * ($catalogRule->discount_amount / 100)),
+                'price' => floor($product->price - ($product->price * ($catalogRule->discount_amount / 100))),
                 'customer_group_id' => 1,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,
@@ -3168,7 +3173,7 @@ it('should check discount price if catalog rule applied for percentage price for
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - ($product->price * ($catalogRule->discount_amount / 100)),
+                'price' => floor($product->price - ($product->price * ($catalogRule->discount_amount / 100))),
                 'customer_group_id' => 2,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,
@@ -3221,7 +3226,7 @@ it('should check discount price if catalog rule applied for percentage price for
     $this->assertModelWise([
         CatalogRuleProductPrice::class => [
             [
-                'price' => $product->price - ($product->price * ($catalogRule->discount_amount / 100)),
+                'price' => floor($product->price - ($product->price * ($catalogRule->discount_amount / 100))),
                 'customer_group_id' => 3,
                 'catalog_rule_id' => $catalogRule->id,
                 'product_id' => $product->id,

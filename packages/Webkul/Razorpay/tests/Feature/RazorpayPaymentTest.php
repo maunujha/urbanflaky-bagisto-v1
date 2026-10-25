@@ -113,6 +113,12 @@ it('successfully processes razorpay payment and creates order with invoice', fun
 
     $mockRazorpay->shouldReceive('verifySignature')->andReturn(true);
 
+    /* The callback also confirms with Razorpay's API that the payment was captured
+       for the session amount (fail-closed); stand in for that API call. */
+    $mockRazorpay->shouldReceive('isCapturedFor')
+        ->with('pay_test123', (int) round($cart->base_grand_total * 100), 'INR')
+        ->andReturn(true);
+
     $this->app->instance(RazorpayPayment::class, $mockRazorpay);
 
     // Act — seed the session the way redirect() does so the success callback

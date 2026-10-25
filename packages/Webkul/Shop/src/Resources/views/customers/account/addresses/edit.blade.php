@@ -157,7 +157,7 @@
                 {!! view_render_event('bagisto.shop.customers.account.addresses.edit_form_controls.vat_id.after', ['address' => $address]) !!}
 
                 @php
-                    $addresses = explode(PHP_EOL, $address->address);
+                    $addresses = preg_split('/\r\n|\r|\n/', (string) $address->address);
                 @endphp
 
                 <!-- Street Address -->

@@ -6,6 +6,7 @@ use Webkul\Checkout\Models\CartAddress;
 use Webkul\Checkout\Models\CartItem;
 use Webkul\Checkout\Models\CartPayment;
 use Webkul\Checkout\Models\CartShippingRate;
+use Webkul\Core\Models\CoreConfig;
 use Webkul\Customer\Models\CompareItem;
 use Webkul\Customer\Models\Customer;
 use Webkul\Customer\Models\CustomerAddress;
@@ -21,6 +22,22 @@ use function Pest\Laravel\deleteJson;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
+
+/**
+ * Switch on shipping carriers for the default channel. The store ships every carrier disabled
+ * in config/carriers.php and enables them per environment in the admin, so the test database
+ * has none active. Only one option is ever offered: App\Shipping\Carriers\FlatRate hides
+ * itself whenever free shipping applies, so tests enable the single carrier they exercise.
+ */
+function enableCarriers(string ...$carriers): void
+{
+    foreach ($carriers as $carrier) {
+        CoreConfig::query()->updateOrCreate(
+            ['code' => "sales.carriers.{$carrier}.active", 'channel_code' => core()->getDefaultChannelCode()],
+            ['value' => 1]
+        );
+    }
+}
 
 it('should search the customers via email or name', function () {
     // Arrange.
@@ -334,6 +351,8 @@ it('should fails the validation error if billing and shipping address is not pro
 
 it('should add billing address after add item to the cart', function () {
     // Arrange.
+    enableCarriers('flatrate');
+
     $product = (new ProductFaker([
         'attributes' => [
             5 => 'new',
@@ -409,18 +428,9 @@ it('should add billing address after add item to the cart', function () {
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.method_title', 'Flat Rate')
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.price', 10)
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.base_price', 10)
-        ->assertJsonPath('data.shippingMethods.free.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.carrier', 'free')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.method', 'free_free')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.method_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.price', 0)
-        ->assertJsonPath('data.shippingMethods.free.rates.0.base_price', 0);
+        ->assertJsonMissingPath('data.shippingMethods.free');
 
     $response->assertJsonPath('data.shippingMethods.flatrate.rates.0.cart_address_id', $cart->shipping_address->id);
-
-    $response->assertJsonPath('data.shippingMethods.free.rates.0.cart_address_id', $cart->shipping_address->id);
 
     $this->assertModelWise([
         CartAddress::class => [
@@ -446,6 +456,8 @@ it('should add billing address after add item to the cart', function () {
 
 it('should add billing and shipping address after add item to the cart', function () {
     // Arrange.
+    enableCarriers('flatrate');
+
     $product = (new ProductFaker([
         'attributes' => [
             5 => 'new',
@@ -526,18 +538,9 @@ it('should add billing and shipping address after add item to the cart', functio
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.method_title', 'Flat Rate')
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.price', 10)
         ->assertJsonPath('data.shippingMethods.flatrate.rates.0.base_price', 10)
-        ->assertJsonPath('data.shippingMethods.free.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.carrier', 'free')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.carrier_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.method', 'free_free')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.method_title', 'Free Shipping')
-        ->assertJsonPath('data.shippingMethods.free.rates.0.price', 0)
-        ->assertJsonPath('data.shippingMethods.free.rates.0.base_price', 0);
+        ->assertJsonMissingPath('data.shippingMethods.free');
 
     $response->assertJsonPath('data.shippingMethods.flatrate.rates.0.cart_address_id', $cart->shipping_address->id);
-
-    $response->assertJsonPath('data.shippingMethods.free.rates.0.cart_address_id', $cart->shipping_address->id);
 
     $this->assertModelWise([
         CartAddress::class => [
@@ -563,6 +566,8 @@ it('should add billing and shipping address after add item to the cart', functio
 
 it('should the shipping rates after storing address', function () {
     // Arrange.
+    enableCarriers('free');
+
     $product = (new ProductFaker([
         'attributes' => [
             5 => 'new',
@@ -639,34 +644,19 @@ it('should the shipping rates after storing address', function () {
         'shipping_method' => 'free_free',
     ])
         ->assertOk()
-        ->assertJsonPath('payment_methods.0.method', 'stripe')
-        ->assertJsonPath('payment_methods.0.method_title', 'Stripe')
-        ->assertJsonPath('payment_methods.0.description', 'Stripe')
-        ->assertJsonPath('payment_methods.0.sort', 1)
-        ->assertJsonPath('payment_methods.1.method', 'razorpay')
-        ->assertJsonPath('payment_methods.1.method_title', 'Razorpay')
-        ->assertJsonPath('payment_methods.1.description', 'Razorpay')
-        ->assertJsonPath('payment_methods.1.sort', 2)
-        ->assertJsonPath('payment_methods.2.method', 'payu')
-        ->assertJsonPath('payment_methods.2.method_title', 'PayU')
-        ->assertJsonPath('payment_methods.2.description', 'PayU')
-        ->assertJsonPath('payment_methods.2.sort', 3)
-        ->assertJsonPath('payment_methods.3.method', 'paypal_smart_button')
-        ->assertJsonPath('payment_methods.3.method_title', 'PayPal Smart Button')
-        ->assertJsonPath('payment_methods.3.description', 'PayPal')
-        ->assertJsonPath('payment_methods.3.sort', 4)
-        ->assertJsonPath('payment_methods.4.method', 'paypal_standard')
-        ->assertJsonPath('payment_methods.4.method_title', 'PayPal Standard')
-        ->assertJsonPath('payment_methods.4.description', 'PayPal Standard')
-        ->assertJsonPath('payment_methods.4.sort', 5)
-        ->assertJsonPath('payment_methods.5.method', 'cashondelivery')
-        ->assertJsonPath('payment_methods.5.method_title', 'Cash On Delivery')
-        ->assertJsonPath('payment_methods.5.description', 'Cash On Delivery')
-        ->assertJsonPath('payment_methods.5.sort', 6)
-        ->assertJsonPath('payment_methods.6.method', 'moneytransfer')
-        ->assertJsonPath('payment_methods.6.method_title', 'Money Transfer')
-        ->assertJsonPath('payment_methods.6.description', 'Money Transfer')
-        ->assertJsonPath('payment_methods.6.sort', 7);
+        ->assertJsonPath('payment_methods.0.method', 'razorpay')
+        ->assertJsonPath('payment_methods.0.method_title', 'Razorpay')
+        ->assertJsonPath('payment_methods.0.description', 'Razorpay')
+        ->assertJsonPath('payment_methods.0.sort', 2)
+        ->assertJsonPath('payment_methods.1.method', 'cashondelivery')
+        ->assertJsonPath('payment_methods.1.method_title', 'Cash On Delivery')
+        ->assertJsonPath('payment_methods.1.description', 'Cash On Delivery')
+        ->assertJsonPath('payment_methods.1.sort', 6)
+        ->assertJsonPath('payment_methods.2.method', 'moneytransfer')
+        ->assertJsonPath('payment_methods.2.method_title', 'Money Transfer')
+        ->assertJsonPath('payment_methods.2.description', 'Money Transfer')
+        ->assertJsonPath('payment_methods.2.sort', 7)
+        ->assertJsonCount(3, 'payment_methods');
 });
 
 it('should store the payment method after storing the shipping method', function () {

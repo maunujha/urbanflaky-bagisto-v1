@@ -15,6 +15,11 @@ use Webkul\Tax\Models\TaxRate;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 
+/*
+ * Catalog-rule expectations are floored: Urbanflaky floors every catalog-rule price to a
+ * whole rupee (CatalogRuleProductPrice::calculate()), so ₹2,337.60 sells at ₹2,337.
+ */
+
 it('should fails the validation error when certain inputs not provided when add a grouped product to the cart with a cart rule of the no coupon type for all customer group type', function () {
     // Arrange.
     $product = (new ProductFaker([
@@ -2545,7 +2550,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2603,7 +2608,7 @@ it('should check discount price if catalog rule applied for percentage price for
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2664,7 +2669,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2722,7 +2727,7 @@ it('should check discount price if catalog rule applied for percentage price for
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2785,7 +2790,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2843,7 +2848,7 @@ it('should check discount price if catalog rule applied for percentage price for
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * $catalogRule->discount_amount / 100)) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2909,7 +2914,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -2968,7 +2973,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -3030,7 +3035,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -3089,7 +3094,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -3153,7 +3158,7 @@ it('should fails the validation error when the certain inputs not provided when 
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -3212,7 +3217,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
     foreach ($groupedProducts as $groupedProduct) {
         $data['quantities'][$groupedProduct->associated_product_id] = $groupedProduct->qty;
 
-        $data['prices'][] = ($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
+        $data['prices'][] = floor($groupedProduct->associated_product->price - $catalogRule->discount_amount) * $groupedProduct->qty;
     }
 
     // Act and Assert.
@@ -3271,7 +3276,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - $catalogRule->discount_amount,
+                    'price' => floor($groupedProduct->associated_product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 1,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,
@@ -3323,7 +3328,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - $catalogRule->discount_amount,
+                    'price' => floor($groupedProduct->associated_product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 2,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,
@@ -3375,7 +3380,7 @@ it('should check discount price if catalog rule applied for fixed price for grou
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - $catalogRule->discount_amount,
+                    'price' => floor($groupedProduct->associated_product->price - $catalogRule->discount_amount),
                     'customer_group_id' => 3,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,
@@ -3421,7 +3426,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 1,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,
@@ -3472,7 +3477,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 2,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,
@@ -3523,7 +3528,7 @@ it('should check discount price if catalog rule applied for percentage price for
         $this->assertModelWise([
             CatalogRuleProductPrice::class => [
                 [
-                    'price' => $groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100)),
+                    'price' => floor($groupedProduct->associated_product->price - ($groupedProduct->associated_product->price * ($catalogRule->discount_amount / 100))),
                     'customer_group_id' => 3,
                     'catalog_rule_id' => $catalogRule->id,
                     'product_id' => $groupedProduct->associated_product->id,

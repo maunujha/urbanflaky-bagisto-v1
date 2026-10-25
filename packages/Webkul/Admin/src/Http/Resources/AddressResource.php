@@ -26,7 +26,8 @@ class AddressResource extends JsonResource
             'last_name' => $this->last_name,
             'gender' => $this->gender,
             'company_name' => $this->company_name,
-            'address' => explode(PHP_EOL, $this->address),
+            /* Split on any newline style; PHP_EOL differs by OS and browsers submit \r\n. */
+            'address' => preg_split('/\r\n|\r|\n/', (string) $this->address),
             'city' => $this->city,
             'state' => $this->state,
             'country' => $this->country,
