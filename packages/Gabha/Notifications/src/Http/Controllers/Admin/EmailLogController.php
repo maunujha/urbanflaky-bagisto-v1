@@ -2,35 +2,21 @@
 
 namespace Gabha\Notifications\Http\Controllers\Admin;
 
-use Gabha\Notifications\Mail\AbandonedCart;
-use Gabha\Notifications\Mail\OrderConfirmation;
-use Gabha\Notifications\Mail\ReviewRequest;
-use Gabha\Notifications\Mail\ShipmentUpdate;
-use Gabha\Notifications\Mail\WinBack;
 use Gabha\Notifications\Models\EmailLog;
+use Gabha\Notifications\Models\EmailSuppression;
+use Gabha\Notifications\Models\MarketingConsent;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Mail\Mailable;
 use Illuminate\Routing\Controller;
-use Webkul\Checkout\Models\Cart;
-use Webkul\Customer\Models\Customer;
-use Webkul\Sales\Models\Order;
+use Illuminate\Support\Facades\Artisan;
+use Webkul\Core\Models\SubscribersList;
 
+/**
+ * Every email the store queued or sent, with its delivery status. Previews
+ * and test sends live on Customer Emails (EmailTemplateController).
+ */
 class EmailLogController extends Controller
 {
-    /** Preview key => label. */
-    public const PREVIEWS = [
-        'order_confirmation'        => 'Order confirmation',
-        'shipment.processing'       => 'Being packed',
-        'shipment.out_for_delivery' => 'Out for delivery',
-        'shipment.delivered'        => 'Delivered',
-        'shipment.delivery_failed'  => 'Delivery attempt failed',
-        'shipment.rto'              => 'Returning to us',
-        'review_request'            => 'Review request',
-        'abandoned_cart'            => 'Abandoned bag',
-        'win_back'                  => 'Win-back',
-    ];
-
     public function index(Request $request)
     {
         $logs = EmailLog::query()
@@ -42,49 +28,73 @@ class EmailLogController extends Controller
             ->withQueryString();
 
         return view('notifications::admin.logs.index', [
-            'logs'     => $logs,
-            'types'    => EmailLog::query()->distinct()->orderBy('type')->pluck('type'),
-            'previews' => self::PREVIEWS,
-            'stats'    => [
+            'logs'    => $logs,
+            'types'   => EmailLog::query()->distinct()->orderBy('type')->pluck('type'),
+            'consent' => $this->consent((string) $request->query('q')),
+            'stats'   => [
                 'sent-today'      => EmailLog::where('status', EmailLog::STATUS_SENT)->where('sent_at', '>=', now()->startOfDay())->count(),
                 'failed-week'     => EmailLog::where('status', EmailLog::STATUS_FAILED)->where('created_at', '>=', now()->subDays(7))->count(),
-                'marketing-today' => EmailLog::where('category', EmailLog::CATEGORY_MARKETING)->where('created_at', '>=', now()->startOfDay())->count()
+                'marketing-today' => EmailLog::where('category', EmailLog::CATEGORY_MARKETING)->whereIn('status', EmailLog::OUTGOING)->where('created_at', '>=', now()->startOfDay())->count()
                     .' / '.config('notifications.limits.marketing_daily_cap'),
             ],
         ]);
     }
 
     /**
-     * Renders an email with the latest real data. Never sends anything.
+     * Re-queues the exact job that failed, once. Refused when the email has
+     * gone out another way since (a later send took its dedupe key), so a
+     * retry can never mail the customer twice.
      */
-    public function preview(string $type): Response
+    public function retry(int $id)
     {
-        abort_unless(isset(self::PREVIEWS[$type]), 404);
+        $log = EmailLog::findOrFail($id);
 
-        $mailable = $this->sample($type);
-
-        if (! $mailable) {
-            return response(trans('notifications::app.admin.no-preview'));
+        if (! $log->canRetry() || ! app('queue.failer')->find($log->job_uuid)) {
+            return back()->with('error', trans('notifications::app.admin.retry.unavailable'));
         }
 
-        return response($mailable->render());
+        $key = $log->originalDedupeKey();
+
+        if ($key && EmailLog::where('dedupe_key', $key)->whereKeyNot($log->id)->exists()) {
+            return back()->with('error', trans('notifications::app.admin.retry.already-sent'));
+        }
+
+        try {
+            /* Claimed atomically: a double click re-queues it only once. */
+            $claimed = EmailLog::whereKey($log->id)
+                ->where('status', EmailLog::STATUS_FAILED)
+                ->update(['status' => EmailLog::STATUS_QUEUED, 'error' => null, 'dedupe_key' => $key, 'job_uuid' => null]);
+        } catch (UniqueConstraintViolationException) {
+            return back()->with('error', trans('notifications::app.admin.retry.already-sent'));
+        }
+
+        if (! $claimed) {
+            return back()->with('error', trans('notifications::app.admin.retry.unavailable'));
+        }
+
+        Artisan::call('queue:retry', ['id' => [$log->job_uuid]]);
+
+        return back()->with('success', trans('notifications::app.admin.retry.queued'));
     }
 
-    protected function sample(string $type): ?Mailable
+    /**
+     * Marketing consent for an exact address typed in the search box.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function consent(string $q): ?array
     {
-        $order = Order::latest('id')->first();
+        $email = mb_strtolower(trim($q));
 
-        if (str_starts_with($type, 'shipment.')) {
-            return $order ? new ShipmentUpdate($order, substr($type, 9)) : null;
+        if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null;
         }
 
-        return match ($type) {
-            'order_confirmation' => $order ? new OrderConfirmation($order) : null,
-            'review_request'     => $order ? new ReviewRequest($order, '#') : null,
-            'abandoned_cart'     => ($cart = Cart::where('items_count', '>', 0)->latest('id')->first())
-                ? new AbandonedCart($cart, 1, route('shop.checkout.cart.index'), '#')
-                : null,
-            'win_back'           => ($customer = Customer::latest('id')->first()) ? new WinBack($customer, '#') : null,
-        };
+        return [
+            'email'        => $email,
+            'subscribed'   => SubscribersList::where('email', $email)->where('is_subscribed', 1)->exists(),
+            'suppressions' => EmailSuppression::where('email', $email)->pluck('scope')->all(),
+            'history'      => MarketingConsent::where('email', $email)->latest('id')->limit(10)->get(),
+        ];
     }
 }

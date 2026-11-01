@@ -1,35 +1,20 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <!-- Title -->
-        <span style="font-size: 22px;font-weight: 600;color: #121A26">
-            @lang('shop::app.rma.mail.status.title')
-        </span>
-        
-        <br>
+{{-- Return request status changed (Accepted, Declined, Received...). --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.rma.mail.status.subject', ['id' => $rma->id, 'status' => $rma->status?->title])])
+    <x-shop::email.heading
+        :context="trans('shop::app.emails.order-ref', ['order_id' => $rma->order->increment_id])"
+        :title="trans('shop::app.rma.mail.status.heading-status', ['status' => $rma->status?->title])"
+        :name="$rma->order->customer_first_name"
+    />
 
-        <!-- Customer Name -->
-        <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
-            @lang('shop::app.rma.mail.status.heading', ['name' => $rma->order->customer_full_name]),👋
-        </p>
+    <x-shop::email.text>
+        @lang('shop::app.rma.mail.status.intro', ['id' => $rma->id])
+    </x-shop::email.text>
 
-        <!-- RMA ID -->
-        <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
-            @lang('shop::app.rma.mail.status.your-rma-id')
-            @lang('shop::app.rma.mail.status.status-change', [
-                'id' => '<a href="' . route('shop.customers.account.rma.view', $rma->id) . '" style="color: #0041FF; font-weight: bold;">#' . $rma->id . '</a>',
-            ])
-        </p>
+    <x-shop::email.panel accent>
+        <span style="color:#a3a3a3;">@lang('shop::app.rma.mail.status.status')</span>&nbsp; <strong>{{ $rma->status?->title }}</strong>
+    </x-shop::email.panel>
 
-        <!-- Status -->
-        <div style="margin-bottom: 20px; margin-top: 20px; display: flex; flex-direction: row; justify-content: space-between;">
-            <div style="line-height: 25px;">
-                <div style="font-size: 16px; font-weight: bold; color: #242424;">
-                    @lang('shop::app.rma.mail.status.status') :
-                    <span style="font-size: 16px; color: #5E5E5E; line-height: 24px;">
-                       {{ $rma->status->title }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-shop::email.button :url="route('shop.customers.account.rma.view', $rma->id)">
+        @lang('shop::app.rma.mail.customer-rma-create.cta')
+    </x-shop::email.button>
 @endcomponent

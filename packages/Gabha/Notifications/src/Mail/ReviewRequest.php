@@ -2,6 +2,7 @@
 
 namespace Gabha\Notifications\Mail;
 
+use Gabha\Notifications\Support\ProductPresenter;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -30,8 +31,9 @@ class ReviewRequest extends BrandMailable
         $products = $this->order->items
             ->whereNull('parent_id')
             ->map(fn ($item) => [
-                'name' => $item->name,
-                'url'  => $item->product?->url_key
+                'name'  => $item->name,
+                'image' => ProductPresenter::imageUrl($item->product),
+                'url'   => $item->product?->url_key
                     ? route('shop.product_or_category.index', $item->product->url_key).'#review'
                     : null,
             ])

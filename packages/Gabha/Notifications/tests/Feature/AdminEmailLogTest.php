@@ -1,6 +1,5 @@
 <?php
 
-use Gabha\Notifications\Http\Controllers\Admin\EmailLogController;
 use Gabha\Notifications\Models\EmailLog;
 use Illuminate\Support\Facades\Mail;
 use Webkul\User\Models\Admin;
@@ -29,17 +28,16 @@ it('lists logged emails with their status', function () {
         ->assertDontSee('listed@example.com');
 });
 
-it('previews every automated email without sending it', function (string $type) {
-    notificationsOrder();
+it('lists customer feedback', function () {
+    $order = notificationsOrder();
+    Gabha\Notifications\Models\OrderFeedback::create(['order_id' => $order->id, 'email' => 'buyer@example.com', 'rating' => 5, 'comment' => 'Perfect fit']);
 
-    $this->get(route('admin.notifications.logs.preview', $type))->assertOk();
-
-    Mail::assertNothingSent();
-    Mail::assertNothingQueued();
-})->with(array_keys(EmailLogController::PREVIEWS));
+    $this->get(route('admin.notifications.feedback.index'))->assertOk()->assertSee('Perfect fit');
+});
 
 it('is only for signed-in admins', function () {
     auth()->guard('admin')->logout();
 
     $this->get(route('admin.notifications.logs.index'))->assertRedirect();
+    $this->get(route('admin.notifications.templates.index'))->assertRedirect();
 });

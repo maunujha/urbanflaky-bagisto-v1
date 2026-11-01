@@ -41,8 +41,8 @@ class SendWinBackEmails extends Command
             ->whereNotIn('status', [Order::STATUS_CANCELED])
             ->groupBy('customer_id')
             ->havingRaw('MAX(created_at) BETWEEN ? AND ?', [
-                now()->subDays((int) config('notifications.win_back.max_days', 365)),
-                now()->subDays((int) config('notifications.win_back.min_days', 90)),
+                now()->subDays(max($settings->number('timing.win_back_min_days'), $settings->number('timing.win_back_max_days'))),
+                now()->subDays($settings->number('timing.win_back_min_days')),
             ])
             ->get();
 

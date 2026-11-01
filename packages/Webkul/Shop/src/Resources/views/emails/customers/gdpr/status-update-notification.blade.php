@@ -1,32 +1,20 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold; font-size: 20px; color: #121A26; line-height: 24px; margin-bottom: 24px;">
-            @lang('shop::app.emails.dear', ['customer_name' => $gdprRequest->customer->name]), 👋
-        </p>
-    </div>
+{{-- Data request status changed. --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.emails.customers.gdpr.status-update.subject')])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.gdpr.status-update.subject')"
+        :name="$gdprRequest->customer->first_name"
+    />
 
-    <div style="font-size: 20px; color: #242424; line-height: 30px; margin-bottom: 34px;">
-        <div style="font-weight: bold; font-size: 20px; color: #242424; line-height: 30px; margin-bottom: 20px !important;">
-            {{ trans('shop::app.emails.customers.gdpr.status-update.summary') }}
-        </div>
-    </div>
+    <x-shop::email.text>
+        {{ trans('shop::app.emails.customers.gdpr.status-update.summary') }}
+    </x-shop::email.text>
 
-    <div style="flex-direction: row; margin-top: 20px; justify-content: space-between; margin-bottom: 20px;">
-        <div style="line-height: 25px; font-size: 16px; color: #242424;">
-            <span style="font-weight: bold;">
-                @lang('shop::app.emails.customers.gdpr.status-update.request-status')</span> {{ $gdprRequest->status }}
-        </div>
+    <x-shop::email.details :blocks="[
+        ['title' => trans('shop::app.emails.customers.gdpr.status-update.request-type'), 'lines' => [ucfirst($gdprRequest->type)]],
+        ['title' => trans('shop::app.emails.customers.gdpr.status-update.request-status'), 'lines' => [ucfirst($gdprRequest->status)]],
+    ]" />
 
-        <div style="line-height: 25px; font-size: 16px; color: #242424;">
-            <div>
-                <span style="font-weight: bold;">
-                    @lang('shop::app.emails.customers.gdpr.status-update.request-type')</span> {{ $gdprRequest->type }}
-            </div>
-
-            <div>
-                <span style="font-weight: bold;">
-                    @lang('shop::app.emails.customers.gdpr.status-update.message')</span> {{ $gdprRequest->message }}
-            </div>
-        </div>
-    </div>
+    @if ($gdprRequest->message)
+        <x-shop::email.panel>{{ $gdprRequest->message }}</x-shop::email.panel>
+    @endif
 @endcomponent

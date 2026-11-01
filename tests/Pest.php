@@ -32,9 +32,17 @@ uses(InstallerTestCase::class)->in('../packages/Webkul/Installer/tests');
 uses(PaymentTestCase::class)->in('../packages/Webkul/Payment/tests');
 uses(RazorpayTestCase::class)->in('../packages/Webkul/Razorpay/tests');
 uses(RewardCoinsTestCase::class)->in('../packages/Gabha/RewardCoins/tests');
-/* Order events also run the SMS listeners: never let them reach SMS Alert. */
+/*
+| Order events also run the SMS listeners: never let them reach SMS Alert.
+| A fresh Redis namespace per test keeps the newsletter limiter counters from
+| leaking between tests and runs.
+*/
 uses(Tests\TestCase::class)
-    ->beforeEach(fn () => $this->mock(Webkul\Shop\Services\SmsAlertService::class)->shouldIgnoreMissing(true))
+    ->beforeEach(function () {
+        $this->mock(Webkul\Shop\Services\SmsAlertService::class)->shouldIgnoreMissing(true);
+
+        config(['otp_security.key_prefix' => 'uf:test:'.Illuminate\Support\Str::random(10).':']);
+    })
     ->in('../packages/Gabha/Notifications/tests');
 /*
 | This store ships via Shiprocket and disables the flat-rate and free carriers
@@ -55,6 +63,8 @@ uses(ShopTestCase::class)
             'carriers.flatrate.class'  => \Webkul\Shipping\Carriers\FlatRate::class,
             'carriers.free.active'     => true,
             'carriers.free.class'      => \Webkul\Shipping\Carriers\Free::class,
+            /* Fresh Redis namespace: newsletter/OTP limiter counters never leak between tests. */
+            'otp_security.key_prefix'  => 'uf:test:'.\Illuminate\Support\Str::random(10).':',
         ]);
     })
     ->in('../packages/Webkul/Shop/tests');

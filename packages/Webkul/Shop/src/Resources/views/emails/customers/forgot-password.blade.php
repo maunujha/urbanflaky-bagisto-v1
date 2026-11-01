@@ -1,24 +1,19 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold;font-size: 20px;color: #121A26;line-height: 24px;margin-bottom: 24px">
-            @lang('shop::app.emails.dear', ['customer_name' => $userName]), 👋
-        </p>
+{{-- Password reset link. --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.emails.customers.forgot-password.preheader')])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.forgot-password.title')"
+        :name="$userName"
+    />
 
-        <p style="font-size: 16px;color: #384860;line-height: 24px;">
-            @lang('shop::app.emails.customers.forgot-password.greeting')
-        </p>
-    </div>
+    <x-shop::email.text>
+        @lang('shop::app.emails.customers.forgot-password.greeting')
+    </x-shop::email.text>
 
-    <p style="font-size: 16px;color: #384860;line-height: 24px;margin-bottom: 40px">
+    <x-shop::email.button :url="route('shop.customers.reset_password.create', $token)">
+        @lang('shop::app.emails.customers.forgot-password.reset-password')
+    </x-shop::email.button>
+
+    <x-shop::email.text muted>
         @lang('shop::app.emails.customers.forgot-password.description')
-    </p>
-
-    <div style="display: flex;margin-bottom: 95px">
-        <a
-            href="{{ route('shop.customers.reset_password.create', $token) }}"
-            style="padding: 16px 45px;justify-content: center;align-items: center;gap: 10px;border-radius: 2px;background: #060C3B;color: #FFFFFF;text-decoration: none;text-transform: uppercase;font-weight: 700;"
-        >
-            @lang('shop::app.emails.customers.forgot-password.reset-password')
-        </a>
-    </div>
+    </x-shop::email.text>
 @endcomponent

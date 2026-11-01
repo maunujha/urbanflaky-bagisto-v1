@@ -3,9 +3,11 @@
 namespace Gabha\Notifications\Services;
 
 use Gabha\Notifications\Models\EmailLog;
+use Gabha\Notifications\Models\EmailSuppression;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Mail\Mailable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -37,6 +39,13 @@ class EmailDispatcher
             return false;
         }
 
+        /*
+         * Marketing never reaches an address that opted out, whichever path
+         * built the email. Logged once per key, so the admin sees why.
+         */
+        $suppressed = in_array($category, [EmailLog::CATEGORY_MARKETING, EmailLog::CATEGORY_CAMPAIGN], true)
+            && EmailSuppression::isSuppressed($recipient, EmailSuppression::SCOPE_MARKETING);
+
         try {
             $log = EmailLog::create([
                 'type'         => $type,
@@ -44,13 +53,18 @@ class EmailDispatcher
                 'mailable'     => $mailable::class,
                 'recipient'    => $recipient,
                 'subject'      => $this->subject($mailable),
-                'status'       => EmailLog::STATUS_QUEUED,
+                'status'       => $suppressed ? EmailLog::STATUS_SUPPRESSED : EmailLog::STATUS_QUEUED,
+                'error'        => $suppressed ? 'Unsubscribed from marketing email' : null,
                 'dedupe_key'   => $dedupeKey,
                 'related_type' => $related?->getMorphClass(),
                 'related_id'   => $related?->getKey(),
             ]);
         } catch (UniqueConstraintViolationException) {
             /* Lost a race with a concurrent send for the same key. */
+            return false;
+        }
+
+        if ($suppressed) {
             return false;
         }
 
@@ -91,10 +105,10 @@ class EmailDispatcher
 
     public function alreadySent(string $dedupeKey): bool
     {
-        /* A failed attempt must not block a later one: free its key. */
+        /* A failed attempt must not block a later one: park its key (see EmailLog::PARKED_KEY). */
         EmailLog::where('dedupe_key', $dedupeKey)
             ->where('status', EmailLog::STATUS_FAILED)
-            ->update(['dedupe_key' => null]);
+            ->update(['dedupe_key' => DB::raw("CONCAT(dedupe_key, '".EmailLog::PARKED_KEY."', id)")]);
 
         return EmailLog::where('dedupe_key', $dedupeKey)->exists();
     }
