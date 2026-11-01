@@ -58,13 +58,13 @@ Route::prefix('customer')->group(function () {
      * OTP login routes.
      */
     Route::controller(OtpController::class)->prefix('otp')->group(function () {
-        Route::post('send', 'send')->middleware('throttle:api-otp')->name('shop.customer.otp.send');
+        Route::post('send', 'send')->name('shop.customer.otp.send');
 
         Route::get('verify', 'showVerify')->name('shop.customer.otp.verify');
 
-        Route::post('verify', 'verify')->middleware('throttle:api-otp')->name('shop.customer.otp.verify.store');
+        Route::post('verify', 'verify')->name('shop.customer.otp.verify.store');
 
-        Route::post('resend', 'resend')->middleware('throttle:api-otp')->name('shop.customer.otp.resend');
+        Route::post('resend', 'resend')->name('shop.customer.otp.resend');
     });
 
     /**
@@ -78,9 +78,9 @@ Route::prefix('customer')->group(function () {
 
             Route::get('verify-phone', 'showPhoneVerify')->name('shop.customers.register.verify.phone');
 
-            Route::post('verify-phone', 'verifyPhone')->middleware('throttle:api-otp')->name('shop.customers.register.verify.phone.store');
+            Route::post('verify-phone', 'verifyPhone')->name('shop.customers.register.verify.phone.store');
 
-            Route::post('resend-phone-otp', 'resendPhoneOtp')->middleware('throttle:api-otp')->name('shop.customers.register.resend.phone.otp');
+            Route::post('resend-phone-otp', 'resendPhoneOtp')->name('shop.customers.register.resend.phone.otp');
         });
 
         /**

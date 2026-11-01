@@ -1597,8 +1597,8 @@
             },
 
             async sendOtp() {
-                if (this.addr.phone.length !== 10) {
-                    this.otpError = 'Please enter a valid 10-digit mobile number.';
+                if (! /^[6-9]\d{9}$/.test(this.addr.phone)) {
+                    this.otpError = 'Please enter a valid 10-digit Indian mobile number.';
                     return;
                 }
                 this.otpSending = true;
@@ -1606,6 +1606,7 @@
                 try {
                     const res = await this.$axios.post('{{ route("shop.api.checkout.otp.send") }}', {
                         phone: this.addr.phone,
+                        recaptcha_token: await this.getRecaptchaToken('otp_send'),
                     });
                     if (res.data.verified) {
                         this.phoneVerified = true;
@@ -1660,7 +1661,7 @@
              * '' if captcha is disabled or grecaptcha is unavailable — the server
              * fails open in that case, so the order still goes through.
              */
-            async getRecaptchaToken() {
+            async getRecaptchaToken(action = 'checkout') {
                 if (! this.recaptchaSiteKey || ! window.grecaptcha) {
                     return '';
                 }
@@ -1668,7 +1669,7 @@
                     return await new Promise((resolve) => {
                         window.grecaptcha.ready(() => {
                             window.grecaptcha
-                                .execute(this.recaptchaSiteKey, { action: 'checkout' })
+                                .execute(this.recaptchaSiteKey, { action })
                                 .then(resolve)
                                 .catch(() => resolve(''));
                         });

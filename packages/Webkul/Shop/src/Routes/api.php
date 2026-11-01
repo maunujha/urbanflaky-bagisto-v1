@@ -100,10 +100,10 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
         Route::get('cross-sell', 'crossSellProducts')->name('shop.api.checkout.cart.cross-sell.index');
     });
 
-    // OTP — strictest limit to protect SMS costs and prevent brute-force
+    // OTP — limits live in App\Services\Security\OtpService (atomic Redis,
+    // separate send/verify budgets, per-flow phone caps, shared IP + site caps).
     Route::controller(CheckoutOtpController::class)
         ->prefix('checkout/otp')
-        ->middleware('throttle:api-otp')
         ->group(function () {
             Route::post('send', 'send')->name('shop.api.checkout.otp.send');
             Route::post('verify', 'verify')->name('shop.api.checkout.otp.verify');
@@ -112,7 +112,6 @@ Route::group(['prefix' => 'api', 'middleware' => ['throttle:api']], function () 
     // Contact-form OTP
     Route::controller(ContactOtpController::class)
         ->prefix('contact/otp')
-        ->middleware('throttle:api-otp')
         ->group(function () {
             Route::post('send', 'send')->name('shop.api.contact.otp.send');
             Route::post('verify', 'verify')->name('shop.api.contact.otp.verify');

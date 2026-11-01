@@ -2,22 +2,26 @@
 
 namespace Webkul\Shop\Http\Controllers\Customer;
 
-use Carbon\Carbon;
+use App\Services\Security\OtpService;
+use App\Services\Security\RecaptchaVerifier;
+use App\Support\IndianMobile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Event;
-use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 use Webkul\Customer\Repositories\CustomerRepository;
-use Webkul\Customer\Facades\Captcha;
 use Webkul\Shop\Http\Controllers\Controller;
-use Webkul\Shop\Services\SmsAlertService;
 
+/**
+ * OTP login. Codes, attempt counting and send limits live in OtpService
+ * (flow "login"); nothing about the code is stored on the customer row.
+ */
 class OtpController extends Controller
 {
     public function __construct(
         protected CustomerRepository $customerRepository,
-        protected SmsAlertService $smsAlertService
+        protected OtpService $otp,
+        protected RecaptchaVerifier $recaptcha,
     ) {}
 
     /**
@@ -26,51 +30,52 @@ class OtpController extends Controller
      */
     public function send(Request $request): RedirectResponse
     {
-        $request->validate(
-            Captcha::getValidations(['phone' => 'required|digits:10']),
-            Captcha::getValidationMessages([
-                'phone.required' => trans('shop::app.customers.otp.phone-required'),
-                'phone.digits'   => trans('shop::app.customers.otp.phone-digits'),
-            ])
-        );
+        $phone = IndianMobile::normalize($request->input('phone'));
 
-        $customer = $this->customerRepository->findOneWhere([
-            'phone'      => $request->phone,
-            'channel_id' => core()->getCurrentChannel()->id,
-        ]);
-
-        if (! $customer) {
-            session()->flash('error', trans('shop::app.customers.otp.no-account'));
-
-            return redirect()->route('shop.customer.session.index');
+        if (! $phone) {
+            return $this->back('error', trans('shop::app.customers.otp.phone-digits'));
         }
 
-        if (! $customer->status) {
-            session()->flash('warning', trans('shop::app.customers.login-form.not-activated'));
+        try {
+            /* Before the account lookup, so the endpoint can't be scripted to enumerate numbers. */
+            if (! $this->recaptcha->passes($request->input('recaptcha_token'), 'submit')) {
+                return $this->back('error', 'We couldn’t verify your request. Please refresh the page and try again.');
+            }
 
-            return redirect()->route('shop.customer.session.index');
+            $customer = $this->findCustomer($phone);
+
+            if (! $customer) {
+                return $this->back('error', trans('shop::app.customers.otp.no-account'));
+            }
+
+            if (! $customer->status) {
+                return $this->back('warning', trans('shop::app.customers.login-form.not-activated'));
+            }
+
+            $result = $this->otp->send('login', $phone, $request);
+        } catch (\Throwable $e) {
+            return $this->unavailable($e);
         }
 
-        $otp = (string) random_int(100000, 999999);
-
-        $customer->update([
-            'otp'            => $otp,
-            'otp_expires_at' => Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10)),
-        ]);
-
-        /* Reset the failed-attempt counter whenever a fresh OTP is issued. */
-        Cache::forget($this->attemptKey($request->phone));
-
-        $sent = $this->smsAlertService->sendOtp($request->phone, $otp);
-
-        if (! $sent) {
-            session()->flash('error', trans('shop::app.customers.otp.send-failed'));
-
-            return redirect()->route('shop.customer.session.index');
+        if (! $result['ok']) {
+            return $this->back('error', $result['message']);
         }
 
-        session()->put('otp_phone', $request->phone);
+        session()->put('otp_phone', $phone);
         session()->flash('show_login_otp', true);
+
+        return redirect()->route('shop.customer.session.index');
+    }
+
+    /**
+     * The code is entered inline on the sign-in page; this legacy URL just
+     * sends visitors there (it previously 500'd on a missing method).
+     */
+    public function showVerify(): RedirectResponse
+    {
+        if (session()->has('otp_phone')) {
+            session()->flash('show_login_otp', true);
+        }
 
         return redirect()->route('shop.customer.session.index');
     }
@@ -93,57 +98,30 @@ class OtpController extends Controller
             return redirect()->route('shop.customer.session.index');
         }
 
-        $customer = $this->customerRepository->findOneWhere([
-            'phone'      => $phone,
-            'channel_id' => core()->getCurrentChannel()->id,
-        ]);
-
-        if (! $customer) {
-            session()->flash('error', trans('shop::app.customers.otp.no-account'));
-
-            return redirect()->route('shop.customer.session.index');
+        try {
+            $result = $this->otp->verify('login', $phone, (string) $request->otp, $request);
+        } catch (\Throwable $e) {
+            return $this->unavailable($e);
         }
 
-        /*
-         * Cap wrong guesses per issued OTP. Without this, the OTP stays valid for
-         * its whole lifetime and only the IP throttle limits brute force; an
-         * attacker could grind the code from rotating IPs. After the cap we burn
-         * the OTP so it can never be guessed — the customer must request a new one.
-         */
-        $attemptKey   = $this->attemptKey($phone);
-        $maxAttempts  = 5;
+        if (! $result['ok']) {
+            /* Keep the code boxes open only while the current code can still be used. */
+            if ($result['code'] === 'wrong') {
+                session()->flash('show_login_otp', true);
+            } else {
+                session()->forget('otp_phone');
+            }
 
-        if ((int) Cache::get($attemptKey, 0) >= $maxAttempts) {
-            $customer->update(['otp' => null, 'otp_expires_at' => null]);
-            Cache::forget($attemptKey);
-
-            session()->flash('error', trans('shop::app.customers.otp.too-many-attempts'));
-
-            return redirect()->route('shop.customer.session.index');
+            return $this->back('error', $result['message']);
         }
 
-        if (Carbon::now()->isAfter($customer->otp_expires_at)) {
-            session()->flash('error', trans('shop::app.customers.otp.otp-expired'));
-            session()->flash('show_login_otp', true);
+        $customer = $this->findCustomer($phone);
 
-            return redirect()->route('shop.customer.session.index');
+        if (! $customer || ! $customer->status) {
+            session()->forget('otp_phone');
+
+            return $this->back('error', trans('shop::app.customers.otp.no-account'));
         }
-
-        if (! $customer->otp || ! hash_equals((string) $customer->otp, (string) $request->otp)) {
-            Cache::put($attemptKey, (int) Cache::get($attemptKey, 0) + 1, now()->addMinutes(15));
-
-            session()->flash('error', trans('shop::app.customers.otp.invalid-otp'));
-            session()->flash('show_login_otp', true);
-
-            return redirect()->route('shop.customer.session.index');
-        }
-
-        $customer->update([
-            'otp'            => null,
-            'otp_expires_at' => null,
-        ]);
-
-        Cache::forget($attemptKey);
 
         session()->forget('otp_phone');
 
@@ -165,53 +143,51 @@ class OtpController extends Controller
     }
 
     /**
-     * Resend OTP to the phone stored in session.
+     * Resend OTP to the phone stored in session. No captcha: the session phone
+     * can only have been set by a captcha-checked send, and the send limits
+     * still apply.
      */
-    public function resend(): RedirectResponse
+    public function resend(Request $request): RedirectResponse
     {
         $phone = session()->get('otp_phone');
 
-        if (! $phone) {
+        if (! $phone || ! $this->findCustomer($phone)) {
             return redirect()->route('shop.customer.session.index');
         }
 
-        $customer = $this->customerRepository->findOneWhere([
-            'phone'      => $phone,
-            'channel_id' => core()->getCurrentChannel()->id,
-        ]);
-
-        if (! $customer) {
-            return redirect()->route('shop.customer.session.index');
-        }
-
-        $otp = (string) random_int(100000, 999999);
-
-        $customer->update([
-            'otp'            => $otp,
-            'otp_expires_at' => Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10)),
-        ]);
-
-        /* A fresh OTP clears the failed-attempt counter. */
-        Cache::forget($this->attemptKey($phone));
-
-        $sent = $this->smsAlertService->sendOtp($phone, $otp);
-
-        if (! $sent) {
-            session()->flash('error', trans('shop::app.customers.otp.send-failed'));
-        } else {
-            session()->flash('success', trans('shop::app.customers.otp.resent-success'));
+        try {
+            $result = $this->otp->send('login', $phone, $request);
+        } catch (\Throwable $e) {
+            return $this->unavailable($e);
         }
 
         session()->flash('show_login_otp', true);
 
+        return $result['ok']
+            ? $this->back('success', trans('shop::app.customers.otp.resent-success'))
+            : $this->back('error', $result['message']);
+    }
+
+    protected function findCustomer(string $phone)
+    {
+        return $this->customerRepository->findOneWhere([
+            'phone'      => $phone,
+            'channel_id' => core()->getCurrentChannel()->id,
+        ]);
+    }
+
+    protected function back(string $type, string $message): RedirectResponse
+    {
+        session()->flash($type, $message);
+
         return redirect()->route('shop.customer.session.index');
     }
 
-    /**
-     * Cache key holding the per-phone failed-verification counter.
-     */
-    protected function attemptKey(string $phone): string
+    /* Fail closed (no SMS) if Redis is unavailable. */
+    protected function unavailable(\Throwable $e): RedirectResponse
     {
-        return 'login_otp_attempts:'.$phone;
+        Log::error('Login OTP unavailable.', ['error' => $e->getMessage()]);
+
+        return $this->back('error', 'Verification is temporarily unavailable. Please try again shortly.');
     }
 }

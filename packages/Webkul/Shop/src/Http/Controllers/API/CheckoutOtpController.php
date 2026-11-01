@@ -2,13 +2,20 @@
 
 namespace Webkul\Shop\Http\Controllers\API;
 
+use App\Services\OtpCustomerService;
+use App\Services\Security\OtpService;
+use App\Services\Security\RecaptchaVerifier;
+use App\Support\IndianMobile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Webkul\Shop\Services\SmsAlertService;
+use Illuminate\Support\Facades\Log;
 
 class CheckoutOtpController extends APIController
 {
-    public function __construct(protected SmsAlertService $smsAlertService) {}
+    public function __construct(
+        protected OtpService $otp,
+        protected RecaptchaVerifier $recaptcha,
+    ) {}
 
     /**
      * Send OTP to the given phone number.
@@ -16,35 +23,35 @@ class CheckoutOtpController extends APIController
      */
     public function send(Request $request): JsonResponse
     {
-        $request->validate(['phone' => 'required|digits:10']);
+        $phone = IndianMobile::normalize($request->input('phone'));
 
-        $phone = $request->phone;
+        if (! $phone) {
+            return response()->json(['message' => 'Enter a valid 10-digit Indian mobile number.'], 422);
+        }
 
-        /* Logged-in user whose profile phone matches → auto-verified, no OTP needed */
+        /* Logged-in user whose profile phone matches → auto-verified, no SMS sent */
         if (auth()->guard('customer')->check()) {
-            $profilePhone = auth()->guard('customer')->user()->phone;
+            $profilePhone = IndianMobile::normalize(auth()->guard('customer')->user()->phone);
 
             if ($profilePhone && $profilePhone === $phone) {
+                session()->forget('checkout_otp_challenge');
                 session(['checkout_phone_verified' => true, 'checkout_otp_phone' => $phone]);
 
                 return response()->json(['verified' => true]);
             }
         }
 
-        $otp = (string) random_int(100000, 999999);
+        try {
+            if (! $this->recaptcha->passes($request->input('recaptcha_token'), 'otp_send')) {
+                return response()->json(['message' => 'We couldn’t verify your request. Please refresh the page and try again.'], 422);
+            }
 
-        session([
-            'checkout_otp'            => $otp,
-            'checkout_otp_phone'      => $phone,
-            'checkout_otp_expires_at' => now()->addMinutes((int) config('services.smsalert.otp_expiry', 10))->toDateTimeString(),
-            'checkout_phone_verified' => false,
-        ]);
-
-        if (! $this->smsAlertService->sendOtp($phone, $otp)) {
-            return response()->json(['message' => 'Failed to send OTP. Please try again.'], 500);
+            $result = $this->otp->send('checkout', $phone, $request);
+        } catch (\Throwable $e) {
+            return $this->unavailable($e);
         }
 
-        return response()->json(['message' => 'OTP sent to ' . substr($phone, 0, 2) . 'xxxxxxxx.']);
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 
     /**
@@ -52,38 +59,24 @@ class CheckoutOtpController extends APIController
      */
     public function verify(Request $request): JsonResponse
     {
-        $request->validate([
-            'phone' => 'required|digits:10',
-            'otp'   => 'required|digits:6',
-        ]);
+        $phone = IndianMobile::normalize($request->input('phone'));
+        $code = (string) $request->input('otp');
 
-        $sessionOtp   = session('checkout_otp');
-        $sessionPhone = session('checkout_otp_phone');
-        $expiry       = session('checkout_otp_expires_at');
-
-        if (! $sessionOtp || ! $sessionPhone) {
-            return response()->json(['message' => 'Session expired. Please request a new OTP.'], 422);
+        if (! $phone || ! preg_match('/^\d{6}$/', $code)) {
+            return response()->json(['message' => 'Enter the 6-digit OTP sent to your mobile.'], 422);
         }
 
-        if ($sessionPhone !== $request->phone) {
-            return response()->json(['message' => 'Phone number mismatch. Request a new OTP.'], 422);
+        try {
+            $result = $this->otp->verify('checkout', $phone, $code, $request);
+        } catch (\Throwable $e) {
+            return $this->unavailable($e);
         }
 
-        if (now()->toDateTimeString() > $expiry) {
-            return response()->json(['message' => 'OTP expired. Please request a new one.'], 422);
+        if (! $result['ok']) {
+            return response()->json(['message' => $result['message']], $result['status']);
         }
 
-        if ($sessionOtp !== $request->otp) {
-            return response()->json(['message' => 'Incorrect OTP. Please try again.'], 422);
-        }
-
-        $phone = $request->phone;
-
-        session()->forget(['checkout_otp', 'checkout_otp_expires_at']);
-        session(['checkout_phone_verified' => true]);
-
-        $customer = app(\App\Services\OtpCustomerService::class)
-                        ->handleVerifiedPhone($phone);
+        $customer = app(OtpCustomerService::class)->handleVerifiedPhone($phone);
 
         session([
             'verified_phone'       => $phone,
@@ -91,9 +84,17 @@ class CheckoutOtpController extends APIController
         ]);
 
         return response()->json([
-            'message'          => 'Mobile number verified successfully.',
+            'message'          => $result['message'],
             'customer_id'      => $customer->id,
             'is_new_customer'  => $customer->wasRecentlyCreated,
         ]);
+    }
+
+    /* Fail closed (no SMS) if Redis is unavailable, with a friendly message. */
+    private function unavailable(\Throwable $e): JsonResponse
+    {
+        Log::error('Checkout OTP unavailable.', ['error' => $e->getMessage()]);
+
+        return response()->json(['message' => 'Verification is temporarily unavailable. Please try again shortly.'], 503);
     }
 }

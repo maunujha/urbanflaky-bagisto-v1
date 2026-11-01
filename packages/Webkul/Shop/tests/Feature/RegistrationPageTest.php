@@ -8,9 +8,20 @@ use function Pest\Laravel\post;
 use function Pest\Laravel\postJson;
 
 /*
- * Urbanflaky sign-up is phone-first: name + Indian mobile number, then a 4-digit SMS OTP.
+ * Urbanflaky sign-up is phone-first: name + Indian mobile number, then a 6-digit SMS OTP.
  * No email or password is collected; the account is only created once the OTP verifies.
  */
+
+beforeEach(function () {
+    /* OTP counters live in Redis — isolate them so runs never accumulate. */
+    config(['otp_security.key_prefix' => 'uf:test:'.Illuminate\Support\Str::random(10).':']);
+});
+
+/** The last code "sent" by the SMS fake. */
+function lastSignupOtp(): ?string
+{
+    return $GLOBALS['uf_last_signup_otp'] ?? null;
+}
 
 function signupDetails(array $overrides = []): array
 {
@@ -23,8 +34,14 @@ function signupDetails(array $overrides = []): array
 
 function fakeSms(bool $delivered = true)
 {
+    $GLOBALS['uf_last_signup_otp'] = null;
+
     return test()->mock(SmsAlertService::class, function ($mock) use ($delivered) {
-        $mock->shouldReceive('sendOtp')->andReturn($delivered);
+        $mock->shouldReceive('sendOtp')->andReturnUsing(function ($phone, $otp) use ($delivered) {
+            $GLOBALS['uf_last_signup_otp'] = $otp;
+
+            return $delivered;
+        });
 
         /* Post-signup notifications (welcome / registration SMS) from listeners. */
         foreach (['sendWelcome', 'sendRegistration'] as $notification) {
@@ -70,7 +87,8 @@ it('sends an otp and holds the account until the phone is verified', function ()
         ->assertSessionHas('show_otp_modal', true)
         ->assertSessionHas('signup_pending.phone', $details['phone']);
 
-    expect(session('signup_otp'))->toMatch('/^\d{4}$/');
+    expect(lastSignupOtp())->toMatch('/^\d{6}$/')
+        ->and(session('register_otp_challenge'))->not->toBeNull();
 
     expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
 });
@@ -80,7 +98,7 @@ it('returns to the form with an error when the otp sms cannot be sent', function
 
     post(route('shop.customers.register.store'), signupDetails())
         ->assertRedirect()
-        ->assertSessionHas('error', trans('shop::app.customers.otp.send-failed'))
+        ->assertSessionHas('error', 'We couldn’t send the OTP right now. Please try again in a moment.')
         ->assertSessionMissing('signup_pending');
 });
 
@@ -93,7 +111,7 @@ it('creates the account and signs the customer in when the otp is correct', func
 
     post(route('shop.customers.register.store'), $details);
 
-    post(route('shop.customers.register.verify.phone.store'), ['otp' => session('signup_otp')])
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => lastSignupOtp()])
         ->assertRedirect(route('shop.home.index'))
         ->assertSessionHas('success', trans('shop::app.customers.signup-form.success'));
 
@@ -112,11 +130,11 @@ it('does not create the account when the otp is wrong', function () {
 
     post(route('shop.customers.register.store'), $details);
 
-    $wrongOtp = session('signup_otp') === '1111' ? '2222' : '1111';
+    $wrongOtp = lastSignupOtp() === '111111' ? '222222' : '111111';
 
     post(route('shop.customers.register.verify.phone.store'), ['otp' => $wrongOtp])
         ->assertRedirectToRoute('shop.customers.register.index')
-        ->assertSessionHas('error', trans('shop::app.customers.otp.invalid-otp'));
+        ->assertSessionHas('error', 'Incorrect OTP. 4 attempts left.');
 
     expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
 });
@@ -128,10 +146,47 @@ it('does not create the account when the otp has expired', function () {
 
     post(route('shop.customers.register.store'), $details);
 
-    session()->put('signup_otp_expires_at', now()->subMinute()->toDateTimeString());
+    /* Simulate Redis TTL expiry: the challenge the session points to is gone. */
+    session()->put('register_otp_challenge', 'expired-challenge');
 
-    post(route('shop.customers.register.verify.phone.store'), ['otp' => session('signup_otp')])
-        ->assertSessionHas('error', trans('shop::app.customers.otp.otp-expired'));
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => lastSignupOtp()])
+        ->assertSessionHas('error', 'Your OTP has expired. Please request a new one.');
 
     expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
+});
+
+it('locks the signup code after five wrong attempts, until a resend', function () {
+    fakeSms();
+
+    $details = signupDetails();
+
+    post(route('shop.customers.register.store'), $details);
+
+    $otp = lastSignupOtp();
+    $wrong = $otp === '111111' ? '222222' : '111111';
+
+    foreach (range(1, 5) as $attempt) {
+        post(route('shop.customers.register.verify.phone.store'), ['otp' => $wrong]);
+    }
+
+    expect(session('error'))->toBe('Too many incorrect attempts. Please request a new OTP.');
+
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => $otp]);
+    expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeFalse();
+
+    post(route('shop.customers.register.resend.phone.otp'))->assertSessionHas('success');
+
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => lastSignupOtp()])
+        ->assertRedirect(route('shop.home.index'));
+
+    expect(Customer::query()->where('phone', $details['phone'])->exists())->toBeTrue();
+});
+
+it('rejects the old 4-digit code format', function () {
+    fakeSms();
+
+    post(route('shop.customers.register.store'), signupDetails());
+
+    postJson(route('shop.customers.register.verify.phone.store'), ['otp' => '1234'])
+        ->assertJsonValidationErrorFor('otp');
 });

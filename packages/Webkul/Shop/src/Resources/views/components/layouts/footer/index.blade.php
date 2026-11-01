@@ -84,14 +84,22 @@
                 class="uf-nl-form"
                 method="POST"
                 action="{{ route('shop.subscription.store') }}"
+                data-recaptcha-key="{{ \Webkul\Customer\Facades\Captcha::isActive() ? \Webkul\Customer\Facades\Captcha::getSiteKey() : '' }}"
                 novalidate
             >
                 @csrf
+                {{-- Bot traps: honeypot humans never see, plus a reCAPTCHA v3 token minted on submit. --}}
+                <div class="uf-nl-hp" aria-hidden="true">
+                    <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                </div>
+                <input type="hidden" name="recaptcha_token" value="">
                 <input
                     type="email"
                     name="email"
                     placeholder="your@email.com"
                     aria-label="{{ trans('shop::app.components.layouts.footer.email') }}"
+                    autocomplete="email"
+                    maxlength="160"
                     required
                 >
                 <button type="submit" id="uf-nl-submit">@lang('shop::app.components.layouts.footer.subscribe')</button>
@@ -245,6 +253,45 @@
 @pushOnce('scripts')
 <script>
 (function () {
+    /* reCAPTCHA v3 is loaded only once a visitor shows intent (focus/touch on
+       the form), so the Google script costs nothing on ordinary page views. */
+    let recaptchaLoad = null;
+
+    function loadRecaptcha(key) {
+        if (! key) return Promise.resolve(null);
+        if (window.grecaptcha && window.grecaptcha.execute) return Promise.resolve(window.grecaptcha);
+        if (recaptchaLoad) return recaptchaLoad;
+
+        recaptchaLoad = new Promise(function (resolve) {
+            const s = document.createElement('script');
+            s.src = 'https://www.google.com/recaptcha/api.js?render=' + encodeURIComponent(key);
+            s.async = true;
+            s.onload = function () { resolve(window.grecaptcha || null); };
+            s.onerror = function () { recaptchaLoad = null; resolve(null); };
+            document.head.appendChild(s);
+        });
+
+        return recaptchaLoad;
+    }
+
+    function recaptchaToken(key) {
+        return loadRecaptcha(key).then(function (g) {
+            if (! g) return '';
+            return new Promise(function (resolve) {
+                g.ready(function () {
+                    g.execute(key, { action: 'newsletter' }).then(resolve, function () { resolve(''); });
+                });
+            });
+        });
+    }
+
+    ['focusin', 'pointerdown'].forEach(function (type) {
+        document.addEventListener(type, function (e) {
+            const form = e.target.closest && e.target.closest('#uf-nl-form');
+            if (form) loadRecaptcha(form.dataset.recaptchaKey);
+        }, { passive: true });
+    });
+
     document.addEventListener('submit', function (e) {
         const form = e.target;
         if (!form || form.id !== 'uf-nl-form') return;
@@ -267,22 +314,31 @@
         msg.textContent = '';
         msg.className = 'uf-nl-msg';
 
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
-            },
-            body: new FormData(form),
+        recaptchaToken(form.dataset.recaptchaKey)
+        .then(function (token) {
+            form.querySelector('input[name="recaptcha_token"]').value = token;
+
+            return fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': form.querySelector('input[name="_token"]').value,
+                },
+                body: new FormData(form),
+            });
         })
         .then(r => r.json().then(j => ({ ok: r.ok, body: j })))
         .then(({ ok, body }) => {
             msg.className = 'uf-nl-msg ' + (ok ? 'uf-ok' : 'uf-err');
-            msg.textContent = body.message || (ok ? 'Subscribed.' : 'Something went wrong.');
+            /* Show one clean line — Laravel's summary appends "(and N more errors)". */
+            const firstError = body.errors && Object.values(body.errors)[0];
+            msg.textContent = (firstError && firstError[0]) || body.message || (ok ? 'Subscribed.' : 'Something went wrong.');
             if (ok) {
                 input.value = '';
-                /* GA4/Meta lead — mapped to generate_lead + Subscribe in GTM. */
-                window.ufTrack && window.ufTrack.push('newsletter_signup', null, { subscription_source: 'footer' });
+                /* GA4/Meta lead — mapped to generate_lead + Subscribe in GTM. Only real new signups. */
+                if (! body.already) {
+                    window.ufTrack && window.ufTrack.push('newsletter_signup', null, { subscription_source: 'footer' });
+                }
             }
         })
         .catch(() => {

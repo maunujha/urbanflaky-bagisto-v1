@@ -3,8 +3,8 @@
 namespace Webkul\Shop\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
+use App\Support\IndianMobile;
 use Illuminate\Foundation\Http\FormRequest;
-use Webkul\Core\Rules\PhoneNumber;
 use Webkul\Customer\Facades\Captcha;
 
 class ContactRequest extends FormRequest
@@ -29,7 +29,11 @@ class ContactRequest extends FormRequest
         return Captcha::getValidations([
             'name'    => 'string|required|max:120',
             'email'   => 'string|required|email|max:160',
-            'contact' => ['required', new PhoneNumber],
+            'contact' => ['required', 'string', 'max:20', function ($attribute, $value, $fail) {
+                if (! IndianMobile::isValid($value)) {
+                    $fail('Enter a valid 10-digit Indian mobile number.');
+                }
+            }],
             'topic'   => 'nullable|string|max:60',
             'message' => 'required|string|max:2000',
         ]);
@@ -54,14 +58,27 @@ class ContactRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function ($v) {
-            $verified      = (bool) session('contact_phone_verified');
-            $verifiedPhone = (string) session('contact_otp_phone');
-            $submitted     = preg_replace('/\D/', '', (string) $this->input('contact'));
-            $submitted     = substr($submitted, -10);
-
-            if (! $verified || $verifiedPhone !== $submitted) {
+            /* Exact match on the normalised number — no suffix matching, so a
+               padded "<anything><verified number>" can never pass. */
+            if (! $this->verifiedPhone()) {
                 $v->errors()->add('contact', 'Please verify your phone number with the OTP before submitting.');
             }
         });
+    }
+
+    /**
+     * The server-verified number, or null. Callers must use this — never the
+     * raw `contact` input — when storing or mailing the enquiry.
+     */
+    public function verifiedPhone(): ?string
+    {
+        $verifiedPhone = (string) session('contact_otp_phone');
+        $submitted = IndianMobile::normalize($this->input('contact'));
+
+        return session('contact_phone_verified') === true
+            && $submitted !== null
+            && hash_equals($verifiedPhone, $submitted)
+                ? $verifiedPhone
+                : null;
     }
 }

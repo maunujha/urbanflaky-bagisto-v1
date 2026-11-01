@@ -81,6 +81,9 @@ class HomeController extends Controller
             'message',
         ]);
 
+        /* Never trust the submitted number — use the one the OTP proved. */
+        $data['contact'] = $contactRequest->verifiedPhone();
+
         try {
             /* Notify the store (admin inbox). */
             Mail::queue(new ContactUs($data));
