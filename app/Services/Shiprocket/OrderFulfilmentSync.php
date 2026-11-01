@@ -60,6 +60,9 @@ class OrderFulfilmentSync
             ]);
         }
 
+        /* Customer emails for the stage (Gabha\Notifications); deduplicated, so a retry is safe. */
+        Event::dispatch('shiprocket.shipment.stage_changed', [$order->refresh(), $from, $to]);
+
         /* Surface the failure so a real queue retries; every step is idempotent. */
         if ($failure) {
             throw $failure;

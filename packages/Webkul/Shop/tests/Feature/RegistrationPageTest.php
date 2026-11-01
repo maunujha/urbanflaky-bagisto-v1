@@ -123,6 +123,23 @@ it('creates the account and signs the customer in when the otp is correct', func
     expect(auth()->guard('customer')->id())->toBe($customer->id);
 });
 
+it('queues exactly one welcome email for a new account', function () {
+    Illuminate\Support\Facades\Mail::fake();
+
+    Webkul\Core\Models\CoreConfig::where('code', 'emails.general.notifications.emails.general.notifications.registration')->delete();
+    Webkul\Core\Models\CoreConfig::factory()->create([
+        'code'  => 'emails.general.notifications.emails.general.notifications.registration',
+        'value' => '1',
+    ]);
+
+    fakeSms();
+
+    post(route('shop.customers.register.store'), signupDetails());
+    post(route('shop.customers.register.verify.phone.store'), ['otp' => lastSignupOtp()]);
+
+    Illuminate\Support\Facades\Mail::assertQueued(Webkul\Shop\Mail\Customer\RegistrationNotification::class, 1);
+});
+
 it('does not create the account when the otp is wrong', function () {
     fakeSms();
 

@@ -49,6 +49,10 @@ deploy script repeats on each release.
    `SHIPROCKET_WEBHOOK_TOKEN` (endpoint rejects everything if unset).
    Then set Courier Priority to "Recommended" and review the admin
    settings and go-live test plan in `docs/SHIPROCKET.md`.
+6. Email automation (`docs/EMAIL-AUTOMATION.md`): scheduled review, abandoned-bag
+   and win-back emails run only when `MAIL_AUTOMATION_SCHEDULED=true` (defaults to
+   on when `APP_ENV=production`). Run each command with `--dry-run` once before
+   the first live run.
 
 ## 3. Nginx vhost (hardening that dev does not have)
 
@@ -137,8 +141,10 @@ load); OPcache no longer evicts (32531-file cap > 13.7k). Backups: `urbanflaky.c
 
 ## 4. Workers and scheduler (REQUIRED — checkout depends on them)
 
-All SMS, Shiprocket order creation and reward-coin listeners are queued.
-Without a worker they silently never run; with `sync` they slow every checkout.
+All SMS, Shiprocket order creation and reward-coin listeners are queued, and so
+is every email. Without a worker they silently never run; with `sync` they slow
+every checkout. Emails go on the `default` queue unless `MAIL_QUEUE` names
+another; if it does, add that queue to the worker (`--queue=default,mail`).
 
 ```ini
 ; /etc/supervisor/conf.d/urbanflaky-worker.conf
@@ -151,7 +157,8 @@ user=www-data
 stdout_logfile=/var/log/urbanflaky-worker.log
 ```
 
-Scheduler cron (AWB sync 30min, coin expiry daily, trending-search reset):
+Scheduler cron (AWB sync 30min, coin expiry daily, trending-search reset,
+abandoned-bag reminders hourly, review requests daily, win-back weekly):
 
 ```cron
 * * * * * cd /var/www/urbanflaky && php artisan schedule:run >> /dev/null 2>&1

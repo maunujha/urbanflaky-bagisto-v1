@@ -32,6 +32,10 @@ uses(InstallerTestCase::class)->in('../packages/Webkul/Installer/tests');
 uses(PaymentTestCase::class)->in('../packages/Webkul/Payment/tests');
 uses(RazorpayTestCase::class)->in('../packages/Webkul/Razorpay/tests');
 uses(RewardCoinsTestCase::class)->in('../packages/Gabha/RewardCoins/tests');
+/* Order events also run the SMS listeners: never let them reach SMS Alert. */
+uses(Tests\TestCase::class)
+    ->beforeEach(fn () => $this->mock(Webkul\Shop\Services\SmsAlertService::class)->shouldIgnoreMissing(true))
+    ->in('../packages/Gabha/Notifications/tests');
 /*
 | This store ships via Shiprocket and disables the flat-rate and free carriers
 | in production config. The stock checkout tests, however, assert against those

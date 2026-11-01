@@ -174,15 +174,9 @@ class RegistrationController extends Controller
         }
 
         Event::dispatch('customer.create.after', $customer);
-        Event::dispatch('customer.registration.after', $customer);
 
-        try {
-            if ((bool) core()->getConfigData('emails.general.notifications.emails.general.notifications.registration')) {
-                Mail::queue(new RegistrationNotification($customer));
-            }
-        } catch (\Exception $e) {
-            report($e);
-        }
+        /* Its Shop listener sends the welcome email (or the verification email). */
+        Event::dispatch('customer.registration.after', $customer);
 
         $this->customerRepository->syncNewRegisteredCustomerInformation($customer);
 

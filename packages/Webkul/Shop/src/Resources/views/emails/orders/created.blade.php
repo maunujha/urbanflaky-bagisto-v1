@@ -15,6 +15,29 @@
                 ])
             !!}
         </p>
+
+        {{-- Payment wording comes only from a verified gateway capture (Gabha\Notifications\Mail\OrderConfirmation). --}}
+        @if (! empty($payment))
+            <p style="font-size: 16px;color: #0a0a0a;font-weight: 600;line-height: 24px;">
+                @lang('shop::app.emails.orders.created.payment-received', [
+                    'amount'    => core()->formatPrice($payment->amount, $order->order_currency_code),
+                    'method'    => $paymentTitle ?: 'online payment',
+                    'reference' => $payment->transaction_id,
+                ])
+            </p>
+
+            @if (! empty($invoiceAttached))
+                <p style="font-size: 16px;color: #5E5E5E;line-height: 24px;">
+                    @lang('shop::app.emails.orders.created.invoice-attached')
+                </p>
+            @endif
+        @elseif (! empty($isCod))
+            <p style="font-size: 16px;color: #0a0a0a;font-weight: 600;line-height: 24px;">
+                @lang('shop::app.emails.orders.created.cod-note', [
+                    'amount' => core()->formatPrice($order->grand_total, $order->order_currency_code),
+                ])
+            </p>
+        @endif
     </div>
 
     <div style="font-size: 20px;font-weight: 600;color: #121A26">

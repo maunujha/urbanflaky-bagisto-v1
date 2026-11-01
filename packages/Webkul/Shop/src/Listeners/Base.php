@@ -38,6 +38,15 @@ class Base
         app()->setLocale($customerLocale);
 
         try {
+            /*
+             * Events fire inside the sales transaction: a real queue must not
+             * pick the email up before it commits. On "sync" it renders right
+             * here instead, so a mail failure stays inside this try/catch.
+             */
+            if (config('queue.default') !== 'sync') {
+                $notification->afterCommit();
+            }
+
             Mail::queue($notification);
         } catch (\Exception $e) {
             \Log::error('Error in Sending Email'.$e->getMessage());

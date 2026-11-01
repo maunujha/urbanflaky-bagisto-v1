@@ -68,6 +68,7 @@
             "Database\\Seeders\\": "database/seeders/",
             "Gabha\\Blog\\": "packages/Gabha/Blog/src",
             "Gabha\\Inventory\\": "packages/Gabha/Inventory/src",
+            "Gabha\\Notifications\\": "packages/Gabha/Notifications/src",
             "Gabha\\RewardCoins\\": "packages/Gabha/RewardCoins/src",
             "Gabha\\Search\\": "packages/Gabha/Search/src",
             "Webkul\\Admin\\": "packages/Webkul/Admin/src",
@@ -119,7 +120,8 @@
             "Webkul\\Payment\\Tests\\": "packages/Webkul/Payment/tests",
             "Webkul\\Razorpay\\Tests\\": "packages/Webkul/Razorpay/tests",
             "Webkul\\Shop\\Tests\\": "packages/Webkul/Shop/tests",
-            "Gabha\\RewardCoins\\Tests\\": "packages/Gabha/RewardCoins/tests"
+            "Gabha\\RewardCoins\\Tests\\": "packages/Gabha/RewardCoins/tests",
+            "Gabha\\Notifications\\Tests\\": "packages/Gabha/Notifications/tests"
         }
     },
     "scripts": {

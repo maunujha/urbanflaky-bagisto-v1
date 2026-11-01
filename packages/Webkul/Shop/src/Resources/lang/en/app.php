@@ -1426,6 +1426,9 @@ return [
         'orders' => [
             'created' => [
                 'greeting' => 'Thanks for your Order :order_id placed on :created_at',
+                'cod-note' => 'Cash on delivery: please keep :amount ready when your order arrives.',
+                'invoice-attached' => 'The tax invoice for this order is attached as a PDF.',
+                'payment-received' => 'Payment of :amount received via :method. Reference: :reference.',
                 'subject' => 'New Order Confirmation',
                 'summary' => 'Summary of Order',
                 'title' => 'Order Confirmation!',
@@ -1752,6 +1755,7 @@ return [
                 'rma-id' => 'RMA Id',
                 'status-change' => ':id status has been changed by Admin',
                 'status' => 'Status',
+                'subject' => 'Return request #:id: :status',
                 'title' => 'Status Updated!',
                 'your-rma-id' => 'Your RMA Id',
             ],

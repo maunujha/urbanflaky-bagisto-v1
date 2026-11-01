@@ -22,7 +22,7 @@ class Invoice extends Base
 
             $this->prepareMail($invoice, new InvoicedNotification($invoice, $duplicateInvoiceEmail));
 
-            $invoice->query()->update(['email_sent' => 1]);
+            $invoice->newQuery()->whereKey($invoice->id)->update(['email_sent' => 1]);
         } catch (\Exception $e) {
             report($e);
         }

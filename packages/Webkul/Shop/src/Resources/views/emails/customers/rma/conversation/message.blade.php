@@ -6,7 +6,7 @@
 
         <!-- Heading -->
         <p style="font-size: 16px; color: #5E5E5E; line-height: 24px;">
-            @lang('shop::app.rma.mail.customer-conversation.heading', ['name' => $rmaMessage->rma->order->customer->name])👋
+            @lang('shop::app.rma.mail.customer-conversation.heading', ['name' => $rmaMessage->rma->order->customer_full_name])👋
         </p>
 
         <!-- Conversation -->
