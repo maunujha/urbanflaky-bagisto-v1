@@ -18,6 +18,9 @@ function notificationsConfig(array $values): void
 
         CoreConfig::factory()->create(['code' => $code, 'value' => $value]);
     }
+
+    /* CoreConfigRepository lookups are cached; admin saves clear it, direct model writes do not. */
+    cache()->flush();
 }
 
 function bagistoMailSwitch(string $name, bool $on = true): void

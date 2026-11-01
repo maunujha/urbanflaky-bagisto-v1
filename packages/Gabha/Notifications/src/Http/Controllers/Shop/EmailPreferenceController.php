@@ -6,6 +6,7 @@ use Gabha\Notifications\Models\EmailSuppression;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Webkul\Core\Models\SubscribersList;
+use Webkul\Customer\Models\Customer;
 
 /**
  * Signed opt-out links. GET only shows a confirmation (link scanners must not
@@ -31,9 +32,14 @@ class EmailPreferenceController extends Controller
 
         EmailSuppression::suppress($email, $scope);
 
-        /* Marketing consent is the newsletter opt-in: withdraw it as well. */
+        /*
+         * Marketing consent is the newsletter opt-in: withdraw it as well, model
+         * by model so the consent ledger records it, and clear the account toggle.
+         */
         if ($scope === EmailSuppression::SCOPE_MARKETING) {
-            SubscribersList::where('email', $email)->update(['is_subscribed' => 0]);
+            SubscribersList::where('email', $email)->where('is_subscribed', 1)->get()->each->update(['is_subscribed' => 0]);
+
+            Customer::where('email', $email)->update(['subscribed_to_news_letter' => 0]);
         }
 
         if (! $request->hasSession() || $request->has('List-Unsubscribe')) {

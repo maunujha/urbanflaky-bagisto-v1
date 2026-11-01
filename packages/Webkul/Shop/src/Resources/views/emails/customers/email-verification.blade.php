@@ -1,24 +1,19 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold;font-size: 20px;color: #121A26;line-height: 24px;margin-bottom: 24px">
-            @lang('shop::app.emails.dear', ['customer_name' => $customer->name]), 👋
-        </p>
+{{-- Verify the email address on a new account. $customer is a model, or an array on resend. --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.emails.customers.verification.preheader')])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.verification.heading')"
+        :name="data_get($customer, 'first_name')"
+    />
 
-        <p style="font-size: 16px;color: #384860;line-height: 24px;">
-            @lang('shop::app.emails.customers.verification.greeting')
-        </p>
-    </div>
+    <x-shop::email.text>
+        @lang('shop::app.emails.customers.verification.greeting')
+    </x-shop::email.text>
 
-    <p style="font-size: 16px;color: #384860;line-height: 24px;margin-bottom: 40px">
+    <x-shop::email.text muted>
         @lang('shop::app.emails.customers.verification.description')
-    </p>
+    </x-shop::email.text>
 
-    <div style="display: flex;margin-bottom: 95px">
-        <a
-            href="{{ route('shop.customers.verify', $customer->token) }}"
-            style="padding: 16px 45px;justify-content: center;align-items: center;gap: 10px;border-radius: 2px;background: #060C3B;color: #FFFFFF;text-decoration: none;text-transform: uppercase;font-weight: 700;"
-        >
-            @lang('shop::app.emails.customers.verification.verify-email')
-        </a>
-    </div>
+    <x-shop::email.button :url="route('shop.customers.verify', data_get($customer, 'token'))">
+        @lang('shop::app.emails.customers.verification.verify-email')
+    </x-shop::email.button>
 @endcomponent

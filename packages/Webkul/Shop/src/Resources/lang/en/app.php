@@ -1328,54 +1328,84 @@ return [
 
     'subscription' => [
         'already' => 'You’re already on the list. Every new drop will reach you first.',
+        'confirm-sent' => 'Almost there. Check your inbox and confirm your email to join the list.',
         'subscribe-success' => 'Welcome to Urbanflaky. New drops and early access, straight to your inbox.',
         'unsubscribe-success' => 'You have successfully unsubscribed to our newsletter.',
     ],
 
     'emails' => [
         'dear' => 'Dear :customer_name',
+        'hello' => 'Hello :name,',
         'thanks' => 'If you need any kind of help please contact us at <a href=":link" style=":style">:email</a>.<br/>Thanks!',
+        'order-ref' => 'Order #:order_id',
+        'qty' => 'Qty :qty',
+        'qty-price' => 'Qty :qty × :price',
+        'free' => 'Free',
+        'tax-included' => 'Includes GST of :amount',
+        'continue-shopping' => 'Continue shopping',
+
+        'footer' => [
+            'help' => 'Questions? We are here.',
+            'marketing' => 'You are receiving this because you subscribed to Urbanflaky emails.',
+            'unsubscribe' => 'Unsubscribe',
+        ],
 
         'customers' => [
             'registration' => [
-                'credentials-description' => 'Your account has been created. Your account details are below:',
+                'credentials-description' => 'Your account is ready. Sign in with the details below and change the password from your account page.',
+                'cta' => 'Explore the collection',
                 'description' => 'Your account has now been created successfully and you can login using your email address and password credentials. Upon logging in, you will be able to access other services including reviewing past orders, wishlists and editing your account information.',
                 'greeting' => 'Welcome and thank you for registering with us!',
+                'intro' => 'Your account is ready. Track orders, save your favourites and check out faster from here on.',
                 'password' => 'Password',
+                'preheader' => 'Your Urbanflaky account is ready.',
                 'sign-in' => 'Sign in',
-                'subject' => 'New Customer Registration',
-                'username-email' => 'Username/Email',
+                'subject' => 'Welcome to Urbanflaky',
+                'title' => 'Welcome to Urbanflaky',
+                'username-email' => 'Email',
             ],
 
             'forgot-password' => [
-                'description' => 'You are receiving this email because we received a password reset request for your account.',
-                'greeting' => 'Forgot Password!',
-                'reset-password' => 'Reset Password',
-                'subject' => 'Reset Password Email',
+                'description' => 'Did not ask for this? Ignore this email; your password stays the same.',
+                'greeting' => 'Use the button below to choose a new password. The link expires in 60 minutes.',
+                'preheader' => 'Reset your Urbanflaky password.',
+                'reset-password' => 'Reset password',
+                'subject' => 'Reset your password',
+                'title' => 'Reset your password',
             ],
 
             'update-password' => [
-                'description' => 'You are receiving this email because you have updated your password.',
-                'greeting' => 'Password Updated!',
-                'subject' => 'Password Updated',
+                'description' => 'If you did not make this change, reply to this email straight away and we will secure your account.',
+                'greeting' => 'The password on your Urbanflaky account was just changed.',
+                'preheader' => 'Your password was changed.',
+                'subject' => 'Your password was changed',
+                'title' => 'Password changed',
             ],
 
             'verification' => [
-                'description' => 'Please click the button below to verify your email address.',
-                'greeting' => 'Welcome!',
-                'subject' => 'Account Verification Email',
-                'verify-email' => 'Verify Email Address',
+                'description' => 'If you did not create an Urbanflaky account, ignore this email.',
+                'greeting' => 'One step left: confirm this is your email address.',
+                'heading' => 'Confirm your email',
+                'preheader' => 'Confirm your email to finish setting up your account.',
+                'subject' => 'Confirm your email',
+                'verify-email' => 'Confirm email',
             ],
 
             'commented' => [
+                'cta' => 'Go to your account',
                 'description' => 'Note Is - :note',
-                'subject' => 'New comment Added',
+                'preheader' => 'A note from the Urbanflaky team.',
+                'subject' => 'A note from Urbanflaky',
+                'title' => 'A note from the team',
             ],
 
             'subscribed' => [
-                'description' => 'Congratulations and welcome to our newsletter community! We\'re excited to have you on board and keep you updated with the latest news, trends, and exclusive offers.',
-                'greeting' => 'Welcome to our newsletter!',
-                'subject' => 'You! Subscribe to Our Newsletter',
+                'cta' => 'See what is new',
+                'description' => 'New drops, restocks and early access come to your inbox first. Nothing else.',
+                'greeting' => 'You are on the list.',
+                'preheader' => 'You are on the Urbanflaky list.',
+                'subject' => 'You are on the list',
+                'title' => 'Welcome to the list',
                 'unsubscribe' => 'Unsubscribe',
             ],
 
@@ -1401,9 +1431,10 @@ return [
             ],
 
             'reminder' => [
-                'already-paid' => 'If you have already made the payment, please disregard this message.',
-                'invoice-overdue' => 'This is a gentle reminder that your invoice is now overdue. We kindly request you to make the payment at your earliest convenience.',
-                'subject' => 'Invoice reminder',
+                'already-paid' => 'Already paid? Ignore this email; it can take a day for a payment to show.',
+                'invoice-overdue' => 'The invoice for your order is now due. Please complete the payment when you can.',
+                'subject' => 'Payment reminder',
+                'title' => 'Payment due',
             ],
         ],
 
@@ -1414,7 +1445,8 @@ return [
             'inquiry-from' => 'Inquiry from',
             'to' => 'To contact',
 
-            'ack-subject' => 'We\'ve received your message — Urbanflaky',
+            'ack-subject' => 'We have your message',
+            'ack-title' => 'We have your message',
             'ack-greeting' => 'Hi :name,',
             'ack-intro' => 'Thank you for reaching out to Urbanflaky. We\'ve received your message and a member of our team is already on it.',
             'ack-topic' => 'Topic',
@@ -1427,45 +1459,65 @@ return [
             'created' => [
                 'greeting' => 'Thanks for your Order :order_id placed on :created_at',
                 'cod-note' => 'Cash on delivery: please keep :amount ready when your order arrives.',
+                'intro' => 'Thank you. Your order is in and we are getting it ready. We will email you again when it ships.',
                 'invoice-attached' => 'The tax invoice for this order is attached as a PDF.',
                 'payment-received' => 'Payment of :amount received via :method. Reference: :reference.',
-                'subject' => 'New Order Confirmation',
+                'preheader' => 'Order #:order_id is confirmed. Here is your summary.',
+                'subject' => 'Your order is confirmed',
                 'summary' => 'Summary of Order',
-                'title' => 'Order Confirmation!',
+                'title' => 'Order confirmed',
             ],
 
             'invoiced' => [
                 'greeting' => 'Your invoice #:invoice_id for Order :order_id created on :created_at',
-                'subject' => 'New Invoice Confirmation',
+                'intro' => 'Invoice #:invoice_id, issued :date. The PDF is attached for your records.',
+                'preheader' => 'Invoice #:invoice_id for your Urbanflaky order.',
+                'subject' => 'Your invoice',
                 'summary' => 'Summary of Invoice',
-                'title' => 'Invoice Confirmation!',
+                'title' => 'Your invoice',
+                'total' => 'Invoice total',
             ],
 
             'shipped' => [
                 'greeting' => 'Your order :order_id placed on :created_at has been shipped',
-                'subject' => 'New Shipment Confirmation',
+                'intro' => 'Your order has left our warehouse and is with the courier.',
+                'preheader' => 'Order #:order_id is on its way.',
+                'subject' => 'Your order is on its way',
                 'summary' => 'Summary of Shipment',
-                'title' => 'Order Shipped!',
+                'title' => 'On its way',
             ],
 
             'refunded' => [
+                'amount' => 'Refund of :amount issued.',
                 'greeting' => 'Refund has been initiated for the :order_id placed on :created_at',
-                'subject' => 'New Refund Confirmation',
+                'preheader' => 'A refund of :amount has been issued.',
+                'subject' => 'Your refund has been issued',
                 'summary' => 'Summary of Refund',
-                'title' => 'Order Refunded!',
+                'timing' => 'It reaches your original payment method within 5–7 working days, depending on your bank.',
+                'title' => 'Refund issued',
+                'total' => 'Refund total',
             ],
 
             'canceled' => [
                 'greeting' => 'Your Order :order_id placed on :created_at has been canceled',
-                'subject' => 'New Order Canceled',
+                'intro' => 'Your order has been cancelled. Nothing from it will be shipped.',
+                'preheader' => 'Order #:order_id has been cancelled.',
+                'refund-note' => 'You paid online, so we will refund the amount to your original payment method. You will get a separate email when it is issued.',
+                'subject' => 'Your order has been cancelled',
                 'summary' => 'Summary of Order',
-                'title' => 'Order Canceled!',
+                'title' => 'Order cancelled',
             ],
 
             'commented' => [
-                'subject' => 'New comment Added',
+                'heading' => 'An update on your order',
+                'preheader' => 'An update on order #:order_id.',
+                'subject' => 'An update on your order',
                 'title' => 'New comment added to your order :order_id placed on :created_at',
             ],
+
+            'awb' => 'Tracking number',
+            'track' => 'Track your order',
+            'view-order' => 'View order',
 
             'billing-address' => 'Billing Address',
             'carrier' => 'Carrier',
@@ -1713,9 +1765,12 @@ return [
         'mail' => [
             'customer-rma-create' => [
                 'additional-information' => 'Additional Information :',
+                'cta' => 'View your return',
                 'greeting' => 'You requested new RMA for order :order_id.',
-                'heading' => 'RMA Request',
+                'heading' => 'Return request received',
                 'hello' => 'Dear :name',
+                'next' => 'We have your return request #:id. The team reviews it within 2 working days and emails you the outcome.',
+                'preheader' => 'Return request #:id received.',
                 'order-id' => 'Order Id :',
                 'order-status' => 'Order Status :',
                 'requested-rma-product' => 'Requested RMA\'s Product:',
@@ -1733,8 +1788,11 @@ return [
             ],
 
             'customer-conversation' => [
-                'subject' => 'New Message',
+                'subject' => 'A reply on your return request',
+                'cta' => 'Reply on your return',
                 'heading' => 'Dear :name,',
+                'preheader' => 'A reply on return request #:id.',
+                'title-reply' => 'A reply on return #:id',
                 'message' => 'Message',
                 'process' => 'Your return request is under process.',
                 'quotes' => 'There is a new message from Admin',
@@ -1751,6 +1809,8 @@ return [
 
             'status' => [
                 'heading' => 'Dear :name',
+                'heading-status' => 'Return :status',
+                'intro' => 'There is an update on your return request #:id.',
                 'quotes' => 'Your RMA status has been changed by Admin',
                 'rma-id' => 'RMA Id',
                 'status-change' => ':id status has been changed by Admin',

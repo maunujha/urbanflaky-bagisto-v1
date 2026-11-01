@@ -1,24 +1,25 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold;font-size: 20px;color: #121A26;line-height: 24px;margin-bottom: 24px">
-            @lang('shop::app.emails.dear', ['customer_name' => ! empty($fullName) ? $fullName : $subscribersList->email ]), 👋
-        </p>
+{{-- Newsletter welcome; marketing, so the footer carries the unsubscribe link. --}}
+@component('shop::emails.layout', [
+    'preheader'      => trans('shop::app.emails.customers.subscribed.preheader'),
+    'unsubscribeUrl' => route('shop.subscription.destroy', $subscribersList->token),
+])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.subscribed.title')"
+        :name="! empty($fullName) ? $fullName : null"
+    />
 
-        <p style="font-size: 16px;color: #384860;line-height: 24px;">
-            @lang('shop::app.emails.customers.subscribed.greeting')
-        </p>
-    </div>
+    <x-shop::email.text>
+        @lang('shop::app.emails.customers.subscribed.greeting')
+    </x-shop::email.text>
 
-    <p style="font-size: 16px;color: #384860;line-height: 24px;margin-bottom: 40px">
+    <x-shop::email.text>
         @lang('shop::app.emails.customers.subscribed.description')
-    </p>
+    </x-shop::email.text>
 
-    <div style="display: flex;margin-bottom: 95px">
-        <a
-            href="{{ route('shop.subscription.destroy', $subscribersList->token) }}"
-            style="padding: 16px 45px;justify-content: center;align-items: center;gap: 10px;border-radius: 2px;background: #060C3B;color: #FFFFFF;text-decoration: none;text-transform: uppercase;font-weight: 700;"
-        >
-            @lang('shop::app.emails.customers.subscribed.unsubscribe')
-        </a>
-    </div>
+    {{-- Optional welcome offer (Gabha\Notifications; shown only while its coupon is valid). --}}
+    @includeWhen(! empty($welcomeOffer), 'notifications::emails.partials.welcome-offer')
+
+    <x-shop::email.button :url="route('shop.home.index')">
+        @lang('shop::app.emails.customers.subscribed.cta')
+    </x-shop::email.button>
 @endcomponent

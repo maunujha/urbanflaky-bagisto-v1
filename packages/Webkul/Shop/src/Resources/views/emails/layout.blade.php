@@ -1,3 +1,21 @@
+{{--
+    Urbanflaky email layout: every customer email renders inside it.
+
+    "The Night Drop" in email form: void-black canvas, a charcoal panel, paper
+    text and one lime signal (the primary button, from x-shop::email.button).
+    Email-client safe: tables, inline styles, 600px, a stacking class for
+    phones, and a dark colour-scheme declaration so clients do not re-invert.
+
+    Optional data: $preheader (inbox preview line), $unsubscribeUrl (adds the
+    opt-out line to the footer), $unsubscribeReason / $unsubscribeLabel (its
+    wording, for opt-outs that are not the newsletter).
+--}}
+@php
+    $brand = config('notifications.brand', []);
+    $supportEmail = core()->getContactEmailDetails()['email'];
+    $supportPhone = core()->getConfigData('sales.shipping.origin.telephone');
+    $home = route('shop.home.index');
+@endphp
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
     <head>
@@ -5,8 +23,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="x-apple-disable-message-reformatting" />
-        <meta name="color-scheme" content="light only" />
-        <meta name="supported-color-schemes" content="light only" />
+        <meta name="format-detection" content="telephone=no, address=no, email=no, date=no" />
+        <meta name="color-scheme" content="dark" />
+        <meta name="supported-color-schemes" content="dark" />
         <title>{{ config('app.name') }}</title>
 
         <!--[if mso]>
@@ -19,102 +38,101 @@
         </noscript>
         <![endif]-->
 
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap"
-            rel="stylesheet"
-        />
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
         <style type="text/css">
-            /* Client resets */
+            :root { color-scheme: dark; supported-color-schemes: dark; }
             body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
             table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
             img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-            body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            body { margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #0a0a0a; }
+            a { color: #f5f5f5; }
+            a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
 
-            a { color: #0a0a0a; }
-            .uf-link { color: #0a0a0a; font-weight: 600; text-decoration: underline; }
-
-            /* Mobile */
             @media only screen and (max-width: 620px) {
                 .uf-container { width: 100% !important; }
-                .uf-px { padding-left: 24px !important; padding-right: 24px !important; }
-                .uf-py { padding-top: 28px !important; padding-bottom: 28px !important; }
-                .uf-wordmark { font-size: 26px !important; letter-spacing: 6px !important; }
-                .uf-h1 { font-size: 22px !important; }
-                .uf-cta a { display: block !important; width: 100% !important; box-sizing: border-box !important; }
+                .uf-px { padding-left: 22px !important; padding-right: 22px !important; }
+                .uf-pt { padding-top: 30px !important; }
+                .uf-h1 { font-size: 24px !important; line-height: 30px !important; }
+                .uf-stack { display: block !important; width: 100% !important; }
+                .uf-stack-gap { padding-left: 0 !important; padding-top: 20px !important; }
+                .uf-cta a { display: block !important; text-align: center !important; }
+                .uf-hide-sm { display: none !important; }
             }
         </style>
     </head>
 
-    <body style="margin:0; padding:0; background-color:#0a0a0a; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-        <!-- Hidden preheader (improves inbox preview, not rendered in body) -->
+    <body style="margin:0; padding:0; background-color:#0a0a0a; font-family:'Poppins', Arial, Helvetica, sans-serif; color:#f5f5f5;">
+        {{-- Inbox preview line, then filler so the client does not pull body text into it. --}}
         <div style="display:none; max-height:0; overflow:hidden; mso-hide:all; font-size:1px; line-height:1px; color:#0a0a0a; opacity:0;">
-            {{ config('app.name') }} — Premium essentials by Gabha Enterprise.
+            {{ $preheader ?? ($brand['tagline'] ?? config('app.name')) }}
+            &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847; &#8199;&#65279;&#847;
         </div>
 
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0a0a0a;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0a0a0a" style="background-color:#0a0a0a;">
             <tr>
-                <td align="center" style="padding:32px 16px;">
+                <td align="center" style="padding:28px 12px 36px 12px;">
 
                     <table role="presentation" class="uf-container" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px; max-width:600px; margin:0 auto;">
 
-                        <!-- ===== Header / brand band ===== -->
+                        {{-- Wordmark --}}
                         <tr>
-                            <td align="center" style="background-color:#0a0a0a; padding:8px 30px 28px 30px;">
-                                <a href="{{ route('shop.home.index') }}" style="text-decoration:none;" target="_blank">
-                                    <span class="uf-wordmark" style="display:inline-block; font-family:'Poppins', Arial, sans-serif; font-size:30px; font-weight:800; letter-spacing:9px; color:#ffffff; text-transform:uppercase;">
-                                        Urban<span style="color:#c7eb31;">flaky</span>
-                                    </span>
+                            <td align="center" style="padding:6px 24px 26px 24px;">
+                                <a href="{{ $home }}" target="_blank" style="text-decoration:none; color:#f5f5f5;">
+                                    <span style="font-family:'Poppins', Arial, sans-serif; font-size:24px; font-weight:800; letter-spacing:7px; text-transform:uppercase; color:#f5f5f5;">Urban<span style="color:#c7eb31;">flaky</span></span>
                                 </a>
-                                <div style="margin:14px auto 0 auto; width:44px; height:3px; background-color:#c7eb31; border-radius:3px; line-height:3px; font-size:0;">&nbsp;</div>
-                                <div style="margin-top:12px; font-size:11px; letter-spacing:3px; color:#8a8a8a; text-transform:uppercase; font-weight:600;">
-                                    Premium Essentials
-                                </div>
                             </td>
                         </tr>
 
-                        <!-- ===== Content card ===== -->
+                        {{-- Panel --}}
                         <tr>
-                            <td class="uf-px uf-py" style="background-color:#ffffff; border-radius:14px; padding:44px 44px 36px 44px; border-top:4px solid #c7eb31;">
-
-                                <!-- Per-email content -->
+                            <td class="uf-px uf-pt" bgcolor="#141414" style="background-color:#141414; border:1px solid #262626; border-radius:6px; padding:40px 40px 34px 40px;">
                                 {{ $slot }}
+                            </td>
+                        </tr>
 
-                                <!-- In-card help line -->
+                        {{-- Support --}}
+                        <tr>
+                            <td class="uf-px" style="padding:30px 40px 0 40px;">
                                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                                     <tr>
-                                        <td style="padding-top:8px; border-top:1px solid #ececec;">
-                                            <p style="margin:24px 0 0 0; font-size:14px; color:#6b7280; line-height:22px;">
-                                                @lang('shop::app.emails.thanks', [
-                                                    'link' => 'mailto:' . core()->getContactEmailDetails()['email'],
-                                                    'email' => core()->getContactEmailDetails()['email'],
-                                                    'style' => 'color:#0a0a0a; font-weight:600; text-decoration:underline;'
-                                                ])
-                                            </p>
+                                        <td style="border-top:1px solid #262626; padding-top:24px; font-size:13px; line-height:21px; color:#a3a3a3;">
+                                            <span style="color:#f5f5f5; font-weight:600;">@lang('shop::app.emails.footer.help')</span><br />
+                                            <a href="mailto:{{ $supportEmail }}" style="color:#f5f5f5; text-decoration:underline;">{{ $supportEmail }}</a>
+                                            @if ($supportPhone)
+                                                &nbsp;·&nbsp;<a href="tel:+91{{ preg_replace('/\D/', '', $supportPhone) }}" style="color:#f5f5f5; text-decoration:underline;">{{ $supportPhone }}</a>
+                                            @endif
+                                            @if (! empty($brand['support_hours']))
+                                                <br />{{ $brand['support_hours'] }}
+                                            @endif
                                         </td>
                                     </tr>
                                 </table>
-
                             </td>
                         </tr>
 
-                        <!-- ===== Footer ===== -->
+                        {{-- Social --}}
+                        @if (! empty($brand['social']))
+                            <tr>
+                                <td class="uf-px" style="padding:18px 40px 0 40px; font-size:12px; line-height:20px; letter-spacing:2px; text-transform:uppercase;">
+                                    @foreach ($brand['social'] as $network => $url)
+                                        <a href="{{ $url }}" target="_blank" style="color:#f5f5f5; text-decoration:none; font-weight:600;">{{ $network }}</a>@if (! $loop->last)<span style="color:#525252;">&nbsp;&nbsp;/&nbsp;&nbsp;</span>@endif
+                                    @endforeach
+                                </td>
+                            </tr>
+                        @endif
+
+                        {{-- Company --}}
                         <tr>
-                            <td align="center" style="padding:28px 30px 8px 30px;">
-                                <div style="font-family:'Poppins', Arial, sans-serif; font-size:15px; font-weight:700; letter-spacing:4px; color:#ffffff; text-transform:uppercase;">
-                                    Urbanflaky
-                                </div>
-                                <p style="margin:10px 0 0 0; font-size:12px; line-height:20px; color:#8a8a8a;">
-                                    A brand by Gabha Enterprise &middot; Dholpur, Rajasthan, India
-                                </p>
-                                <p style="margin:6px 0 0 0; font-size:12px; line-height:20px; color:#8a8a8a;">
-                                    Need help? <a href="mailto:{{ core()->getContactEmailDetails()['email'] }}" style="color:#c7eb31; text-decoration:none; font-weight:600;">{{ core()->getContactEmailDetails()['email'] }}</a>
-                                </p>
-                                <p style="margin:18px 0 0 0; font-size:11px; line-height:18px; color:#5a5a5a;">
-                                    You received this email because you interacted with {{ config('app.name') }}.
-                                </p>
+                            <td class="uf-px" style="padding:18px 40px 0 40px; font-size:12px; line-height:19px; color:#8a8a8a;">
+                                <a href="{{ $home }}" target="_blank" style="color:#a3a3a3; text-decoration:none;">{{ preg_replace('#^https?://#', '', rtrim($home, '/')) }}</a><br />
+                                {{ $brand['company'] ?? config('app.name') }}
+
+                                @if (! empty($unsubscribeUrl))
+                                    <br /><br />
+                                    {{ $unsubscribeReason ?? trans('shop::app.emails.footer.marketing') }}
+                                    <a href="{{ $unsubscribeUrl }}" target="_blank" style="color:#a3a3a3; text-decoration:underline;">{{ $unsubscribeLabel ?? trans('shop::app.emails.footer.unsubscribe') }}</a>
+                                @endif
                             </td>
                         </tr>
 

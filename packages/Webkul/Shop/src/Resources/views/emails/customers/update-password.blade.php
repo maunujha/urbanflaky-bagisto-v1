@@ -1,15 +1,15 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold;font-size: 20px;color: #121A26;line-height: 24px;margin-bottom: 24px">
-            @lang('shop::app.emails.dear', ['customer_name' => $customer->name]), 👋
-        </p>
+{{-- Security notice: the account password changed. --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.emails.customers.update-password.preheader')])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.update-password.title')"
+        :name="$customer->first_name"
+    />
 
-        <p style="font-size: 16px;color: #384860;line-height: 24px;">
-            @lang('shop::app.emails.customers.update-password.greeting')
-        </p>
-    </div>
+    <x-shop::email.text>
+        @lang('shop::app.emails.customers.update-password.greeting')
+    </x-shop::email.text>
 
-    <p style="font-size: 16px;color: #384860;line-height: 24px;margin-bottom: 40px">
+    <x-shop::email.panel>
         @lang('shop::app.emails.customers.update-password.description')
-    </p>
+    </x-shop::email.panel>
 @endcomponent

@@ -1,19 +1,17 @@
-@component('shop::emails.layout')
-    @include('notifications::emails.partials.heading', [
-        'title' => trans('notifications::app.emails.win-back.title'),
-        'name'  => $customer->first_name,
-    ])
+@component('shop::emails.layout', [
+    'preheader'      => trans('notifications::app.emails.win-back.body'),
+    'unsubscribeUrl' => $unsubscribeUrl,
+])
+    <x-shop::email.heading
+        :title="trans('notifications::app.emails.win-back.title')"
+        :name="$customer->first_name"
+    />
 
-    <p style="margin:0; font-size:16px; color:#384860; line-height:24px;">
+    <x-shop::email.text>
         @lang('notifications::app.emails.win-back.body')
-    </p>
+    </x-shop::email.text>
 
-    @include('notifications::emails.partials.button', [
-        'url'   => $shopUrl,
-        'label' => trans('notifications::app.emails.win-back.cta'),
-    ])
-
-    @include('notifications::emails.partials.unsubscribe', [
-        'reason' => trans('notifications::app.emails.why-marketing'),
-    ])
+    <x-shop::email.button :url="$shopUrl">
+        @lang('notifications::app.emails.win-back.cta')
+    </x-shop::email.button>
 @endcomponent

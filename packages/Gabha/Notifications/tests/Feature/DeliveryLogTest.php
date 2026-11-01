@@ -49,6 +49,21 @@ it('never mails a placeholder address from a phone-only sign-up', function () {
     expect(app(EmailDispatcher::class)->send(new ShipmentUpdate($order, 'delivered'), 'shipment.delivered'))->toBeFalse();
 });
 
+it('never emails twice when a job that already sent runs again', function () {
+    $order = notificationsOrder();
+    app(EmailDispatcher::class)->send(new ShipmentUpdate($order, 'delivered'), 'shipment.delivered', 'twice:'.$order->id, $order);
+
+    $log = EmailLog::where('dedupe_key', 'twice:'.$order->id)->sole();
+    expect($log->status)->toBe(EmailLog::STATUS_SENT);
+
+    /* The same job, replayed by a retry. */
+    $replay = new ShipmentUpdate($order, 'delivered');
+    $replay->emailLogId = $log->id;
+    Mail::send($replay);
+
+    expect(Mail::mailer('array')->getSymfonyTransport()->messages())->toHaveCount(1);
+});
+
 it('lets a failed email be retried under the same key', function () {
     Mail::fake();
 

@@ -5,8 +5,10 @@
 @lang($copy.'.body')
 
 @foreach ($items as $item)
-- {{ $item->name }} ({{ trans('notifications::app.emails.cart.qty', ['qty' => $item->quantity]) }})
+- {{ $item['name'] }}{{ $item['options'] ? ' ('.$item['options'].')' : '' }}: {{ trans('notifications::app.emails.cart.qty-price', ['qty' => $item['qty'], 'price' => $item['price']]) }} = {{ $item['total'] }}
 @endforeach
+
+@lang('notifications::app.emails.cart.total'): {{ $total }}
 
 @lang('notifications::app.emails.cart.cta'): {{ $recoverUrl }}
 

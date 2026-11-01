@@ -1,30 +1,18 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <span style="font-size: 22px; font-weight: 600; color: #121A26;">
-            @lang('shop::app.rma.mail.seller-conversation.title')
-        </span><br>
+{{-- A reply from the team on a return request. --}}
+@php($rma = $rmaMessage->rma)
 
-        <!-- Heading -->
-        <p style="font-size: 16px; color: #5E5E5E; line-height: 24px;">
-            @lang('shop::app.rma.mail.customer-conversation.heading', ['name' => $rmaMessage->rma->order->customer_full_name])👋
-        </p>
+@component('shop::emails.layout', ['preheader' => trans('shop::app.rma.mail.customer-conversation.preheader', ['id' => $rma->id])])
+    <x-shop::email.heading
+        :context="trans('shop::app.emails.order-ref', ['order_id' => $rma->order->increment_id])"
+        :title="trans('shop::app.rma.mail.customer-conversation.title-reply', ['id' => $rma->id])"
+        :name="$rma->order->customer_first_name"
+    />
 
-        <!-- Conversation -->
-        <p style="font-size: 16px; color: #6B7280; line-height: 24px;">
-            @lang('shop::app.rma.mail.customer-conversation.quotes')
-        </p>
+    <x-shop::email.panel>
+        {!! nl2br(e(strip_tags($rmaMessage->message))) !!}
+    </x-shop::email.panel>
 
-        <div style="margin-bottom: 20px; margin-top: 20px; display: flex; flex-direction: row; justify-content: space-between;">
-            <div style="line-height: 25px;">
-                <!-- Message -->
-                <div style="font-size: 16px; font-weight: bold; color: #1F2937;">
-                    @lang('shop::app.rma.mail.customer-conversation.message')
-                </div>
-
-                <div style="font-size: 16px; color: #6B7280;">
-                    {{ $rmaMessage->message }}
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-shop::email.button :url="route('shop.customers.account.rma.view', $rma->id)">
+        @lang('shop::app.rma.mail.customer-conversation.cta')
+    </x-shop::email.button>
 @endcomponent

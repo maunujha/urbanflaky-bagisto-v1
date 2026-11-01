@@ -13,9 +13,9 @@ use Webkul\Checkout\Models\Cart;
  */
 class CartRecoveryController extends Controller
 {
-    public function __invoke(int $cart): RedirectResponse
+    public function __invoke(int $cartId): RedirectResponse
     {
-        $cart = Cart::find($cart);
+        $cart = Cart::find($cartId);
 
         $bag = redirect()->route('shop.checkout.cart.index');
 

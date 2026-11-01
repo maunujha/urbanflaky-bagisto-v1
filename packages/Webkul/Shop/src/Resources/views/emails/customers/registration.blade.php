@@ -1,24 +1,18 @@
-@component('shop::emails.layout')
-    <div style="margin-bottom: 34px;">
-        <p style="font-weight: bold;font-size: 20px;color: #121A26;line-height: 24px;margin-bottom: 24px">
-            @lang('shop::app.emails.dear', ['customer_name' => $customer->name]), 👋
-        </p>
+{{-- Welcome to a new account; the optional welcome offer is added by Gabha\Notifications. --}}
+@component('shop::emails.layout', ['preheader' => trans('shop::app.emails.customers.registration.preheader')])
+    <x-shop::email.heading
+        :title="trans('shop::app.emails.customers.registration.title')"
+        :name="$customer->first_name"
+    />
 
-        <p style="font-size: 16px;color: #384860;line-height: 24px;">
-            @lang('shop::app.emails.customers.registration.greeting')
-        </p>
-    </div>
+    <x-shop::email.text>
+        @lang('shop::app.emails.customers.registration.intro')
+    </x-shop::email.text>
 
-    <p style="font-size: 16px;color: #384860;line-height: 24px;margin-bottom: 40px">
-        @lang('shop::app.emails.customers.registration.description')
-    </p>
+    {{-- Optional welcome offer (Gabha\Notifications; shown only while its coupon is valid). --}}
+    @includeWhen(! empty($welcomeOffer), 'notifications::emails.partials.welcome-offer')
 
-    <div style="display: flex;margin-bottom: 95px">
-        <a
-            href="{{ route('shop.customer.session.index') }}"
-            style="padding: 16px 45px;justify-content: center;align-items: center;gap: 10px;border-radius: 2px;background: #060C3B;color: #FFFFFF;text-decoration: none;text-transform: uppercase;font-weight: 700;"
-        >
-            @lang('shop::app.emails.customers.registration.sign-in')
-        </a>
-    </div>
+    <x-shop::email.button :url="route('shop.home.index')">
+        @lang('shop::app.emails.customers.registration.cta')
+    </x-shop::email.button>
 @endcomponent

@@ -19,9 +19,17 @@ class MarketingGuard
 
     /**
      * Why this address cannot get a marketing email right now (null: it can).
+     *
+     * @param  string|null  $sequence  dedupe-key prefix of the sequence being
+     *                                 sent (one bag's reminders): its own earlier
+     *                                 steps do not count against the gap
      */
-    public function blockedReason(string $email): ?string
+    public function blockedReason(string $email, ?string $sequence = null): ?string
     {
+        if (! EmailDispatcher::deliverable($email)) {
+            return 'no deliverable address';
+        }
+
         if (! $this->subscription($email)) {
             return 'not subscribed';
         }
@@ -33,24 +41,30 @@ class MarketingGuard
         $gap = (int) config('notifications.limits.marketing_gap_hours', 48);
 
         $recent = EmailLog::where('recipient', mb_strtolower($email))
-            ->where('category', EmailLog::CATEGORY_MARKETING)
-            ->where('status', '!=', EmailLog::STATUS_FAILED)
+            ->whereIn('category', [EmailLog::CATEGORY_MARKETING, EmailLog::CATEGORY_CAMPAIGN])
+            ->whereIn('status', EmailLog::OUTGOING)
             ->where('created_at', '>=', now()->subHours($gap))
+            ->when($sequence, fn ($query) => $query->where(
+                fn ($query) => $query->whereNull('dedupe_key')->orWhere('dedupe_key', 'not like', $sequence.'%')
+            ))
             ->exists();
 
         return $recent ? "emailed in the last {$gap}h" : null;
     }
 
     /**
-     * Marketing emails still allowed today (store timezone).
+     * Emails of one category still allowed today (store timezone). Campaigns
+     * have their own cap so a big send never starves the bag reminders.
      */
-    public function remainingToday(): int
+    public function remainingToday(string $category = EmailLog::CATEGORY_MARKETING): int
     {
-        $sent = EmailLog::where('category', EmailLog::CATEGORY_MARKETING)
-            ->where('status', '!=', EmailLog::STATUS_FAILED)
+        $cap = $category === EmailLog::CATEGORY_CAMPAIGN ? 'campaign_daily_cap' : 'marketing_daily_cap';
+
+        $sent = EmailLog::where('category', $category)
+            ->whereIn('status', EmailLog::OUTGOING)
             ->where('created_at', '>=', now()->startOfDay())
             ->count();
 
-        return max(0, (int) config('notifications.limits.marketing_daily_cap', 100) - $sent);
+        return max(0, (int) config('notifications.limits.'.$cap, 100) - $sent);
     }
 }

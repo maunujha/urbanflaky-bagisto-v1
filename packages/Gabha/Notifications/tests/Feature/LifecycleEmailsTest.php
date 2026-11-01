@@ -112,22 +112,88 @@ it('stops at the daily marketing cap', function () {
     Mail::assertQueued(AbandonedCart::class, 2);
 });
 
-it('waits the marketing gap before a second reminder', function () {
+it('sends the second reminder at 24 hours, after the first', function () {
     subscribe('isha@example.com');
-    $cart = abandonedCart('isha@example.com', 50);
+    $cart = abandonedCart('isha@example.com', 25);
 
+    /* Its own first reminder, 24 hours ago, does not count against the 48-hour gap. */
     EmailLog::create([
         'type' => 'marketing.abandoned_cart', 'category' => 'marketing', 'mailable' => AbandonedCart::class,
         'recipient' => 'isha@example.com', 'status' => 'sent', 'dedupe_key' => 'cart:'.$cart->id.':step1',
+        'created_at' => now()->subHours(24),
     ]);
+
+    $this->artisan('notifications:abandoned-carts')->assertSuccessful();
+    $this->artisan('notifications:abandoned-carts')->assertSuccessful();
+
+    Mail::assertQueued(AbandonedCart::class, fn ($mail) => $mail->step === 2);
+    Mail::assertQueued(AbandonedCart::class, 1);
+});
+
+it('sends only the latest step to a bag found late, never two at once', function () {
+    subscribe('isha@example.com');
+    abandonedCart('isha@example.com', 30);
+
+    $this->artisan('notifications:abandoned-carts')->assertSuccessful();
+
+    Mail::assertQueued(AbandonedCart::class, 1);
+    Mail::assertQueued(AbandonedCart::class, fn ($mail) => $mail->step === 2);
+});
+
+it('still keeps 48 hours between different marketing emails', function () {
+    subscribe('isha@example.com');
+    abandonedCart('isha@example.com', 2);
+
+    EmailLog::create([
+        'type' => 'marketing.win_back', 'category' => 'marketing', 'mailable' => WinBack::class,
+        'recipient' => 'isha@example.com', 'status' => 'sent', 'dedupe_key' => 'winback:1:1',
+        'created_at' => now()->subHours(10),
+    ]);
+
+    $this->artisan('notifications:abandoned-carts')->assertSuccessful();
+
+    Mail::assertNothingQueued();
+});
+
+it('times the reminders from the admin settings', function () {
+    subscribe('isha@example.com');
+    abandonedCart('isha@example.com', 2);
+
+    notificationsConfig(['emails.automation.timing.abandoned_first_hours' => '3']);
 
     $this->artisan('notifications:abandoned-carts')->assertSuccessful();
     Mail::assertNothingQueued();
 
-    EmailLog::query()->update(['created_at' => now()->subHours(49)]);
+    notificationsConfig(['emails.automation.timing.abandoned_first_hours' => '1']);
 
     $this->artisan('notifications:abandoned-carts')->assertSuccessful();
-    Mail::assertQueued(AbandonedCart::class, fn ($mail) => $mail->step === 2);
+    Mail::assertQueued(AbandonedCart::class, 1);
+});
+
+it('shows the real bag: picture, size, quantity, prices and total', function () {
+    $cart = abandonedCart('isha@example.com', 2);
+
+    $mail = new AbandonedCart($cart, 1, 'https://urbanflaky.in/email/bag/1');
+    $items = $mail->items();
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0])->toHaveKeys(['name', 'options', 'image', 'qty', 'price', 'total'])
+        ->and($items[0]['qty'])->toBe(1);
+
+    expect($mail->render())
+        ->toContain($items[0]['name'])
+        ->toContain(trans('notifications::app.emails.cart.total'));
+});
+
+it('restores a guest bag only through a valid signed link', function () {
+    $cart = abandonedCart('isha@example.com', 2, ['is_guest' => 1, 'customer_id' => null]);
+
+    $this->get(route('shop.notifications.cart.recover', ['cartId' => $cart->id]))->assertForbidden();
+
+    $url = URL::temporarySignedRoute('shop.notifications.cart.recover', now()->addDay(), ['cartId' => $cart->id]);
+
+    $this->get($url)->assertRedirect(route('shop.checkout.cart.index'));
+    expect(session('cart')?->id)->toBe($cart->id);
 });
 
 it('speaks to a failed payment when an online method was chosen', function () {
@@ -145,7 +211,7 @@ it('speaks to a failed payment when an online method was chosen', function () {
 it('asks for a review a few days after delivery, once', function () {
     $order = notificationsOrder(['status' => 'completed']);
     DB::table('shiprocket_orders')->insert([
-        'order_id' => $order->id, 'status' => 'delivered', 'delivered_at' => now()->subDays(6),
+        'order_id' => $order->id, 'status' => 'delivered', 'delivered_at' => now()->subDays(4),
         'created_at' => now(), 'updated_at' => now(),
     ]);
 
@@ -158,7 +224,7 @@ it('asks for a review a few days after delivery, once', function () {
 it('does not ask customers who opted out of review requests', function () {
     $order = notificationsOrder(['status' => 'completed']);
     DB::table('shiprocket_orders')->insert([
-        'order_id' => $order->id, 'status' => 'delivered', 'delivered_at' => now()->subDays(6),
+        'order_id' => $order->id, 'status' => 'delivered', 'delivered_at' => now()->subDays(4),
         'created_at' => now(), 'updated_at' => now(),
     ]);
     EmailSuppression::suppress('buyer@example.com', EmailSuppression::SCOPE_REVIEWS);
@@ -173,7 +239,7 @@ it('does not ask customers who opted out of review requests', function () {
 it('sends one win-back to a lapsed subscriber', function () {
     $customer = Customer::factory()->create(['email' => 'lapsed@example.com']);
     subscribe('lapsed@example.com');
-    notificationsOrder(['customer_id' => $customer->id, 'customer_email' => 'lapsed@example.com', 'created_at' => now()->subDays(120)]);
+    notificationsOrder(['customer_id' => $customer->id, 'customer_email' => 'lapsed@example.com', 'created_at' => now()->subDays(50)]);
 
     $this->artisan('notifications:win-back')->assertSuccessful();
     $this->artisan('notifications:win-back')->assertSuccessful();

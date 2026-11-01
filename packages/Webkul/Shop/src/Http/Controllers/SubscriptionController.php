@@ -90,6 +90,20 @@ class SubscriptionController extends Controller
                     return $this->failed('Too many attempts. Please try again a little later.', 429);
                 }
 
+                /*
+                 * Double opt-in (admin switch): held as not subscribed until the
+                 * emailed link is clicked; the existing welcome email follows then.
+                 */
+                if (core()->getConfigData('emails.automation.welcome.double_opt_in')) {
+                    $subscription = $this->upsertSubscription($email, subscribed: false);
+
+                    Event::dispatch('customer.subscription.confirmation-requested', $subscription);
+
+                    Log::info('newsletter.confirmation_requested', ['email' => $emailTag, 'ip' => $ip]);
+
+                    return $this->subscribed(trans('shop::app.subscription.confirm-sent'));
+                }
+
                 $subscription = $this->upsertSubscription($email);
 
                 $this->syncCustomerNewsletterFlag();
@@ -143,9 +157,9 @@ class SubscriptionController extends Controller
     /**
      * Success response, shared by real signups and the honeypot.
      */
-    private function subscribed(): JsonResponse|RedirectResponse
+    private function subscribed(?string $msg = null): JsonResponse|RedirectResponse
     {
-        $msg = trans('shop::app.subscription.subscribe-success');
+        $msg ??= trans('shop::app.subscription.subscribe-success');
 
         if (request()->expectsJson()) {
             return response()->json(['success' => true, 'message' => $msg]);
@@ -164,7 +178,8 @@ class SubscriptionController extends Controller
      */
     public function destroy($token)
     {
-        $this->subscriptionRepository->deleteWhere(['token' => $token]);
+        /* Model by model, so the withdrawal reaches the consent ledger (a bulk delete fires no events). */
+        $this->subscriptionRepository->findWhere(['token' => $token])->each->delete();
 
         session()->flash('success', trans('shop::app.subscription.unsubscribe-success'));
 
@@ -187,12 +202,12 @@ class SubscriptionController extends Controller
      * Upsert the subscription record for the given email. If a record already exists for the email, it will be updated
      * with the new subscription details. Otherwise, a new record will be created.
      */
-    private function upsertSubscription(string $email): mixed
+    private function upsertSubscription(string $email, bool $subscribed = true): mixed
     {
         $customer = auth()->user();
 
         $payload = [
-            'is_subscribed' => 1,
+            'is_subscribed' => $subscribed ? 1 : 0,
             /* Unsubscribe links are unauthenticated GETs — the token must be unguessable. */
             'token' => Str::random(40),
             'customer_id' => $customer?->id,

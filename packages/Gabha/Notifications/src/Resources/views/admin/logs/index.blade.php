@@ -24,30 +24,21 @@
         @endforeach
     </div>
 
-    <!-- Previews -->
-    <div class="box-shadow mt-4 rounded bg-white p-4 dark:bg-gray-900">
-        <p class="text-base font-semibold text-gray-800 dark:text-white">@lang('notifications::app.admin.previews')</p>
+    <!-- Templates -->
+    <div class="box-shadow mt-4 flex flex-wrap items-center justify-between gap-3 rounded bg-white p-4 dark:bg-gray-900">
+        <p class="text-sm text-gray-600 dark:text-gray-300">@lang('notifications::app.admin.templates-hint')</p>
 
-        <div class="mt-3 flex flex-wrap gap-2">
-            @foreach ($previews as $key => $label)
-                <a
-                    href="{{ route('admin.notifications.logs.preview', $key) }}"
-                    target="_blank"
-                    rel="noopener"
-                    class="secondary-button"
-                >
-                    {{ $label }}
-                </a>
-            @endforeach
-        </div>
+        <a href="{{ route('admin.notifications.templates.index') }}" class="secondary-button">
+            @lang('notifications::app.admin.templates.menu')
+        </a>
     </div>
 
     <!-- Filters -->
     <form method="GET" class="mt-4 flex flex-wrap items-center gap-2">
         <select name="status" class="rounded-md border px-3 py-2 text-sm text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-300">
             <option value="">@lang('notifications::app.admin.filters.all-status')</option>
-            @foreach (['queued', 'sent', 'failed'] as $status)
-                <option value="{{ $status }}" @selected(request('status') === $status)>{{ ucfirst($status) }}</option>
+            @foreach (\Gabha\Notifications\Models\EmailLog::STATUSES as $status)
+                <option value="{{ $status }}" @selected(request('status') === $status)>@lang('notifications::app.admin.statuses.'.$status)</option>
             @endforeach
         </select>
 
@@ -68,6 +59,33 @@
 
         <button type="submit" class="primary-button">@lang('notifications::app.admin.filters.apply')</button>
     </form>
+
+    @if ($consent)
+        <!-- Marketing consent for the searched address -->
+        <div class="box-shadow mt-4 rounded bg-white p-4 dark:bg-gray-900">
+            <p class="text-base font-semibold text-gray-800 dark:text-white">
+                @lang('notifications::app.admin.consent.title') · {{ $consent['email'] }}
+            </p>
+
+            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                @lang('notifications::app.admin.consent.'.($consent['subscribed'] ? 'subscribed' : 'unsubscribed'))
+
+                @if ($consent['suppressions'])
+                    · @lang('notifications::app.admin.consent.suppressed', ['scopes' => implode(', ', $consent['suppressions'])])
+                @endif
+            </p>
+
+            <p class="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-300">@lang('notifications::app.admin.consent.history')</p>
+
+            <ul class="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                @forelse ($consent['history'] as $entry)
+                    <li>{{ core()->formatDate($entry->created_at, 'd M Y, H:i') }} · {{ str_replace('_', ' ', $entry->action) }} · {{ $entry->source }}</li>
+                @empty
+                    <li>@lang('notifications::app.admin.consent.none')</li>
+                @endforelse
+            </ul>
+        </div>
+    @endif
 
     <!-- Log -->
     <div class="box-shadow mt-4 overflow-x-auto rounded bg-white dark:bg-gray-900">
@@ -92,10 +110,22 @@
                                 'label-active'     => $log->status === 'sent',
                                 'label-pending'    => $log->status === 'queued',
                                 'label-canceled'   => $log->status === 'failed',
-                            ])>{{ ucfirst($log->status) }}</span>
+                                'label-closed'     => $log->status === 'suppressed',
+                            ])>@lang('notifications::app.admin.statuses.'.$log->status)</span>
 
                             @if ($log->error)
-                                <p class="mt-1 max-w-xs break-words text-xs text-red-600">{{ \Illuminate\Support\Str::limit($log->error, 160) }}</p>
+                                <p @class([
+                                    'mt-1 max-w-xs break-words text-xs',
+                                    'text-red-600' => $log->status === 'failed',
+                                    'text-gray-500' => $log->status !== 'failed',
+                                ])>{{ \Illuminate\Support\Str::limit($log->error, 160) }}</p>
+                            @endif
+
+                            @if ($log->canRetry() && bouncer()->hasPermission('marketing.communications.email_log.retry'))
+                                <form method="POST" action="{{ route('admin.notifications.logs.retry', $log->id) }}" class="mt-2">
+                                    @csrf
+                                    <button type="submit" class="secondary-button text-xs">@lang('notifications::app.admin.retry.button')</button>
+                                </form>
                             @endif
                         </td>
                     </tr>
