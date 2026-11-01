@@ -30,8 +30,8 @@ class AdminToCustomerConversationNotification extends Mailable
                 core()->getSenderEmailDetails()['name']
             ),
             to: [new Address(
-                $this->rmaMessage->rma->order->customer->email,
-                $this->rmaMessage->rma->order->customer->name
+                $this->rmaMessage->rma->order->customer_email,
+                $this->rmaMessage->rma->order->customer_full_name
             )],
             subject: trans('shop::app.rma.mail.customer-conversation.subject'),
         );

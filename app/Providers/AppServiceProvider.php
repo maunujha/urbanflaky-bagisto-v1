@@ -123,24 +123,23 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(10)->by($request->ip());
         });
 
-        // OTP endpoints — protects SMS costs and prevents brute-force verification.
-        // Layered limits: an IP cap stops one source flooding, while per-phone caps
-        // stop a number being SMS-bombed from rotating IPs and bound the daily spend.
-        RateLimiter::for('api-otp', function ($request) {
-            $phone = (string) $request->input('phone');
-
-            return [
-                Limit::perMinute(5)->by($request->ip()),
-                Limit::perMinute(3)->by('otp-phone:'.$phone),
-                Limit::perDay(15)->by('otp-phone:'.$phone),
-            ];
-        });
+        // SMS OTP limits (all flows) live in App\Services\Security\OtpService.
 
         // Payment order-creation — each hit creates a Razorpay order via their API.
         // Cap it so a script can't spam order->create (pollutes orders, can trip
         // Razorpay's fraud monitoring). Keyed by customer when known, else IP.
         RateLimiter::for('checkout', function ($request) {
             return Limit::perMinute(15)->by($request->user('customer')?->id ?: $request->ip());
+        });
+
+        // Contact form triggers outbound mail (admin notice + customer ack). Caps
+        // stop a script using it to mail-bomb strangers from our domain. The
+        // newsletter endpoint has its own Redis limits in SubscriptionController.
+        RateLimiter::for('contact', function ($request) {
+            return [
+                Limit::perMinute(3)->by('contact:'.$request->ip()),
+                Limit::perDay(15)->by('contact-day:'.$request->ip()),
+            ];
         });
     }
 }

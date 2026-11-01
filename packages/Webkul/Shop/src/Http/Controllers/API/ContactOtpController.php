@@ -2,37 +2,38 @@
 
 namespace Webkul\Shop\Http\Controllers\API;
 
+use App\Services\Security\OtpService;
+use App\Services\Security\RecaptchaVerifier;
+use App\Support\IndianMobile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Webkul\Shop\Services\SmsAlertService;
+use Illuminate\Support\Facades\Log;
 
 class ContactOtpController extends APIController
 {
-    public function __construct(protected SmsAlertService $smsAlertService) {}
+    public function __construct(
+        protected OtpService $otp,
+        protected RecaptchaVerifier $recaptcha,
+    ) {}
 
     /**
      * Send OTP to the given phone for contact-form verification.
      */
     public function send(Request $request): JsonResponse
     {
-        $request->validate(['phone' => 'required|digits:10']);
+        $phone = IndianMobile::normalize($request->input('phone'));
 
-        $phone = $request->phone;
-
-        $otp = (string) random_int(100000, 999999);
-
-        session([
-            'contact_otp'            => $otp,
-            'contact_otp_phone'      => $phone,
-            'contact_otp_expires_at' => now()->addMinutes((int) config('services.smsalert.otp_expiry', 10))->toDateTimeString(),
-            'contact_phone_verified' => false,
-        ]);
-
-        if (! $this->smsAlertService->sendOtp($phone, $otp)) {
-            return response()->json(['message' => 'Failed to send OTP. Please try again.'], 500);
+        if (! $phone) {
+            return response()->json(['message' => 'Enter a valid 10-digit Indian mobile number.'], 422);
         }
 
-        return response()->json(['message' => 'OTP sent to ' . substr($phone, 0, 2) . 'xxxxxxxx.']);
+        return $this->respond(function () use ($phone, $request) {
+            if (! $this->recaptcha->passes($request->input('recaptcha_token'), 'otp_send')) {
+                return ['status' => 422, 'message' => 'We couldn’t verify your request. Please refresh the page and try again.'];
+            }
+
+            return $this->otp->send('contact', $phone, $request);
+        });
     }
 
     /**
@@ -40,34 +41,27 @@ class ContactOtpController extends APIController
      */
     public function verify(Request $request): JsonResponse
     {
-        $request->validate([
-            'phone' => 'required|digits:10',
-            'otp'   => 'required|digits:6',
-        ]);
+        $phone = IndianMobile::normalize($request->input('phone'));
+        $code = (string) $request->input('otp');
 
-        $sessionOtp   = session('contact_otp');
-        $sessionPhone = session('contact_otp_phone');
-        $expiry       = session('contact_otp_expires_at');
-
-        if (! $sessionOtp || ! $sessionPhone) {
-            return response()->json(['message' => 'Session expired. Please request a new OTP.'], 422);
+        if (! $phone || ! preg_match('/^\d{6}$/', $code)) {
+            return response()->json(['message' => 'Enter the 6-digit OTP sent to your mobile.'], 422);
         }
 
-        if ($sessionPhone !== $request->phone) {
-            return response()->json(['message' => 'Phone number mismatch. Request a new OTP.'], 422);
+        return $this->respond(fn () => $this->otp->verify('contact', $phone, $code, $request));
+    }
+
+    /* Fail closed (no SMS) if Redis is unavailable, with a friendly message. */
+    private function respond(callable $action): JsonResponse
+    {
+        try {
+            $result = $action();
+        } catch (\Throwable $e) {
+            Log::error('Contact OTP unavailable.', ['error' => $e->getMessage()]);
+
+            return response()->json(['message' => 'Verification is temporarily unavailable. Please try again shortly.'], 503);
         }
 
-        if (now()->toDateTimeString() > $expiry) {
-            return response()->json(['message' => 'OTP expired. Please request a new one.'], 422);
-        }
-
-        if ($sessionOtp !== $request->otp) {
-            return response()->json(['message' => 'Incorrect OTP. Please try again.'], 422);
-        }
-
-        session()->forget(['contact_otp', 'contact_otp_expires_at']);
-        session(['contact_phone_verified' => true]);
-
-        return response()->json(['message' => 'Mobile number verified successfully.']);
+        return response()->json(['message' => $result['message']], $result['status']);
     }
 }

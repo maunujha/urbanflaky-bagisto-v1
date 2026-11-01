@@ -122,6 +122,11 @@ class SmsAlertService
 
     private function send(string $mobile, string $message, string $templateKey): bool
     {
+        /* Not configured (tests, fresh installs): never call the gateway. */
+        if (empty($this->apiKey)) {
+            return false;
+        }
+
         $payload = [
             'apikey'      => $this->apiKey,
             'sender'      => $this->sender,

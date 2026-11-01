@@ -30,10 +30,14 @@ class CustomerRMAStatusNotification extends Mailable
                 core()->getSenderEmailDetails()['name']
             ),
             to: [new Address(
-                $this->rma->order->customer->email,
-                $this->rma->order->customer->name
+                $this->rma->order->customer_email,
+                $this->rma->order->customer_full_name
             )],
-            subject: trans('shop::app.rma.mail.status.title'),
+            /* Name the outcome (Accepted, Declined, ...) so it reads from the inbox. */
+            subject: trans('shop::app.rma.mail.status.subject', [
+                'id'     => $this->rma->id,
+                'status' => $this->rma->status?->title,
+            ]),
         );
     }
 

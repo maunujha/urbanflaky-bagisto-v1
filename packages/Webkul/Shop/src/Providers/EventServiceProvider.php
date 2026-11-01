@@ -4,6 +4,7 @@ namespace Webkul\Shop\Providers;
 
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use App\Listeners\MarkOrderShipped;
+use App\Listeners\SendDeliveredSms;
 use App\Listeners\SendOrderSms;
 use App\Listeners\SendRefundSms;
 use App\Listeners\SendRegistrationSms;
@@ -56,8 +57,11 @@ class EventServiceProvider extends ServiceProvider
         /**
          * Sales related events.
          */
+        /*
+         * The customer order-confirmation and invoice emails are sent by
+         * Gabha\Notifications (one combined email for prepaid orders).
+         */
         'checkout.order.save.after' => [
-            [Order::class, 'afterCreated'],
             [SendOrderSms::class, 'handle'],
         ],
 
@@ -67,10 +71,6 @@ class EventServiceProvider extends ServiceProvider
 
         'sales.order.comment.create.after' => [
             [Order::class, 'afterCommented'],
-        ],
-
-        'sales.invoice.save.after' => [
-            [Invoice::class, 'afterCreated'],
         ],
 
         'sales.invoice.send_duplicate_email' => [
@@ -85,6 +85,10 @@ class EventServiceProvider extends ServiceProvider
         'sales.refund.save.after' => [
             [Refund::class, 'afterCreated'],
             [SendRefundSms::class, 'handle'],
+        ],
+
+        'shiprocket.order.delivered' => [
+            [SendDeliveredSms::class, 'handle'],
         ],
     ];
 }

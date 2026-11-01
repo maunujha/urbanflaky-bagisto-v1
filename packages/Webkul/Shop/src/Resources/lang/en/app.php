@@ -88,7 +88,7 @@ return [
             'otp-sent'              => 'OTP sent to your mobile number. Please verify to complete registration.',
             'otp-verify-button'     => 'Verify & Create Account',
             'otp-verify-page-title' => 'Verify Your Mobile Number',
-            'otp-verify-subtitle'   => 'Enter the 4-digit OTP sent to your registered mobile number to complete account creation.',
+            'otp-verify-subtitle'   => 'Enter the 6-digit OTP sent to your registered mobile number to complete account creation.',
             'page-title'            => 'Become User',
             'password'              => 'Password',
             'phone'                 => 'Mobile Number',
@@ -1327,8 +1327,8 @@ return [
     ],
 
     'subscription' => [
-        'already' => 'You are already subscribed to our newsletter.',
-        'subscribe-success' => 'You have successfully subscribed to our newsletter.',
+        'already' => 'You’re already on the list. Every new drop will reach you first.',
+        'subscribe-success' => 'Welcome to Urbanflaky. New drops and early access, straight to your inbox.',
         'unsubscribe-success' => 'You have successfully unsubscribed to our newsletter.',
     ],
 
@@ -1426,6 +1426,9 @@ return [
         'orders' => [
             'created' => [
                 'greeting' => 'Thanks for your Order :order_id placed on :created_at',
+                'cod-note' => 'Cash on delivery: please keep :amount ready when your order arrives.',
+                'invoice-attached' => 'The tax invoice for this order is attached as a PDF.',
+                'payment-received' => 'Payment of :amount received via :method. Reference: :reference.',
                 'subject' => 'New Order Confirmation',
                 'summary' => 'Summary of Order',
                 'title' => 'Order Confirmation!',
@@ -1752,6 +1755,7 @@ return [
                 'rma-id' => 'RMA Id',
                 'status-change' => ':id status has been changed by Admin',
                 'status' => 'Status',
+                'subject' => 'Return request #:id: :status',
                 'title' => 'Status Updated!',
                 'your-rma-id' => 'Your RMA Id',
             ],

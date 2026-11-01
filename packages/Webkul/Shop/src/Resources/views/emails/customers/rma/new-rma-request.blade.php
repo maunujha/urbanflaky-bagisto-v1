@@ -6,7 +6,7 @@
         </h1>
         
         <p style="font-size: 16px; color: #5E5E5E; line-height: 26px; margin: 0 0 16px 0;">
-            @lang('shop::app.rma.mail.customer-rma-create.hello', ['name' => $rma->order->customer->name]), 👋
+            @lang('shop::app.rma.mail.customer-rma-create.hello', ['name' => $rma->order->customer_full_name]), 👋
         </p>
 
         <p style="font-size: 16px; color: #5E5E5E; line-height: 26px; margin: 0;">

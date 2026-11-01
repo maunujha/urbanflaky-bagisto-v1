@@ -26,6 +26,11 @@
             <directory suffix="Test.php">packages/Gabha/RewardCoins/tests/Feature</directory>
         </testsuite>
 
+        <!-- Gabha Notifications (email automation) package testsuites. -->
+        <testsuite name="Gabha Notifications Feature Test">
+            <directory suffix="Test.php">packages/Gabha/Notifications/tests/Feature</directory>
+        </testsuite>
+
         <!-- Core package testsuites. -->
         <testsuite name="Core Unit Test">
             <directory suffix="Test.php">packages/Webkul/Core/tests/Unit</directory>
@@ -88,6 +93,8 @@
         -->
         <env name="DB_DATABASE" value="my_bagisto_store_test" force="true"/>
         <env name="RESPONSE_CACHE_ENABLED" value="false" force="true"/>
+        <!-- Never text real customers from tests: without a key SmsAlertService makes no HTTP call. -->
+        <env name="SMSALERT_APIKEY" value="" force="true"/>
         <!-- Never reach the live Shiprocket account from tests; tests fake HTTP and set these. -->
         <env name="SHIPROCKET_EMAIL" value="" force="true"/>
         <env name="SHIPROCKET_PASSWORD" value="" force="true"/>

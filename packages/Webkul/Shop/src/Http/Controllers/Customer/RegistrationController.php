@@ -2,7 +2,7 @@
 
 namespace Webkul\Shop\Http\Controllers\Customer;
 
-use Carbon\Carbon;
+use App\Services\Security\OtpService;
 use Cookie;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +18,6 @@ use Webkul\Shop\Http\Controllers\Controller;
 use Webkul\Shop\Http\Requests\Customer\RegistrationRequest;
 use Webkul\Shop\Mail\Customer\EmailVerificationNotification;
 use Webkul\Shop\Mail\Customer\RegistrationNotification;
-use Webkul\Shop\Services\SmsAlertService;
 
 class RegistrationController extends Controller
 {
@@ -31,7 +30,7 @@ class RegistrationController extends Controller
         protected CustomerRepository $customerRepository,
         protected CustomerGroupRepository $customerGroupRepository,
         protected SubscribersListRepository $subscriptionRepository,
-        protected SmsAlertService $smsAlertService
+        protected OtpService $otp,
     ) {}
 
     /**
@@ -78,16 +77,11 @@ class RegistrationController extends Controller
             'prior_subscription_id'    => null,
         ]);
 
-        $otp = (string) random_int(1000, 9999);
+        $result = $this->sendOtp($phone, $registrationRequest);
 
-        session()->put('signup_otp', $otp);
-        session()->put('signup_otp_expires_at', Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10))->toDateTimeString());
-
-        $sent = $this->smsAlertService->sendOtp($registrationRequest->input('phone'), $otp);
-
-        if (! $sent) {
-            session()->forget(['signup_pending', 'signup_otp', 'signup_otp_expires_at']);
-            session()->flash('error', trans('shop::app.customers.otp.send-failed'));
+        if (! $result['ok']) {
+            session()->forget('signup_pending');
+            session()->flash('error', $result['message']);
 
             return redirect()->back()->withInput();
         }
@@ -115,7 +109,7 @@ class RegistrationController extends Controller
     public function verifyPhone(Request $request): RedirectResponse
     {
         $request->validate([
-            'otp' => 'required|digits:4',
+            'otp' => 'required|digits:6',
         ], [
             'otp.required' => trans('shop::app.customers.otp.otp-required'),
             'otp.digits'   => trans('shop::app.customers.otp.otp-digits'),
@@ -125,22 +119,23 @@ class RegistrationController extends Controller
             return redirect()->route('shop.customers.register.index');
         }
 
-        if ($request->otp !== session('signup_otp')) {
-            session()->flash('error', trans('shop::app.customers.otp.invalid-otp'));
-            session()->flash('show_otp_modal', true);
+        try {
+            $result = $this->otp->verify('register', (string) session('signup_pending.phone'), (string) $request->otp, $request);
+        } catch (\Throwable $e) {
+            report($e);
 
-            return redirect()->route('shop.customers.register.index');
+            $result = ['ok' => false, 'message' => 'Verification is temporarily unavailable. Please try again shortly.'];
         }
 
-        if (Carbon::now()->isAfter(session('signup_otp_expires_at'))) {
-            session()->flash('error', trans('shop::app.customers.otp.otp-expired'));
+        if (! $result['ok']) {
+            /* Modal stays open: retry while the code is usable, or Resend once locked/expired. */
+            session()->flash('error', $result['message']);
             session()->flash('show_otp_modal', true);
 
             return redirect()->route('shop.customers.register.index');
         }
 
         $data = session()->pull('signup_pending');
-        session()->forget(['signup_otp', 'signup_otp_expires_at']);
 
         Event::dispatch('customer.registration.before');
 
@@ -179,15 +174,9 @@ class RegistrationController extends Controller
         }
 
         Event::dispatch('customer.create.after', $customer);
-        Event::dispatch('customer.registration.after', $customer);
 
-        try {
-            if ((bool) core()->getConfigData('emails.general.notifications.emails.general.notifications.registration')) {
-                Mail::queue(new RegistrationNotification($customer));
-            }
-        } catch (\Exception $e) {
-            report($e);
-        }
+        /* Its Shop listener sends the welcome email (or the verification email). */
+        Event::dispatch('customer.registration.after', $customer);
 
         $this->customerRepository->syncNewRegisteredCustomerInformation($customer);
 
@@ -205,30 +194,41 @@ class RegistrationController extends Controller
     /**
      * Resend OTP during signup phone verification.
      */
-    public function resendPhoneOtp(): RedirectResponse
+    public function resendPhoneOtp(Request $request): RedirectResponse
     {
         if (! session()->has('signup_pending')) {
             return redirect()->route('shop.customers.register.index');
         }
 
-        $phone = session('signup_pending.phone');
+        /* No captcha: the pending phone was set by a captcha-checked signup,
+           and the send limits still apply. */
+        $result = $this->sendOtp((string) session('signup_pending.phone'), $request);
 
-        $otp = (string) random_int(1000, 9999);
-
-        session()->put('signup_otp', $otp);
-        session()->put('signup_otp_expires_at', Carbon::now()->addMinutes((int) config('services.smsalert.otp_expiry', 10))->toDateTimeString());
-
-        $sent = $this->smsAlertService->sendOtp($phone, $otp);
-
-        if (! $sent) {
-            session()->flash('error', trans('shop::app.customers.otp.send-failed'));
-        } else {
+        if ($result['ok']) {
             session()->flash('success', trans('shop::app.customers.otp.resent-success'));
+        } else {
+            session()->flash('error', $result['message']);
         }
 
         session()->flash('show_otp_modal', true);
 
         return redirect()->route('shop.customers.register.index');
+    }
+
+    /**
+     * Signup OTP via OtpService (flow "register"); fails closed if Redis is down.
+     *
+     * @return array{ok: bool, message: string}
+     */
+    protected function sendOtp(string $phone, Request $request): array
+    {
+        try {
+            return $this->otp->send('register', $phone, $request);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return ['ok' => false, 'message' => 'Verification is temporarily unavailable. Please try again shortly.'];
+        }
     }
 
     /**

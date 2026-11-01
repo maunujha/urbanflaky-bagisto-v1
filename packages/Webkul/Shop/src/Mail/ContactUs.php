@@ -27,7 +27,13 @@ class ContactUs extends Mailable
                     core()->getAdminEmailDetails()['name']
                 ),
             ],
-            subject: trans('shop::app.emails.contact-us.inquiry-from').' '.$this->contactUs['name'].' '.trans('shop::app.emails.contact-us.contact-from'),
+            /* Hitting "Reply" in the admin inbox answers the customer, not ourselves. */
+            replyTo: [
+                new Address($this->contactUs['email'], $this->contactUs['name']),
+            ],
+            subject: trans('shop::app.emails.contact-us.inquiry-from').' '.$this->contactUs['name']
+                .(! empty($this->contactUs['topic']) ? ' — '.$this->contactUs['topic'] : '')
+                .' '.trans('shop::app.emails.contact-us.contact-from'),
         );
     }
 

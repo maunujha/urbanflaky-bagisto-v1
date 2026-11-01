@@ -32,8 +32,8 @@ class CustomerRMARequestNotification extends Mailable
                 $adminDetails['name']
             ),
             to: [new Address(
-                $this->rma->order->customer->email,
-                $this->rma->order->customer->name
+                $this->rma->order->customer_email,
+                $this->rma->order->customer_full_name
             )],
             subject: trans('shop::app.rma.customer.create.heading'),
         );

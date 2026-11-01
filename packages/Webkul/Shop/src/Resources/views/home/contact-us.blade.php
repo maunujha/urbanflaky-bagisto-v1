@@ -211,7 +211,32 @@
             let isVerified = {{ session('contact_phone_verified') ? 'true' : 'false' }};
             let resendTimer = null;
 
+            /* Empty when reCAPTCHA is disabled in admin — server then skips the check. */
+            const recaptchaKey = "{{ core()->getConfigData('customer.captcha.credentials.status') ? \Webkul\Customer\Facades\Captcha::getSiteKey() : '' }}";
+
             function $(id) { return document.getElementById(id); }
+
+            /* Reuses the reCAPTCHA script this page already loads (window.onload);
+               waits briefly if the visitor clicks before it is ready. */
+            function recaptchaToken(action) {
+                if (! recaptchaKey) return Promise.resolve('');
+
+                return new Promise(function (resolve) {
+                    let waited = 0;
+
+                    (function attempt() {
+                        if (window.grecaptcha && window.grecaptcha.execute) {
+                            window.grecaptcha.ready(function () {
+                                window.grecaptcha.execute(recaptchaKey, { action: action }).then(resolve, function () { resolve(''); });
+                            });
+                        } else if ((waited += 200) <= 8000) {
+                            setTimeout(attempt, 200);
+                        } else {
+                            resolve('');
+                        }
+                    })();
+                });
+            }
 
             function showError(msg) {
                 const el = $('cu-phone-err');
@@ -240,7 +265,8 @@
                 showError('');
                 setSendBtn('Sending…', true);
 
-                window.axios.post(sendUrl, { phone: phone })
+                recaptchaToken('otp_send')
+                    .then(token => window.axios.post(sendUrl, { phone: phone, recaptcha_token: token }))
                     .then(() => {
                         const msgPhone = $('cu-otp-msg')?.querySelector('strong');
                         if (msgPhone) msgPhone.textContent = '+91 ••••••' + phone.slice(-4);

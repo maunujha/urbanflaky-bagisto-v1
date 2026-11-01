@@ -239,6 +239,54 @@ it('ships, then completes and invoices a COD order from courier webhooks', funct
         ->and($delivered)->toBe([$order->id]);
 });
 
+it('emails each courier milestone from the tracking webhook, with tracking and no payment claim for COD', function () {
+    Illuminate\Support\Facades\Mail::fake();
+    fakeShiprocket();
+
+    /* Bagisto's shipment and invoice emails are behind admin switches (on in the store). */
+    foreach (['new_shipment', 'new_invoice'] as $switch) {
+        Webkul\Core\Models\CoreConfig::updateOrCreate(
+            ['code' => 'emails.general.notifications.emails.general.notifications.'.$switch],
+            ['value' => '1'],
+        );
+    }
+
+    $order = shippingOrder();
+    PushOrderToShiprocket::dispatchSync($order->id);
+
+    /* The AWB Shiprocket assigned on push: tracking webhooks are matched by it. */
+    $awb = ShiprocketOrder::where('order_id', $order->id)->value('awb_code');
+
+    webhook($this, ['awb' => $awb, 'current_status' => 'PICKED UP', 'courier_name' => 'Delhivery Surface'])->assertOk();
+    webhook($this, ['awb' => $awb, 'current_status' => 'OUT FOR DELIVERY'])->assertOk();
+    webhook($this, ['awb' => $awb, 'current_status' => 'DELIVERED'])->assertOk();
+    webhook($this, ['awb' => $awb, 'current_status' => 'DELIVERED'])->assertOk();
+
+    /* Shipped + tracking: Bagisto's shipment email, carrying the courier AWB. */
+    expect($awb)->not->toBeEmpty();
+    Illuminate\Support\Facades\Mail::assertQueued(
+        Webkul\Shop\Mail\Order\ShippedNotification::class,
+        fn ($mail) => $mail->shipment->track_number === $awb
+    );
+
+    foreach (['out_for_delivery', 'delivered'] as $stage) {
+        Illuminate\Support\Facades\Mail::assertQueued(
+            Gabha\Notifications\Mail\ShipmentUpdate::class,
+            fn ($mail) => $mail->stage === $stage
+        );
+    }
+
+    /* The replayed DELIVERED webhook sends nothing new. */
+    Illuminate\Support\Facades\Mail::assertQueued(Gabha\Notifications\Mail\ShipmentUpdate::class, 2);
+
+    /* COD is invoiced on delivery: an invoice email, never a payment confirmation. */
+    Illuminate\Support\Facades\Mail::assertQueued(Webkul\Shop\Mail\Order\InvoicedNotification::class);
+    Illuminate\Support\Facades\Mail::assertNotQueued(
+        Gabha\Notifications\Mail\OrderConfirmation::class,
+        fn ($mail) => $mail->paymentTransaction() !== null
+    );
+});
+
 it('never moves a shipment backwards and stores each scan once', function () {
     fakeShiprocket();
 

@@ -7,6 +7,7 @@ use App\Providers\MadeOnDemandServiceProvider;
 use App\Providers\ShiprocketServiceProvider;
 use Gabha\Blog\Providers\BlogServiceProvider;
 use Gabha\Inventory\Providers\InventoryServiceProvider as GabhaInventoryServiceProvider;
+use Gabha\Notifications\Providers\NotificationsServiceProvider;
 use Gabha\RewardCoins\Providers\RewardCoinsServiceProvider;
 use Gabha\Search\Providers\SearchServiceProvider;
 use Webkul\Admin\Providers\AdminServiceProvider;
@@ -64,6 +65,7 @@ return [
     SearchServiceProvider::class,
     CookieConsentServiceProvider::class,
     ShiprocketServiceProvider::class,
+    NotificationsServiceProvider::class,
 
     /**
      * Webkul's service providers.
