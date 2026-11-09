@@ -202,6 +202,9 @@
             @endif
         </div>
 
+        <!-- Rendered outside #app so it needs no Vue and survives app.mount -->
+        <x-shop::layouts.back-to-top />
+
         {!! view_render_event('bagisto.shop.layout.body.after') !!}
 
         @stack('scripts')

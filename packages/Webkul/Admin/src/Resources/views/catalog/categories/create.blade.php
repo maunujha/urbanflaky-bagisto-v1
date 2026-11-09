@@ -172,6 +172,7 @@
                     {{-- Urbanflaky: Card Background (used by the "Shop by Gender" home carousel) --}}
                     @include('admin::catalog.categories.partials.card-background', [
                         'currentCardBg' => old('card_background') ?? '',
+                        'currentCardSubtitle' => old('card_subtitle') ?? '',
                     ])
                 </div>
 

@@ -27,6 +27,11 @@
                         />
                     </picture>
                 </div>
+
+                @if (count($slides) > 1)
+                    {{-- Holds the peek area until Vue mounts, without requesting a second image before LCP. --}}
+                    <div class="uf-hero-slide" aria-hidden="true"></div>
+                @endif
             </div>
         @else
             <div class="uf-hero-shimmer shimmer"></div>
@@ -46,7 +51,7 @@
                     class="uf-hero-slide"
                     v-for="(image, index) in images"
                     :key="index"
-                    @click="visitLink(image)"
+                    @click="visitLink(image, index)"
                     ref="slide"
                 >
                     <picture>
@@ -121,6 +126,7 @@
             data() {
                 return {
                     isDragging: false,
+                    didDrag: false, // set after a real drag so its trailing click is ignored
                     startPos: 0,
                     currentTranslate: 0,
                     prevTranslate: 0,
@@ -182,6 +188,7 @@
                         slide.addEventListener('mouseup', this.handleDragEnd);
                         slide.addEventListener('mouseleave', this.handleDragEnd);
                         slide.addEventListener('touchend', this.handleDragEnd, { passive: true });
+                        slide.addEventListener('touchcancel', this.handleDragEnd, { passive: true });
                         slide.addEventListener('mousemove', this.handleDrag);
                         slide.addEventListener('touchmove', this.handleDrag, { passive: true });
                     });
@@ -196,6 +203,10 @@
 
                     this.startPos = event.type === 'mousedown' ? event.clientX : event.touches[0].clientX;
                     this.isDragging = true;
+                    this.didDrag = false;
+
+                    // The track's slide transition would make it lag behind the finger.
+                    this.slider.style.transition = 'none';
                     this.animationID = requestAnimationFrame(this.animation);
                 },
 
@@ -207,11 +218,17 @@
                 },
 
                 handleDragEnd() {
+                    // mouseleave also lands here, without a drag in progress.
+                    if (! this.isDragging) return;
+
                     clearInterval(this.autoPlayInterval);
                     cancelAnimationFrame(this.animationID);
                     this.isDragging = false;
+                    this.slider.style.transition = '';
 
                     const movedBy = this.currentTranslate - this.prevTranslate;
+
+                    this.didDrag = Math.abs(movedBy) > 5;
 
                     // Trigger on ~15% of the slide width (min 40px) so a normal
                     // mobile flick advances the slide on the first try.
@@ -239,8 +256,17 @@
                 },
 
                 setPositionByIndex() {
-                    const w = this.slides[0]?.offsetWidth || window.innerWidth;
-                    this.currentTranslate = this.currentIndex * -w;
+                    const slideWidth = this.slides[0]?.getBoundingClientRect().width || window.innerWidth;
+                    const trackStyle = window.getComputedStyle(this.slider);
+                    const step = slideWidth + (parseFloat(trackStyle.columnGap) || 0);
+
+                    const gutter = parseFloat(trackStyle.marginInlineStart) || 0;
+                    const centerOffset = (this.slider.parentElement.clientWidth - slideWidth) / 2 - gutter;
+
+                    // The first slide stays on the gutter; every later slide is centred
+                    // so the space on both sides is equal (sign is 0 on the first slide).
+                    this.currentTranslate = this.currentIndex * -step + Math.sign(this.currentIndex) * centerOffset;
+
                     this.prevTranslate = this.currentTranslate;
                     this.setSliderPosition();
                 },
@@ -249,7 +275,20 @@
                     if (this.slider) this.slider.style.transform = `translateX(${this.currentTranslate}px)`;
                 },
 
-                visitLink(image) {
+                visitLink(image, index) {
+                    if (this.didDrag) {
+                        this.didDrag = false;
+
+                        return;
+                    }
+
+                    // A click on a peeking slide brings it into view instead of leaving the page.
+                    if (index !== Math.abs(this.currentIndex)) {
+                        this.navigateByPagination(index);
+
+                        return;
+                    }
+
                     if (image.link) window.location.href = image.link;
                 },
 
@@ -320,6 +359,7 @@
                             slide.removeEventListener('mouseup', this.handleDragEnd);
                             slide.removeEventListener('mouseleave', this.handleDragEnd);
                             slide.removeEventListener('touchend', this.handleDragEnd);
+                            slide.removeEventListener('touchcancel', this.handleDragEnd);
                             slide.removeEventListener('mousemove', this.handleDrag);
                             slide.removeEventListener('touchmove', this.handleDrag);
                         });

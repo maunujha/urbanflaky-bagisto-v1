@@ -70,6 +70,7 @@
                             <div class="su-phone-cc">🇮🇳 +91</div>
                             <input
                                 id="login-phone"
+                                aria-label="Mobile number"
                                 type="tel"
                                 name="phone"
                                 value="{{ old('phone') }}"

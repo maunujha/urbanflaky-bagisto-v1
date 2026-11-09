@@ -14,7 +14,7 @@
 
 <!-- Mobile Filters Navigation -->
 <div
-    class="fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0"
+    class="uf-filter-bar fixed bottom-0 z-10 grid w-full max-w-full grid-cols-[1fr_auto_1fr] items-center justify-items-center border-t border-white/10 bg-zinc-900 text-zinc-100 px-5 ltr:left-0 rtl:right-0"
     style="padding-bottom: env(safe-area-inset-bottom, 0px);"
     v-if="isMobile"
 >

@@ -24,6 +24,7 @@ class CategoryResource extends JsonResource
             'position' => $this->position,
             'display_mode' => $this->display_mode,
             'card_background' => $this->card_background,
+            'card_subtitle' => $this->card_subtitle,
             'description' => $this->description,
             'logo' => $this->when($this->logo_path, fn () => [
                 'small_image_url' => url('cache/small/'.$this->logo_path),

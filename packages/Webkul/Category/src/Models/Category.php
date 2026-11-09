@@ -43,6 +43,7 @@ class Category extends TranslatableModel implements CategoryContract
         'parent_id',
         'additional',
         'card_background',
+        'card_subtitle',
     ];
 
     /**

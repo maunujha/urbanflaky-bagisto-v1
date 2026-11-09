@@ -1251,7 +1251,6 @@ return [
         ],
 
         'index' => [
-            'categories-carousel' => 'Categories Carousel',
             'image-carousel' => 'Image Carousel',
             'offer' => 'Get UPTO 20% OFF on your 1st order SHOP NOW test',
             'product-carousel' => 'Product Carousel',
