@@ -155,8 +155,9 @@
                 @endphp
 
                 @if ($links->isNotEmpty())
-                    <div>
-                        <div class="uf-col-heading">{{ $heading }}</div>
+                    {{-- Accordion on mobile; always open on desktop (see the script below). --}}
+                    <details class="uf-col-details">
+                        <summary class="uf-col-heading">{{ $heading }}</summary>
                         <ul class="uf-col-list">
                             @foreach ($links as $link)
                                 <li>
@@ -166,12 +167,12 @@
                                 </li>
                             @endforeach
                         </ul>
-                    </div>
+                    </details>
                 @endif
             @endforeach
 
             {{-- Contact Column --}}
-            <div>
+            <div class="uf-col-contact">
                 <div class="uf-col-heading">Contact</div>
 
                 @if ($storeAddress)
@@ -253,6 +254,28 @@
 @pushOnce('scripts')
 <script>
 (function () {
+    /* Footer link columns: open on desktop, collapsed accordions on mobile. */
+    const desktop = window.matchMedia('(min-width: 768px)');
+
+    function syncFooterColumns() {
+        document.querySelectorAll('.uf-col-details').forEach(function (details) {
+            details.open = desktop.matches;
+            details.querySelector('summary').tabIndex = desktop.matches ? -1 : 0;
+        });
+    }
+
+    desktop.addEventListener('change', syncFooterColumns);
+
+    /* Deferred a tick so it runs on the DOM Vue's app.mount has just rendered. */
+    document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(syncFooterColumns, 0);
+    });
+
+    document.addEventListener('click', function (e) {
+        const summary = e.target.closest && e.target.closest('.uf-col-details > summary');
+        if (summary && desktop.matches) e.preventDefault();
+    });
+
     /* reCAPTCHA v3 is loaded only once a visitor shows intent (focus/touch on
        the form), so the Google script costs nothing on ordinary page views. */
     let recaptchaLoad = null;

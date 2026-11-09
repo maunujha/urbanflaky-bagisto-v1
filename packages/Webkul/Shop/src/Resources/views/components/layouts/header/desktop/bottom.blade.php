@@ -506,26 +506,9 @@
     </script>
     @endif
 
-    <!-- Sticky header: scroll-shrink + search-panel toggle (delegated, mount-safe) -->
+    <!-- Sticky header: search-panel toggle (delegated, mount-safe) -->
     <script>
         (function () {
-            /* --- Scroll-shrink (header element is rendered statically, exists immediately) --- */
-            const header = document.getElementById('uf-header');
-            if (header) {
-                let ticking = false;
-                const updateHeader = function () {
-                    header.dataset.scrolled = (window.scrollY > 24).toString();
-                    ticking = false;
-                };
-                window.addEventListener('scroll', function () {
-                    if (! ticking) {
-                        window.requestAnimationFrame(updateHeader);
-                        ticking = true;
-                    }
-                }, { passive: true });
-                updateHeader();
-            }
-
             /* --- Search panel toggle: delegated because the toggle/panel live inside a
                    Vue x-template that only renders after the header switcher mounts. --- */
             function getPanel()  { return document.getElementById('uf-search-panel'); }

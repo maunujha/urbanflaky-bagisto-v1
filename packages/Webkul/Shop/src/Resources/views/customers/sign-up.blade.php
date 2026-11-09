@@ -69,6 +69,7 @@
                         <div class="su-name-row">
                             <input
                                 id="first_name"
+                                aria-label="First name"
                                 type="text"
                                 name="first_name"
                                 value="{{ old('first_name') }}"
@@ -78,6 +79,7 @@
                             />
                             <input
                                 id="last_name"
+                                aria-label="Last name"
                                 type="text"
                                 name="last_name"
                                 value="{{ old('last_name') }}"
@@ -95,6 +97,7 @@
                             <div class="su-phone-cc">🇮🇳 +91</div>
                             <input
                                 id="phone"
+                                aria-label="Mobile number"
                                 type="tel"
                                 name="phone"
                                 value="{{ old('phone') }}"

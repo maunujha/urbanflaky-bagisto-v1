@@ -522,18 +522,56 @@
     .su-login-wrap::before { background-position: 80% center; }
 }
 
+/* Phones: a photo band fading into the page, with the form directly on the dark
+   ground instead of a floating glass card. */
 @media (max-width: 767px) {
-    .su-card {
-        padding: 20px 18px 18px;
-        border-radius: 12px;
+    .su-login-wrap { padding: 0 16px 32px; }
+    .su-login-wrap::before,
+    .su-login-wrap::after { bottom: auto; height: 200px; }
+    .su-login-wrap::after {
+        background: linear-gradient(180deg, rgba(10, 10, 10, 0.05) 0%, rgba(10, 10, 10, 0.25) 40%, rgba(10, 10, 10, 0.92) 78%, #0a0a0a 100%);
     }
-    .su-h1 { font-size: 22px; }
-    .su-name-row { grid-template-columns: 1fr; }
-    .otp-boxes { gap: 10px; }
-    .otp-box { width: 52px; height: 58px; font-size: 24px; border-radius: 6px; }
-    .su-wrap { padding: 40px 12px; }
-    .su-badge { padding: 4px 11px; font-size: 11px; margin-bottom: 14px; }
-    .su-phone-cc { font-size: 13px; padding: 0 10px; }
-    .su-divider { font-size: 11px; margin: 18px 0; }
-    .su-google-btn { padding: 12px; font-size: 13px; }
+    .su-panel { padding-top: 148px; gap: 16px; }
+
+    .su-card {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    /* One idea per line: the heading and sub already say what the labels repeat. */
+    .su-badge,
+    .su-hint,
+    #login-otp-form .su-label { display: none; }
+
+    .su-h1 { font-size: 20px; font-weight: 700; line-height: 1.25; margin-bottom: 4px; }
+    .su-sub { font-size: 13px; margin-bottom: 18px; }
+    .su-label { font-size: 12px; margin-bottom: 6px; }
+    .su-footer { margin-top: 0; color: var(--su-muted); }
+
+    .su-name-row { gap: 8px; margin-bottom: 16px; }
+
+    /* Typed text stays 16px: iOS Safari zooms the page on focus below that. */
+    .su-input,
+    .su-phone-input { min-height: 48px; padding: 0 14px; font-size: 16px; }
+    .su-input::placeholder,
+    .su-phone-input::placeholder { font-size: 14px; color: var(--su-muted); }
+    .su-phone-cc { padding: 0 12px; font-size: 14px; }
+
+    .su-btn,
+    .su-google-btn { min-height: 48px; padding: 0 14px; font-size: 13px; }
+    .su-divider { margin: 16px 0; font-size: 11px; }
+
+    /* Six equal columns so the row can never be wider than the screen. */
+    .otp-boxes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .otp-box { box-sizing: border-box; width: 100%; height: 52px; padding: 0; font-size: 20px; }
+
+    .su-resend-row { margin-top: 8px; }
+    .su-change-link,
+    .su-countdown,
+    .su-resend-btn { display: inline-block; padding-block: 12px; }
 }

@@ -69,6 +69,8 @@ header.group\/header div[class*="bg-uf-bg\/95"] {
    backdrop-filter blur (the header then looks like a flat solid bar). The translateY
    below only applies while the header is hidden/off-screen, so no promotion is needed. */
 #uf-header[data-hidden="true"] { transform: translateY(-100%); }
+/* Keep the header on screen while keyboard focus is inside it. */
+#uf-header[data-hidden="true"]:has(:focus-visible) { transform: none; }
 @media (prefers-reduced-motion: reduce) {
     #uf-header[data-hidden="true"] { transform: none; }
 }
@@ -1232,7 +1234,11 @@ body::after {
 }
 
 .mh-left  { display: flex; align-items: center; gap: 10px; }
-.mh-right { display: flex; align-items: center; gap: 8px; }
+/* Icons sit in touching 44px boxes for even spacing; the negative margins line the
+   outer glyphs up with the 16px page gutter. */
+.mh-right { display: flex; align-items: center; margin-right: -10px; }
+.mh-left .icon-hamburger { margin-left: -10px; }
+.mh-right > span.rounded-full { margin: 0 10px 0 4px; }
 
 /* Logo — sits on the left after the hamburger, with 10px gap (from .mh-left's gap) */
 .mh-logo {
@@ -1247,10 +1253,10 @@ body::after {
 }
 
 /* Icon button — used for the search + account anchors/buttons that we control directly.
-   40px box (header bar is 56px) so each icon is a real touch target. */
+   44px box (header bar is 56px) so each icon is a real touch target. */
 .mh-icon-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1270,7 +1276,7 @@ body::after {
 .mh-icon-btn .icon-search,
 .mh-icon-btn .icon-users,
 .mh-icon-btn .icon-compare {
-    font-size: 22px;
+    font-size: 24px;
     line-height: 1;
 }
 
@@ -1281,9 +1287,8 @@ body::after {
 .mh-right .icon-cart {
     font-size: 24px;
     line-height: 1;
-    width: 40px;
-    height: 40px;
-    padding: 2px 0px 0;
+    width: 44px;
+    height: 44px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     border-radius: 50%;
@@ -1296,6 +1301,10 @@ body::after {
 .mh-right .icon-cart { color: #f5f5f5; }
 .mh-left .icon-hamburger:hover,
 .mh-right .icon-cart:hover { background: rgba(255, 255, 255, 0.08); color: var(--uf-accent); }
+
+/* The cart toggle is inline markup; make it a 44px box and anchor the count to it. */
+.mh-right span.relative:has(> .icon-cart) { display: flex; }
+.mh-right span.relative:has(> .icon-cart) > span.absolute { top: 2px; left: 24px; padding: 4px 6px; }
 
 /* ── SEARCH SLIDE-DOWN PANEL ── */
 .mh-search-panel {
@@ -1412,17 +1421,40 @@ body.mh-search-locked { overflow: hidden; }
 
 .uf-hero, .uf-hero * { box-sizing: border-box; }
 
+/* Full-width slides by default; below 768px the next slide peeks in. */
 .uf-hero {
+    --uf-hero-gutter: 0px;
+    --uf-hero-gap: 0px;
+    --uf-hero-peek: 0px;
+    --uf-hero-slide-width: calc(100% - var(--uf-hero-gutter) - var(--uf-hero-gap) - var(--uf-hero-peek));
     position: relative;
     width: 100%;
     overflow: hidden;
     background: #f5f5f5;
 }
+@media (max-width: 767px) {
+    .uf-hero {
+        --uf-hero-gutter: 12px;
+        --uf-hero-gap: 8px;
+        --uf-hero-peek: 28px;
+        padding-block: 12px;
+        background: transparent;
+    }
+    .uf-hero-slide,
+    .uf-hero-shimmer {
+        border-radius: 4px;
+        background: var(--uf-surface);
+    }
+}
 
-/* Fixed 250px height on mobile; cinematic aspect on desktop */
+/* Fixed height on mobile; cinematic aspect on desktop */
 .uf-hero-slide,
 .uf-hero-shimmer {
     height: 350px;
+}
+.uf-hero-shimmer {
+    width: var(--uf-hero-slide-width);
+    margin-inline-start: var(--uf-hero-gutter);
 }
 @media (min-width: 768px) {
     .uf-hero-slide,
@@ -1434,15 +1466,17 @@ body.mh-search-locked { overflow: hidden; }
 
 .uf-hero-track {
     display: flex;
+    gap: var(--uf-hero-gap);
     width: 100%;
+    margin-inline-start: var(--uf-hero-gutter);
     transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: transform;
 }
 
 .uf-hero-slide {
-    flex: 0 0 100%;
-    width: 100%;
+    flex: 0 0 var(--uf-hero-slide-width);
     cursor: pointer;
+    touch-action: pan-y;
     position: relative;
     overflow: hidden;
     user-select: none;
@@ -1496,7 +1530,7 @@ body.mh-search-locked { overflow: hidden; }
 /* ── Segmented progress indicator (bottom) ── */
 .uf-hero-bars {
     position: absolute;
-    left: 50%;
+    left: calc(var(--uf-hero-gutter) + var(--uf-hero-slide-width) / 2);
     bottom: 18px;
     transform: translateX(-50%);
     display: flex;
@@ -1504,8 +1538,8 @@ body.mh-search-locked { overflow: hidden; }
     z-index: 3;
     padding: 4px 10px;
 }
-@media (max-width: 640px) {
-    .uf-hero-bars { bottom: 12px; gap: 4px; }
+@media (max-width: 767px) {
+    .uf-hero-bars { bottom: 24px; gap: 4px; }
 }
 
 .uf-hero-bar {
@@ -1808,19 +1842,63 @@ body.mh-search-locked { overflow: hidden; }
     transition: color 0.2s;
 }
 .uf-policy-links a:hover { color: #c7eb31; }
+
+/* Link columns are <details>: heading styling shared, marker removed. */
+.uf-col-details > summary { list-style: none; cursor: default; }
+.uf-col-details > summary::-webkit-details-marker { display: none; }
+
 @media (max-width: 767px) {
-    .uf-nl-form button,.uf-col-heading{
-        font-weight: 600;
-    }
-    .uf-nl-heading{
-    font-weight: 600;
-    font-size: 18px;
-    }
-    .uf-nl-sub{    font-size: 12px;}
-    .uf-nl-form{display: inline-block;}
-    .uf-nl-form button{padding: 13px 10px;font-weight: 600;font-size: 16px; width: 100%; margin-top: 10px;}
-    .uf-nl-form input{padding: 13px 16px;}
+    .uf-footer-wrap { margin-top: 32px; }
+
+    /* Newsletter: one compact row on the page's 16px gutter. */
+    .uf-nl-band { padding: 20px 16px; gap: 14px; }
+    .uf-nl-icon { display: none; }
+    .uf-nl-heading { font-size: 17px; font-weight: 700; letter-spacing: 1px; line-height: 1.2; }
+    .uf-nl-sub { font-size: 12px; color: #2a2a2a; }
+    .uf-nl-form { display: flex; }
+    /* Typed text stays 16px: iOS Safari zooms the page on focus below that. */
+    .uf-nl-form input { flex: 1 1 0; min-height: 48px; padding: 0 14px; font-size: 16px; }
+    .uf-nl-form input::placeholder { font-size: 14px; color: #666; }
+    .uf-nl-form button { min-height: 48px; padding: 0 16px; font-size: 13px; font-weight: 700; letter-spacing: 1.5px; }
+
+    .uf-footer-main { padding: 28px 16px max(24px, env(safe-area-inset-bottom)); }
+    .uf-footer-grid { grid-template-columns: 1fr; gap: 0; padding-bottom: 0; border-bottom: 0; }
+
+    .uf-logo-lockup { margin-bottom: 12px; }
+    .uf-logo-square { width: 40px; height: 40px; font-size: 18px; }
+    .uf-logo-brand { font-size: 18px; letter-spacing: 2px; }
+    .uf-brand-desc { max-width: none; margin-bottom: 14px; line-height: 1.6; color: #8a8a8a; }
+    .uf-social-row { gap: 8px; margin-bottom: 24px; }
+    .uf-social-btn { width: 44px; height: 44px; }
+    .uf-social-btn svg { width: 18px; height: 18px; fill: #a1a1a1; }
+
+    /* Accordion rows */
+    .uf-col-details { border-top: 1px solid #1e1e1e; }
+    .uf-col-details > summary { cursor: pointer; min-height: 52px; margin: 0; color: #f5f5f5; font-size: 13px; font-weight: 600; justify-content: space-between; -webkit-tap-highlight-color: transparent; }
+    .uf-col-details[open] > summary { color: #c7eb31; }
+    .uf-col-details > summary::after { flex: none; width: 8px; height: 8px; margin-right: 4px; background: none; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1); }
+    .uf-col-details[open] > summary::after { transform: rotate(-135deg); }
+    .uf-col-details .uf-col-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; padding-bottom: 12px; }
+    .uf-col-list li a { min-height: 40px; color: #a1a1a1; }
+    .uf-col-list li a::before { display: none; }
+
+    /* Contact stays open: it is what people scroll down here for. */
+    .uf-col-contact { padding-top: 16px; border-top: 1px solid #1e1e1e; border-bottom: 1px solid #1e1e1e; }
+    .uf-col-contact .uf-col-heading { margin-bottom: 14px; color: #f5f5f5; font-size: 13px; font-weight: 600; }
+    .uf-col-contact .uf-col-heading::after { display: none; }
+    .uf-ct-value { font-size: 13px; color: #a1a1a1; }
+    .uf-contact-item:last-child { margin-bottom: 16px; }
+
+    .uf-footer-bottom { padding-top: 16px; gap: 10px; }
+    .uf-policy-links a { display: inline-block; padding-block: 8px; font-size: 12px; }
+    .uf-badge { color: #8a8a8a; }
 }
+
+/* Back-to-top: rides above any fixed bottom bar on the page. */
+.uf-back-to-top { bottom: max(16px, env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .uf-back-to-top { bottom: 32px; } }
+body:has(.uf-filter-bar) .uf-back-to-top { bottom: 72px; }
+body:has(#sticky-atc-bar:not([inert])) .uf-back-to-top { bottom: 96px; }
 
 /* Newsletter AJAX feedback */
 .uf-nl-msg {

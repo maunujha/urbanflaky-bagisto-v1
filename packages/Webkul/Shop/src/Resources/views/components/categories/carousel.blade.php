@@ -1,12 +1,8 @@
 <v-categories-carousel
     src="{{ $src }}"
     title="{{ $title ?: 'Shop by Category' }}"
-    navigation-link="{{ $navigationLink ?? '' }}"
 >
-    <x-shop::shimmer.categories.carousel
-        :count="4"
-        :navigation-link="$navigationLink ?? false"
-    />
+    <x-shop::shimmer.categories.carousel />
 </v-categories-carousel>
 
 @pushOnce('scripts')
@@ -15,7 +11,7 @@
         id="v-categories-carousel-template"
     >
         <section
-            class="uf-cat-section w-full px-3 py-5 md:px-10 md:py-10 xl:py-14"
+            class="w-full px-3 py-5 md:px-10 md:py-10 xl:py-14"
             v-if="! isLoading && categories?.length"
             aria-label="Shop by category"
         >
@@ -131,8 +127,6 @@
         <template v-if="isLoading">
             <x-shop::shimmer.categories.carousel
                 ref="shimmer"
-                :count="4"
-                :navigation-link="$navigationLink ?? false"
             />
         </template>
     </script>
@@ -144,7 +138,6 @@
             props: [
                 'src',
                 'title',
-                'navigationLink',
             ],
 
             data() {
@@ -154,7 +147,6 @@
                     hasOverflow: false,
                     atStart: true,
                     atEnd: false,
-                    fallback: "{{ bagisto_asset('images/small-product-placeholder.webp') }}",
                     observer: null,
                     scrollFrame: null,
                 };
@@ -169,7 +161,7 @@
 
             mounted() {
                 this.observeAndFetch();
-                window.addEventListener('resize', this.updateScrollState);
+                window.addEventListener('resize', this.scheduleUpdate);
             },
 
             beforeUnmount() {
@@ -181,9 +173,9 @@
                     cancelAnimationFrame(this.scrollFrame);
                 }
 
-                window.removeEventListener('resize', this.updateScrollState);
+                window.removeEventListener('resize', this.scheduleUpdate);
                 const container = this.$refs.swiperContainer;
-                if (container) container.removeEventListener('scroll', this.onScroll);
+                if (container) container.removeEventListener('scroll', this.scheduleUpdate);
             },
 
             methods: {
@@ -221,7 +213,7 @@
 
                             this.$nextTick(() => {
                                 const container = this.$refs.swiperContainer;
-                                if (container) container.addEventListener('scroll', this.onScroll, { passive: true });
+                                if (container) container.addEventListener('scroll', this.scheduleUpdate, { passive: true });
                                 this.updateScrollState();
                             });
                         }).catch(error => {
@@ -240,7 +232,7 @@
                     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 },
 
-                onScroll() {
+                scheduleUpdate() {
                     if (this.scrollFrame) return;
 
                     this.scrollFrame = requestAnimationFrame(() => {

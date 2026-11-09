@@ -1,7 +1,7 @@
-@props(['count' => 4, 'navigationLink' => false])
+@props(['count' => 4])
 
 {{-- Mirrors the sizing in components/categories/carousel so the section does not shift on load. --}}
-<section class="uf-cat-section w-full px-3 py-5 md:px-10 md:py-10 xl:py-14" {{ $attributes }}>
+<section class="w-full px-3 py-5 md:px-10 md:py-10 xl:py-14" {{ $attributes }}>
     <div class="mx-auto max-w-[1120px] overflow-hidden [container-type:inline-size]">
         <div class="flex w-max min-w-full gap-2 lg:gap-4">
             @for ($i = 0; $i < $count; $i++)
