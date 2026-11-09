@@ -135,4 +135,24 @@
             </label>
         @endforeach
     </div>
+
+    <label
+        for="card_subtitle"
+        class="mt-5 block font-medium text-gray-800 dark:text-white"
+    >
+        Card Subtitle
+    </label>
+
+    <p class="mb-2 text-xs text-gray-500 dark:text-gray-400">
+        Short line shown under the category name on the homepage card. Keep it under 40 characters so it fits on small cards.
+    </p>
+
+    <input
+        type="text"
+        id="card_subtitle"
+        name="card_subtitle"
+        value="{{ $currentCardSubtitle ?? '' }}"
+        maxlength="60"
+        class="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-800 dark:border-gray-800 dark:bg-gray-900 dark:text-white"
+    />
 </div>
