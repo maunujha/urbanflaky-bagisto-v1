@@ -235,8 +235,8 @@
                 @if (isset($cmsPages['privacy-policy']))
                     <a href="{{ url('privacy-policy') }}">Privacy</a>
                 @endif
-                @if (isset($cmsPages['terms-conditions']))
-                    <a href="{{ url('terms-conditions') }}">Terms</a>
+                @if (isset($cmsPages['terms-and-conditions']))
+                    <a href="{{ url('terms-and-conditions') }}">Terms</a>
                 @endif
                 <a href="{{ url('sitemap.xml') }}">Sitemap</a>
                 @if (\App\Support\CookieConsent::enabled())

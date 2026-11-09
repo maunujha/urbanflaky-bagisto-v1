@@ -74,11 +74,11 @@ function secFakeGoogle(array $overrides = [], int $status = 200): void
         'hostname' => 'urbanflaky.in',
     ], $overrides), $status];
 
-    if (! empty($GLOBALS['uf_google_faked'][spl_object_id(app())])) {
+    if (app()->bound('uf.google.faked')) {
         return;
     }
 
-    $GLOBALS['uf_google_faked'][spl_object_id(app())] = true;
+    app()->instance('uf.google.faked', true);
 
     Http::preventStrayRequests();
 
